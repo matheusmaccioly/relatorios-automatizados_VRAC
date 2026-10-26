@@ -1,0 +1,10 @@
+# Referência de configuração pública. Este arquivo NÃO é carregado pela aplicação.
+# Configure somente as duas variáveis abaixo na sessão do operador:
+# VRAC_ENVIRONMENT = development | test | production
+# VRAC_DATA_MODE = synthetic | real
+# Valores inválidos bloqueiam a tela. Modo real está sempre bloqueado na fase 0.
+environment = "development"
+data_mode = "synthetic"
+
+# Não incluir credenciais, servidor, banco, identidades ou nomes físicos aqui.
+# Segredos futuros deverão ficar fora do workspace, em mecanismo aprovado pela DSI.

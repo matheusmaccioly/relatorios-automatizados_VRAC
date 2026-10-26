@@ -1,0 +1,18 @@
+# Somente variaveis de processo e caminhos locais; nao carrega .env ou credenciais.
+$VracProjectRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+$VracUv = Join-Path $VracProjectRoot '.tools\uv\uv.exe'
+$VracPython = Join-Path $VracProjectRoot '.venv\Scripts\python.exe'
+$env:UV_CACHE_DIR = Join-Path $VracProjectRoot '.cache\uv'
+$env:UV_PYTHON_INSTALL_DIR = Join-Path $VracProjectRoot '.tools\python'
+$env:UV_PYTHON_BIN_DIR = Join-Path $VracProjectRoot '.tools\bin'
+$env:UV_PYTHON_CACHE_DIR = Join-Path $VracProjectRoot '.cache\python'
+$env:UV_CREDENTIALS_DIR = Join-Path $VracProjectRoot '.cache\uv-credentials'
+$env:UV_PROJECT_ENVIRONMENT = Join-Path $VracProjectRoot '.venv'
+$env:UV_NO_CONFIG = '1'
+$env:UV_NO_ENV_FILE = '1'
+$env:UV_PYTHON_NO_REGISTRY = '1'
+$env:UV_PYTHON_INSTALL_REGISTRY = '0'
+$env:UV_PYTHON_INSTALL_BIN = '0'
+$env:UV_PYTHON_PREFERENCE = 'only-managed'
+$env:MPLCONFIGDIR = Join-Path $VracProjectRoot '.cache\matplotlib'
+$env:STREAMLIT_BROWSER_GATHER_USAGE_STATS = 'false'
