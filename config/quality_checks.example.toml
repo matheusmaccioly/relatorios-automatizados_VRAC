@@ -1,0 +1,30 @@
+# MODELO DOCUMENTAL DESABILITADO. A CLI da fase 1 NÃO lê este arquivo,
+# não substitui tokens SQL e não executa estas verificações.
+# Objetos/filtros reais e aprovações ficam em material privado externo.
+
+[quality]
+enabled = false
+objects_approved = false
+filters_approved = false
+budget_approved = false
+approval_reference = ""
+# Zero e texto vazio significam pendentes; não são limites de execução válidos.
+query_timeout_seconds = 0
+max_groups = 0
+department = ""
+period = ""
+
+[[checks]]
+id = "duplicate_key_distribution"
+enabled = false
+template = "sql/quality/duplicate_keys.sql.template"
+
+[[checks]]
+id = "missing_required_value"
+enabled = false
+template = "sql/quality/missing_values.sql.template"
+
+[[checks]]
+id = "observed_relationship_cardinality"
+enabled = false
+template = "sql/quality/relationship_cardinality.sql.template"

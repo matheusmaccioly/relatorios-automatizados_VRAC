@@ -1,12 +1,12 @@
 # Plano de desenvolvimento
 
-Atualizado em 26/10/2026. O [guia original](../Guia_Desenvolvimento_VRAC_Codex.md) define as fases; este documento organiza entregas, responsáveis e critérios de passagem. A solicitação atual abrange o planejamento e a fase 0. As demais fases ficam planejadas e não iniciadas.
+Atualizado em 27/10/2026. O [guia original](../Guia_Desenvolvimento_VRAC_Codex.md) define as fases; este documento organiza entregas, responsáveis e critérios de passagem. A fase 0 está preparada e a solicitação atual autoriza a implementação técnica do Prompt 1. A integração institucional continua pendente; fases 2–7 permanecem planejadas e não iniciadas.
 
 Não há prazo fechado: acesso, fontes, regras e infraestrutura ainda dependem de validação. O esforço técnico deve ser registrado separadamente da espera por decisões institucionais. Nenhuma passagem de fase ou publicação é automática.
 
 ## Fase 0 — fundação e demonstração
 
-**Estado:** fundação técnica concluída e verificada em Windows x64. Instalação local, lock e estilo aprovados; 20 testes offline passaram. Evidências e limites em [STATUS.md](STATUS.md). **Responsável técnico:** Matheus, com apoio do Codex no código e nos testes offline. As fases seguintes permanecem não iniciadas.
+**Estado:** fundação técnica concluída e verificada em Windows x64. Instalação local, lock e estilo aprovados; 20 testes offline passaram na fase 0. Evidências e verificações atuais em [STATUS.md](STATUS.md). **Responsável técnico:** Matheus, com apoio do Codex no código e nos testes offline. A fase 1 foi iniciada nesta solicitação; as fases 2–7 permanecem não iniciadas.
 
 | Entrega | Critério de aceite |
 |---|---|
@@ -21,11 +21,19 @@ Não há prazo fechado: acesso, fontes, regras e infraestrutura ainda dependem d
 
 Antes do encerramento, registrar comandos de instalação, execução e validação, testes que passaram ou falharam, limitações e arquivos alterados. Não declarar instalação ou testes aprovados por mera existência dos arquivos.
 
+## Fase 1 — preparação técnica e execução pelo operador
+
+As ferramentas manuais de configuração, conexão, diagnóstico e inventário estão implementadas. Consultas fixas usam parâmetros vinculados, limites por schema e timeouts. SQL Server permanece hipótese; o operador deve confirmar SGBD e escopo. Saídas privadas ficam fora do workspace e mensagens de erro são sanitizadas.
+
+O [roteiro de descoberta](DATABASE_DISCOVERY.md) contém comandos, revisão de privilégios e interpretação das limitações. O [dicionário sanitizado](SANITIZED_DATA_DICTIONARY.md) define o material autorizado esperado antes da fase 2. Consultas de qualidade/cardinalidade são apenas templates e não podem ser executadas pela CLI.
+
+**Conexão e inventário institucionais: NÃO VALIDADOS.** A preparação de código não satisfaz o critério humano de passagem da fase 1. O operador deve executar os comandos em ambiente autorizado, o DBA confirmar escopos e privilégios de leitura e Matheus liberar somente material sanitizado. Nenhum resultado real foi inventado.
+
 ## Backlog das próximas fases
 
 | Fase e estado | Próximo incremento executável | Evidência necessária para avançar | Validação |
 |---|---|---|---|
-| 1 — não iniciada | Confirmar SGBD; preparar conexão, diagnóstico manual e inventário limitado às fontes autorizadas; testar erros com mocks | Matheus registra conexão no ambiente autorizado; DBA confirma conta de leitura e objetos permitidos; material sanitizado aprovado fica disponível | Matheus + DBA; DSI para rede/TLS |
+| 1 — ferramentas preparadas; validação institucional pendente | Adaptador condicional opcional, CLI manual, inventário restrito e testes offline implementados; confirmar SGBD e executar diagnóstico fora da sessão do agente | Matheus registra conexão no ambiente autorizado; DBA confirma conta de leitura e objetos permitidos; material sanitizado aprovado fica disponível | Matheus + DBA; DSI para rede/TLS |
 | 2 — não iniciada | Formalizar primeiro a composição docente em catálogo, contratos lógicos, mapeamento e casos sintéticos; registrar fórmulas e granularidade | Definição, fonte, recorte temporal, chaves e exemplo de referência aprovados; pendências bloqueiam apenas o resultado afetado | Talita + responsável pelas fontes/DBA + Matheus |
 | 3 — não iniciada | Entregar composição docente de ponta a ponta: filtros, consulta parametrizada revisada, cálculo separado da interface, tabela, gráfico, metadados e exportação inicial | Testes de duplicidade, vazio e mudança de filtros; conciliação com caso de mesmo recorte e data; demonstração e feedback registrados | Matheus + Talita |
 | 4a — não iniciada | Implementar matrículas por curso/período, com definição validada de matrícula/aluno, ausências e equivalências vigentes | Série conciliada; base zero sem percentual; cursos renomeados e períodos ausentes cobertos por testes | Talita + responsável pelas fontes + Matheus |

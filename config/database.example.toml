@@ -1,0 +1,31 @@
+# EXEMPLO SEM VALORES REAIS. Não preencher nem executar este arquivo no workspace.
+# Matheus deve criar sua cópia fora do repositório e da sessão do agente,
+# em diretório privado aprovado pela DSI. Consulte docs/DATABASE_DISCOVERY.md.
+
+[database]
+# SQL Server é hipótese. Alterar a confirmação somente após confirmação humana.
+dbms = "mssql"
+sqlserver_confirmed = false
+# Confirmação documental do banco/schemas e da execução permitida pelo DBA.
+# Esta flag NÃO concede nem comprova privilégios somente leitura.
+scope_approved = false
+server = ""
+# 0 é propositalmente inválido: obter a porta autorizada, sem presumir uma padrão.
+port = 0
+database = ""
+# Lista fechada de schemas autorizados: de 1 a 8, sem descoberta automática.
+schemas = []
+# Nome exato do driver instalado e aprovado pela DSI; não presumir versão.
+driver = ""
+# Preencher com "windows" ou "sql_password", conforme autorização institucional.
+auth_mode = ""
+connect_timeout_seconds = 10
+query_timeout_seconds = 30
+# Limite por consulta de metadados: padrão 1000, máximo 5000.
+metadata_row_limit = 1000
+
+[credentials]
+# Somente na cópia externa privada e somente se auth_mode = "sql_password".
+# Em modo windows, manter ambos vazios. Nunca colocar valores reais no chat.
+username = ""
+password = ""

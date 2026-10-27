@@ -14,16 +14,25 @@ dependencies = [
     "matplotlib>=3.10,<4",
 ]
 
+[project.optional-dependencies]
+sqlserver = ["SQLAlchemy>=2.0,<3", "pyodbc>=5.3,<6"]
+
+[project.scripts]
+vrac-db = "vrac.db.cli:main"
+
 [dependency-groups]
 dev = ["pytest>=9.1.1,<10", "ruff>=0.17.2,<0.18"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/vrac"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"sql" = "vrac/sql"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra --strict-markers -m 'not integration'"
-markers = ["integration: execução institucional explícita pelo desenvolvedor (não implementada)"]
+markers = ["integration: prova institucional somente pelo operador, fora da sessão do agente"]
 
 [tool.ruff]
 target-version = "py312"

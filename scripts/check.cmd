@@ -34,7 +34,7 @@ if exist "%VRAC_UV%" (
 if errorlevel 1 exit /b 1
 "%VRAC_PYTHON%" -m ruff format --check .
 if errorlevel 1 exit /b 1
-"%VRAC_PYTHON%" -m pytest
+"%VRAC_PYTHON%" -m pytest -m "not integration"
 if errorlevel 1 exit /b 1
 echo Verificacoes offline concluidas.
 exit /b 0

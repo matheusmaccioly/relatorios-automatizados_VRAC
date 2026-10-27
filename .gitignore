@@ -21,6 +21,11 @@ dist/
 secrets.toml
 *.secrets.toml
 *.local.toml
+database.toml
+dbconfig.toml
+vrac-discovery-private/
+discovery-private/
+*.discovery.json
 *.pem
 *.key
 *.pfx

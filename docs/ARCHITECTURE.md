@@ -1,6 +1,6 @@
 # Arquitetura inicial
 
-Atualizado em 26/10/2026. Escopo técnico: fase 0, desenvolvimento local com dados sintéticos. O desenho segue o [contexto](PROJECT_CONTEXT.md) e o [plano](PLAN.md).
+Atualizado em 27/10/2026. Escopo técnico: demonstração sintética da fase 0 e ferramentas manuais da fase 1, sem conexão institucional validada. O desenho segue o [contexto](PROJECT_CONTEXT.md) e o [plano](PLAN.md).
 
 ## Organização
 
@@ -27,7 +27,7 @@ O setup fixa Python 3.12.15 e uv 0.13.5, com dependências e ferramentas de dese
 
 A instalação inicial exige acesso às fontes públicas de ferramentas e pacotes. Após instaladas as dependências, a suíte sintética deve executar sem banco ou internet. Os comandos efetivamente verificados ficam no README e no registro de estado da entrega.
 
-Python do servidor, sistema operacional, driver ODBC e método de autenticação do banco dependem da DSI. O setup Windows de desenvolvimento não comprova compatibilidade de implantação. SQLAlchemy e pyodbc serão acrescentados na fase 1 caso SQL Server seja confirmado. Biblioteca XLSX será adicionada quando a exportação correspondente for implementada.
+Python do servidor, sistema operacional, driver ODBC e método de autenticação do banco dependem da DSI. O setup Windows de desenvolvimento não comprova compatibilidade de implantação. SQLAlchemy e pyodbc são dependências do extra opcional `sqlserver`, preparado na fase 1. Sua instalação não confirma o SGBD: criação do engine exige confirmação e escopo aprovados. Biblioteca XLSX será adicionada quando a exportação correspondente for implementada.
 
 ## Fluxo da fase 0
 
@@ -44,6 +44,16 @@ Não há conexão automática, login fictício liberando dados reais, SQL arbitr
 A fixture utiliza identificadores e rótulos artificiais; permite exercitar repetição de docentes, diferentes vínculos, períodos sem dados e alocações compartilhadas. Números e chaves da fixture não representam tabelas ou regras da PUC-Rio. A demonstração não calcula indicadores institucionais nem concilia resultados reais.
 
 Resultados futuros manterão filtros efetivos junto aos dados; alterar a seleção da tela não poderá apresentar um resultado antigo como recalculado. Dados ausentes, nulos, zeros e falhas terão significados distintos. Extração e atualização da origem serão datas separadas. Exportações e verificações futuras carregarão os mesmos filtros, versões e avisos da execução exibida.
+
+## Descoberta manual — fase 1
+
+O pacote `src/vrac/db/` é separado da UI e de sua autorização. `config.py` valida a cópia externa privada; `connection.py` prepara SQLAlchemy/pyodbc sem conexão durante importação; `errors.py` classifica falhas com mensagens fixas. `diagnostic.py` prova `SELECT 1`; `inventory.py` executa somente o catálogo revisado em `sql/catalog/`. `cli.py` exige execução explícita, registra identificador/datas e usa `private_io.py` para proteger a saída antes de tocar o banco.
+
+A configuração define um endpoint, uma porta, um banco, autenticação, driver e de um a oito schemas; nenhum desses valores é descoberto por varredura. TLS é fixo, há timeout de login e de consulta antes das instruções iniciais do dialeto, e o pool da SQLAlchemy/pyodbc é desativado para descartar conexões ao encerrar o comando. Logs privados do engine/pool não devem expor exceções brutas.
+
+São até quatro consultas de catálogo por schema, com parâmetros vinculados, limite de saída e truncamento explícito. SQLAlchemy pode executar instruções internas de inicialização do dialeto além desse catálogo. Visibilidade permanece desconhecida; uma consulta sem linhas não demonstra inexistência. Chaves e relações podem estar incompletas, inclusive quando o limite interromper uma chave composta.
+
+Os SQL revisados também são incluídos no wheel por `force-include`, para leitura da mesma lista fechada de consultas fora do checkout. `sql/quality/` contém somente templates não executáveis; não há renderizador nem comando que os rode. O [roteiro operacional](DATABASE_DISCOVERY.md) descreve validação do DBA e os materiais sanitizados para a fase 2.
 
 ## Limites entre ambientes
 

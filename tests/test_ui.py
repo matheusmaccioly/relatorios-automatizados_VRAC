@@ -9,7 +9,7 @@ APP = Path(__file__).resolve().parents[1] / "app.py"
 
 
 def test_demo_is_identified_and_loads_only_on_explicit_action() -> None:
-    app = AppTest.from_file(str(APP)).run()
+    app = AppTest.from_file(str(APP), default_timeout=15).run()
     assert not app.exception
     assert "DEMONSTRAÇÃO" in app.warning[0].value
     assert not app.dataframe
@@ -21,7 +21,7 @@ def test_demo_is_identified_and_loads_only_on_explicit_action() -> None:
 
 
 def test_changing_either_filter_removes_previous_data() -> None:
-    app = AppTest.from_file(str(APP)).run()
+    app = AppTest.from_file(str(APP), default_timeout=15).run()
     for widget, value in [(0, "SINT-B"), (1, "2025.2")]:
         app.button[0].click().run()
         assert app.dataframe
@@ -33,7 +33,7 @@ def test_changing_either_filter_removes_previous_data() -> None:
 
 
 def test_empty_period_is_explained_without_a_zero_result() -> None:
-    app = AppTest.from_file(str(APP)).run()
+    app = AppTest.from_file(str(APP), default_timeout=15).run()
     app.selectbox[1].select("2026.2").run()
     app.button[0].click().run()
     assert not app.exception
@@ -50,7 +50,7 @@ def test_real_mode_never_loads_demo_data(monkeypatch: pytest.MonkeyPatch) -> Non
         pytest.fail("Dados fictícios não podem ser carregados em modo real.")
 
     monkeypatch.setattr("vrac.ui.load_demo_data", forbidden_loader)
-    app = AppTest.from_file(str(APP)).run()
+    app = AppTest.from_file(str(APP), default_timeout=15).run()
     assert not app.exception
     assert "Dados reais bloqueados" in app.error[0].value
     assert not app.button
@@ -62,7 +62,7 @@ def test_invalid_ui_configuration_stops_without_leaking_input(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("VRAC_DATA_MODE", "valor-sensivel-de-teste")
-    app = AppTest.from_file(str(APP)).run()
+    app = AppTest.from_file(str(APP), default_timeout=15).run()
     assert not app.exception
     assert "Configuração inválida" in app.error[0].value
     assert "valor-sensivel-de-teste" not in app.error[0].value

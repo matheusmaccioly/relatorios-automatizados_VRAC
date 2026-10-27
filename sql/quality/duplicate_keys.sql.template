@@ -1,0 +1,25 @@
+-- MODELO DESABILITADO. Não é uma consulta executável da aplicação.
+-- Tokens representam nomes lógicos, sem correspondência física confirmada.
+-- Revisar uma única chave e o recorte; chaves compostas exigem revisão própria.
+-- Parâmetros vinculados: :department, :period, :max_groups (inteiro positivo).
+-- Resultado agregado: nenhuma chave individual é devolvida.
+-- Saída vazia não distingue recorte vazio de ausência de repetições; conferir
+-- junto da contagem de linhas do mesmo recorte, em verificação aprovada.
+-- TOP limita a saída, não o trabalho de leitura/agrupamento. Exige orçamento
+-- e timeout aprovados pelo DBA; não executar automaticamente nem renderizar tokens.
+WITH scoped_key_counts AS (
+    SELECT
+        COUNT_BIG(*) AS records_per_key
+    FROM {{APPROVED_SOURCE}}
+    WHERE {{APPROVED_DEPARTMENT_COLUMN}} = :department
+      AND {{APPROVED_PERIOD_COLUMN}} = :period
+      AND {{APPROVED_ENTITY_KEY}} IS NOT NULL
+    GROUP BY {{APPROVED_ENTITY_KEY}}
+)
+SELECT TOP (:max_groups)
+    records_per_key AS registros_por_chave,
+    COUNT_BIG(*) AS quantidade_de_chaves
+FROM scoped_key_counts
+WHERE records_per_key > 1
+GROUP BY records_per_key
+ORDER BY records_per_key DESC;

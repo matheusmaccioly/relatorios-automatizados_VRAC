@@ -4,6 +4,15 @@ for %%I in ("%~dp0..") do set "VRAC_PROJECT_ROOT=%%~fI"
 cd /d "%VRAC_PROJECT_ROOT%"
 if errorlevel 1 exit /b 1
 
+set "VRAC_SYNC_EXTRA="
+if "%~1"=="--sqlserver" (
+    set "VRAC_SYNC_EXTRA=--extra sqlserver"
+) else if not "%~1"=="" (
+    echo Argumento invalido. Use bootstrap.cmd ou bootstrap.cmd --sqlserver.
+    exit /b 1
+)
+if not "%~2"=="" exit /b 1
+
 set "VRAC_UV_VERSION=0.13.5"
 set "VRAC_UV=%VRAC_PROJECT_ROOT%\.tools\uv\uv.exe"
 set "UV_CACHE_DIR=%VRAC_PROJECT_ROOT%\.cache\uv"
@@ -50,7 +59,7 @@ set "VRAC_PYTHON_VERSION="
 set /p VRAC_PYTHON_VERSION=<".python-version"
 "%VRAC_UV%" python install "%VRAC_PYTHON_VERSION%"
 if errorlevel 1 exit /b 1
-"%VRAC_UV%" sync --locked
+"%VRAC_UV%" sync --locked %VRAC_SYNC_EXTRA%
 if errorlevel 1 exit /b 1
 echo Ambiente preparado. Execute scripts\check.cmd e scripts\run-demo.cmd.
 exit /b 0

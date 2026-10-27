@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param()
+param([switch]$SqlServer)
 
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
@@ -62,7 +62,12 @@ try {
     }
     & $VracUv python install $pythonVersion
     if ($LASTEXITCODE -ne 0) { throw 'Falha ao preparar o Python local.' }
-    & $VracUv sync --locked
+    if ($SqlServer) {
+        & $VracUv sync --locked --extra sqlserver
+    }
+    else {
+        & $VracUv sync --locked
+    }
     if ($LASTEXITCODE -ne 0) { throw 'Falha ao instalar as dependencias do lock.' }
     Write-Host 'Ambiente preparado. Execute .\scripts\check.ps1 e .\scripts\run-demo.ps1.'
 }

@@ -1,0 +1,27 @@
+-- MODELO DESABILITADO. Não é uma consulta executável da aplicação.
+-- Examina apenas duas chaves presentes em UMA fonte aprovada, sem inventar joins.
+-- Chaves compostas ou relações entre fontes exigem outra consulta revisada.
+-- Parâmetros vinculados: :department, :period, :max_groups (inteiro positivo).
+-- COUNT DISTINCT não conta filhos NULL; ausência deve ser examinada separadamente.
+-- Cardinalidade observada no recorte NÃO comprova uma chave ou FK declarada.
+-- Saída vazia não distingue recorte vazio de ausência de chaves não nulas;
+-- conferir junto da contagem e dos nulos do mesmo recorte aprovado.
+-- TOP limita a saída, não o trabalho de leitura/agrupamento. Exige orçamento
+-- e timeout aprovados; nenhuma chave individual é devolvida no resultado.
+WITH scoped_relationships AS (
+    SELECT
+        COUNT(DISTINCT {{APPROVED_CHILD_KEY}}) AS children_per_parent,
+        COUNT_BIG(*) AS record_count
+    FROM {{APPROVED_SOURCE}}
+    WHERE {{APPROVED_DEPARTMENT_COLUMN}} = :department
+      AND {{APPROVED_PERIOD_COLUMN}} = :period
+      AND {{APPROVED_PARENT_KEY}} IS NOT NULL
+    GROUP BY {{APPROVED_PARENT_KEY}}
+)
+SELECT TOP (:max_groups)
+    children_per_parent AS filhos_distintos_por_chave,
+    COUNT_BIG(*) AS quantidade_de_chaves,
+    SUM(record_count) AS registros_no_grupo
+FROM scoped_relationships
+GROUP BY children_per_parent
+ORDER BY children_per_parent DESC;

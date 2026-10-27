@@ -18,7 +18,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'A verificacao de estilo encontrou problemas.' }
     & $VracPython -m ruff format --check .
     if ($LASTEXITCODE -ne 0) { throw 'A verificacao de formatacao encontrou problemas.' }
-    & $VracPython -m pytest
+    & $VracPython -m pytest -m 'not integration'
     if ($LASTEXITCODE -ne 0) { throw 'A suite de testes falhou.' }
     Write-Host 'Verificacoes offline concluidas.'
 }

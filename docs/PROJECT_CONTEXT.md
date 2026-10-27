@@ -1,6 +1,6 @@
 # Contexto do projeto VRAC
 
-Atualizado em 26/10/2026. Fonte: [Guia de desenvolvimento](../Guia_Desenvolvimento_VRAC_Codex.md). As instruções permanentes estão em [AGENTS.md](../AGENTS.md).
+Atualizado em 27/10/2026. Fonte: [Guia de desenvolvimento](../Guia_Desenvolvimento_VRAC_Codex.md). As instruções permanentes estão em [AGENTS.md](../AGENTS.md).
 
 ## Objetivo e usuária
 
@@ -10,7 +10,7 @@ O aplicativo será interno, sem LLM, chatbot, agentes em execução, geração d
 
 ## Escopo autorizado nesta entrega
 
-Planejamento do projeto e fase 0: estrutura, ambiente reproduzível, configuração explícita, dados sintéticos determinísticos, demonstração local, proteção de acesso real e testes offline. Não implementar cálculos institucionais, conexão real ou publicação nesta fase. A conclusão técnica depende das verificações efetivamente executadas pelo responsável pelo setup; não representa aceite institucional.
+A fase 0 está preparada. A solicitação atual autoriza somente o Prompt 1: preparar configuração externa, conexão condicional, diagnóstico manual, inventário delimitado, modelos de qualidade desabilitados e testes com mocks. As ferramentas serão executadas pelo desenvolvedor autorizado fora da sessão do agente. Não houve conexão real, inventário institucional ou aceite humano nesta entrega; as fases 2–7 permanecem não iniciadas.
 
 As próximas entregas, mediante solicitação de cada fase, priorizam composição docente, depois matrículas e carga horária. Verificações adicionais serão determinísticas e terão catálogo fechado, limites e aprovação quando exigida.
 
@@ -23,7 +23,7 @@ Não desenvolver análise financeira, curva guia, relatório institucional final
 | Item | Situação | Consequência |
 |---|---|---|
 | Guia e instruções do projeto | Disponíveis neste repositório | Orientam esta fase |
-| SGBD | SQL Server é hipótese | Confirmar antes de escolher o adaptador real |
+| SGBD | SQL Server é hipótese | Adaptador opcional preparado, condicionado à confirmação humana e à aprovação do escopo |
 | Conectividade, credenciais e permissões | Não validadas nesta sessão | Nenhuma consulta real será executada pelo agente |
 | Tabelas, colunas, chaves e fontes autorizadas | Não fornecidas em material sanitizado aprovado | Nenhum nome físico será inventado |
 | Fórmulas e casos de referência | Não aprovados | Dados sintéticos não validam regras institucionais |

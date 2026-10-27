@@ -12,9 +12,12 @@ Registro iniciado em 26/10/2026. “Adotada para a fundação” descreve uma de
 | D-004 | Adotada para a fundação | Demonstração sintética é o padrão; modo real é explícito e permanece bloqueado | Erros não ativam fixture silenciosamente; não há conexão institucional na fase 0 |
 | D-005 | Definida no guia | Composição docente será a primeira análise completa | Matrículas e carga aguardam revisão da primeira entrega e serão incrementos separados |
 | D-006 | Definida no guia | Consultas reais executadas pelo desenvolvedor autorizado fora da sessão do agente | Somente metadados e resultados sanitizados aprovados podem voltar ao contexto do agente |
-| D-007 | Adotada para a fundação | Nenhum adaptador SQL/ODBC antes da fase 1 e da confirmação do SGBD | Não instalar dependências de banco nem fabricar conexão nesta entrega |
+| D-007 | Atualizada na fase 1 | Adaptador condicional SQL Server em extra opcional, sujeito à confirmação explícita de SGBD e escopo | Bibliotecas instaladas para testes offline não confirmam o ambiente institucional; nenhuma conexão real nesta entrega |
 | D-008 | Definida no guia | Acesso real autônomo depende de autenticação, autorização, conta técnica restrita e homologação | Credenciais recebidas pelo desenvolvedor não liberam publicação nem definem o escopo de Talita |
 | D-009 | Adotada para a fundação | Criar módulos de análises, verificações e exportações quando houver comportamento implementado | Evita abstrações vazias; suas responsabilidades já estão registradas na arquitetura |
+| D-010 | Adotada na fase 1 em 27/10/2026 | CLI manual exige `--execute` antes de ler configuração externa; cada comando usa um banco e lista fechada de schemas aprovados | Não integrar diagnóstico/inventário à tela de Talita; não presumir porta, driver ou autenticação |
+| D-011 | Adotada na fase 1 em 27/10/2026 | Pasta privada nova por execução fora do workspace, sem metadados físicos no console | Aplicar DACL de usuário no Windows ou modo 0700/0600 no POSIX antes de gravar; falha de proteção bloqueia a operação |
+| D-012 | Adotada na fase 1 em 27/10/2026 | Qualidade/cardinalidade ficam como templates agregados desabilitados | Exigir revisão de objetos, filtros e custo antes de qualquer consulta fixa futura; nenhuma geração dinâmica de SQL |
 
 ## Questões abertas
 

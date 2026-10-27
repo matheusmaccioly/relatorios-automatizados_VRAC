@@ -1,0 +1,15 @@
+-- MODELO DESABILITADO. Não é uma consulta executável da aplicação.
+-- Validar fonte, coluna cuja nulabilidade será examinada e recorte aprovado.
+-- Parâmetros vinculados: :department, :period.
+-- Sem linhas: registros_no_recorte = 0 e valores_nulos = NULL; não preencher
+-- a soma com zero nem interpretar o resultado como inexistência institucional.
+-- Consulta agregada, sem amostra individual; exige orçamento e timeout aprovados.
+SELECT
+    COUNT_BIG(*) AS registros_no_recorte,
+    SUM(CAST(
+        CASE WHEN {{APPROVED_REQUIRED_COLUMN}} IS NULL THEN 1 ELSE 0 END
+        AS bigint
+    )) AS valores_nulos
+FROM {{APPROVED_SOURCE}}
+WHERE {{APPROVED_DEPARTMENT_COLUMN}} = :department
+  AND {{APPROVED_PERIOD_COLUMN}} = :period;

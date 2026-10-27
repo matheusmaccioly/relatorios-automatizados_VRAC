@@ -1,8 +1,10 @@
 # PoC de análises acadêmicas da VRAC
 
 Fundação de uma aplicação interna para apoiar Talita na preparação de análises de
-docentes, matrículas e carga horária. **Fase 0: demonstração local exclusivamente sintética.**
-O aplicativo funciona sem LLM e sem Power BI; nenhuma conexão institucional está implementada.
+docentes, matrículas e carga horária. **Demonstração local exclusivamente sintética** e
+ferramentas manuais de diagnóstico/inventário da fase 1, com acesso real separado da tela.
+O aplicativo funciona sem LLM e sem Power BI. Conexão e inventário institucionais
+permanecem **NÃO VALIDADOS**; SQL Server é uma hipótese.
 
 O [guia original](Guia_Desenvolvimento_VRAC_Codex.md) foi preservado. As instruções
 permanentes estão em [AGENTS.md](AGENTS.md) e o plano em [docs/PLAN.md](docs/PLAN.md).
@@ -27,9 +29,33 @@ sua execução. Nenhum comando altera a política de execução ou desativa TLS.
 institucional impedir downloads ou comandos batch, solicitar a forma aprovada pela DSI.
 
 A demonstração fica em <http://127.0.0.1:8501>; `Ctrl+C` encerra o processo.
+O [roteiro da prévia](docs/PREVIEW.md) orienta a conferência da tela e explica o que mudou no Prompt 1.
 Use `SINT-A / 2026.1` para os exemplos e `2026.2` para o caso sem registros.
 Trocar um filtro remove a prévia anterior até clicar novamente em **Mostrar dados de demonstração**.
 Não existem cálculos institucionais, exportações ou login simulado nesta fase.
+
+## Diagnóstico e inventário — Prompt 1
+
+O [roteiro de descoberta](docs/DATABASE_DISCOVERY.md) descreve configuração privada externa,
+aprovações do DBA/DSI, instalação opcional e execução manual fora da sessão do agente.
+O extra prepara o adaptador condicional SQL Server; não instala driver ODBC nem confirma SGBD:
+
+```powershell
+.\scripts\bootstrap.cmd --sqlserver
+.\scripts\diagnose-db.cmd --help
+.\scripts\inventory-db.cmd --help
+.\scripts\check.cmd
+```
+
+Sem `--execute`, os comandos não leem configuração nem abrem conexão. Configuração exige
+arquivo `dbconfig.toml` absoluto, fora do workspace, e confirmações explícitas de SGBD e
+escopo. Saídas ficam em uma nova pasta privada por execução, também fora do workspace.
+Não inserir credenciais nos exemplos versionados, no chat ou em argumentos de comando.
+
+O inventário usa consultas fixas de metadados, por schema, com limites e avisos de cobertura.
+As consultas de qualidade/cardinalidade permanecem como templates desabilitados. Matheus
+deve fornecer somente o [dicionário sanitizado autorizado](docs/SANITIZED_DATA_DICTIONARY.md)
+para a fase seguinte. A demonstração continua negando acesso a dados reais.
 
 ## Configuração e limites
 
@@ -56,8 +82,8 @@ em [docs/DSI_REQUESTS.md](docs/DSI_REQUESTS.md).
 ## Desenvolvimento e continuidade
 
 O pacote em `src/vrac/` separa configuração, autorização, dados fictícios e interface.
-As camadas de SQL, cálculos, verificações, gráficos e exportação serão adicionadas
-nos incrementos correspondentes, sem gerar implementações vazias agora.
+O pacote `src/vrac/db/` contém apenas as ferramentas manuais de descoberta; cálculos,
+verificações executáveis, gráficos e exportação serão adicionados nos incrementos correspondentes.
 
 ```powershell
 .\.venv\Scripts\ruff.exe check .
