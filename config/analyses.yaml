@@ -1,0 +1,440 @@
+# Catálogo lógico baseado em evidência documental; sem aprovação institucional.
+catalog_version: phase2-semantic-baseline-v3
+documentary_evidence:
+- id: semantic_models_documentation_2026_10_27
+  reference: docs/ANALISE_MODELOS_SEMANTICOS_VRAC.md (referência interna local, excluída do Git)
+  kind: semantic_model_documentation
+  summary: 'Documento detalhado fornecido por Matheus: modelos A (pessoal/docentes) e B (alunos) fundamentam
+    as variantes acadêmicas. Modelo C (projetos/financeiro) fora do escopo. Contagens de metadados não
+    são resultados acadêmicos.'
+  detailed_document_available: true
+  limitations:
+  - Nomes e tipos pertencem ao modelo semântico; não comprovam objetos SQL, chaves únicas ou unidade de
+    horas.
+  - Power Query/M e conexões não inspecionados; nenhuma execução DAX, consulta real, conciliação ou teste
+    de RLS foi realizado.
+  - Regras implementadas nos PBIX não equivalem a aprovação institucional; todas as decisões continuam
+    pendentes.
+  - Cardinalidade, filtros bidirecionais, relações inativas e tabelas calculadas exigem revisão por indicador.
+  - Mapeamento detalhado local em config/semantic_model_sources.local.yaml; não é carregado pelo aplicativo
+    nem incluído no pacote.
+  - Documento interno e mapeamento local não têm publicação autorizada; não copiar literais pessoais ou
+    permissões mascaradas.
+analyses:
+- id: composicao_docente
+  priority: 1
+  question: Quantos docentes distintos compõem o departamento e como se distribuem por vínculo?
+  population: Pessoas docentes e matrículas funcionais são populações distintas; variantes documentadas
+    no modelo A, ainda sem escolha institucional.
+  granularity: Pessoa, matrícula funcional, competência e lote de folha; unicidade da composição completa
+    precisa ser confirmada.
+  units:
+  - docentes_distintos
+  - matriculas_funcionais_distintas
+  logical_sources:
+  - docente
+  - vinculo_docente
+  - departamento_vinculo
+  - referencia_temporal_docente
+  - historico_funcional
+  - historico_funcional_unidade_rls
+  documentary_references:
+  - semantic_models_documentation_2026_10_27
+  physical_source_reference: null
+  logical_keys:
+  - docente_id
+  - vinculo_id
+  - referencia_temporal
+  parameters:
+  - departamento_vinculo_id
+  - periodo
+  - base_temporal
+  - data_foto_quando_aplicavel
+  - unidade_pessoa_ou_matricula_funcional
+  - variante_semantica_aprovada
+  filters:
+  - Escopo departamental autorizado
+  - Vigência, situação e afastamentos a aprovar
+  formula: 'Não há uma única contagem intercambiável: as variantes documentadas contam pessoas no contexto
+    ou matrículas funcionais na última referência por vínculo ou no último mês global. Definir chave de
+    pessoa opaca, situação, lotes, afastamentos e categorias antes do cálculo. Não somar meses nem categorias
+    sobrepostas.'
+  exceptions:
+  - Não deduplicar por nome nem eliminar vínculos arbitrariamente.
+  - Afastamentos e movimentações dependem de vigência e situação oficiais.
+  - Data de cargo não comprova contratação ou desligamento.
+  - Período parcial deve permanecer sinalizado.
+  - Separar tabelas físicas, calculadas e automáticas de data ao revisar a granularidade; não contar estruturas
+    do modelo como docentes.
+  - Reconstituir relacionamentos e propagação de filtros antes de comparar uma contagem com o PBIX; RLS
+    não migra automaticamente para a aplicação.
+  - Calendário docente documentado inclui julho no primeiro semestre; não converter automaticamente por
+    janeiro–junho.
+  - Histórico de carga tem regra de mês distinta; código e comentário divergem. Validar domínio antes
+    de transportar calendário.
+  - Departamento atual do vínculo, histórico da folha e unidade calculada de RLS não são recortes equivalentes.
+  period_definition: Datas e completude explícitas; calendário e base temporal dependem da fonte e de
+    Talita.
+  owner_role: Talita e responsável pela fonte docente
+  rule_version: faculty-draft-v3
+  comparison_policy: 'Contagens inteiras devem coincidir: tolerância absoluta e relativa zero, no mesmo
+    recorte/regra/referência temporal.'
+  validation_status: pending
+  decisions:
+  - id: faculty_source
+    area: source
+    question: Qual modelo, objeto, coluna e transformação documentados correspondem a pessoa, vínculo,
+      vigência e situação? Confirmar a origem física com o DBA.
+    owner_role: Responsável pelos dados/DBA
+    status: pending
+    reviewed_on: null
+    evidence_reference: null
+  - id: faculty_grain
+    area: granularity
+    question: Pessoas ou matrículas funcionais? Contexto selecionado, última referência por vínculo ou
+      último mês global? Aprovar calendário, inclusive julho, e desempates.
+    owner_role: Talita e responsável pelos dados
+    status: pending
+    reviewed_on: null
+    evidence_reference: null
+  - id: faculty_formula
+    area: calculation
+    question: Como tratar múltiplos vínculos, categorias sobrepostas, afastamentos e duplicidade?
+    owner_role: Talita e responsável pelos dados
+    status: pending
+    reviewed_on: null
+    evidence_reference: null
+  - id: faculty_reference
+    area: comparison
+    question: Qual caso sanitizado de mesmo recorte, regra e data será referência exata?
+    owner_role: Talita
+    status: pending
+    reviewed_on: null
+    evidence_reference: null
+  - id: faculty_acceptance
+    area: functional
+    question: O significado do indicador e suas limitações foram aprovados por Talita?
+    owner_role: Talita
+    status: pending
+    reviewed_on: null
+    evidence_reference: null
+  selected_semantic_variant: null
+  semantic_variants:
+  - id: faculty_people_context
+    evidence_reference: semantic_models_documentation_2026_10_27
+    model: A
+    measure_references:
+    - A-M-028
+    logical_source: historico_funcional
+    unit: docentes_distintos
+    temporal_basis: contexto_selecionado
+    description: Contagem distinta da identificação de pessoa no contexto selecionado, com filtros de
+      atividade, lotes, afastamento e quadro.
+    constraints:
+    - A chave pessoal usada no legado exige substituição por identificador opaco aprovado.
+    - Validar significado e cobertura dos filtros; não presumir foto no fim do semestre.
+  - id: faculty_people_historical_unit
+    evidence_reference: semantic_models_documentation_2026_10_27
+    model: A
+    measure_references:
+    - A-M-029
+    - A-M-034
+    logical_source: historico_funcional_unidade_rls
+    unit: docentes_distintos
+    temporal_basis: contexto_selecionado
+    description: Contagem de pessoas na tabela calculada de unidade histórica usada pelo RLS; escopo difere
+      do histórico geral.
+    constraints:
+    - Tabela calculada não é view física comprovada.
+    - A autorização da aplicação exige revisão própria; não reutilizar permissões do PBIX por inferência.
+  - id: faculty_registrations_latest_each
+    evidence_reference: semantic_models_documentation_2026_10_27
+    model: A
+    measure_references:
+    - A-M-017
+    - A-M-018
+    logical_source: historico_funcional
+    unit: matriculas_funcionais_distintas
+    temporal_basis: ultima_referencia_por_identificador_no_recorte
+    description: Contagem de matrículas funcionais usando última referência por matrícula no recorte,
+      com variantes de distribuição por categoria/departamento.
+    constraints:
+    - Não equivale a pessoas distintas nem à última competência global.
+    - Remoção de filtros na busca da data e desempates textuais do legado precisam de revisão; não adotar
+      desempate arbitrário.
+  - id: faculty_registrations_latest_global
+    evidence_reference: semantic_models_documentation_2026_10_27
+    model: A
+    measure_references:
+    - A-M-027
+    logical_source: historico_funcional
+    unit: matriculas_funcionais_distintas
+    temporal_basis: ultima_referencia_global_no_recorte
+    description: Contagem de matrículas funcionais no maior ano e mês da seleção, embora o título legado
+      mencione pessoas.
+    constraints:
+    - Revisar remoção do filtro de folha e limite de mês.
+    - Não comparar com última data por matrícula como se fossem o mesmo indicador.
+- id: evolucao_matriculas
+  priority: 2
+  question: Como evolui a quantidade de matrículas ou de alunos distintos por curso e período?
+  population: Matrículas acadêmicas distintas, separando cadastro atual, situação por período, última
+    situação por matrícula e população final de trajetória. Pessoa única requer outra chave aprovada.
+  granularity: Matrícula acadêmica/período/curso ou programa; não confundir matrícula funcional, inscrição,
+    linha de componente e pessoa.
+  units:
+  - matriculas
+  - matriculas_academicas_distintas
+  - alunos_distintos
+  - percentual
+  logical_sources:
+  - matricula
+  - aluno
+  - curso
+  - programa
+  - equivalencia_curso
+  - cadastro_academico_atual
+  - historico_situacao_academica
+  - trajetoria_academica
+  documentary_references:
+  - semantic_models_documentation_2026_10_27
+  physical_source_reference: null
+  logical_keys:
+  - matricula_id_ou_chave_aprovada
+  - aluno_id_quando_necessario
+  - curso_id
+  - periodo_id
+  parameters:
+  - curso_id_ou_programa_id
+  - periodo_inicial
+  - periodo_final
+  - unidade_de_contagem
+  - variante_semantica_aprovada
+  filters:
+  - Situações e datas de matrícula a aprovar
+  - Cobertura e completude de cada período
+  formula: Para evolução histórica, a candidata documental é a contagem distinta de matrícula por situação
+    no período, com restrição de ingresso. Cadastro atual, última situação por matrícula e população final
+    de trajetória permanecem alternativas separadas. A seleção depende de aprovação. Variação absoluta
+    = atual menos anterior; percentual somente com base conhecida e não zero. Ausência não vira zero;
+    equivalência de programa não autoriza fusão de cursos.
+  exceptions:
+  - Não confundir registros de matrícula com alunos únicos.
+  - Semelhança de nomes não comprova equivalência entre cursos nem programa/curso.
+  - Mudança no meio do período exige recorte ou confirmação, sem fusão silenciosa.
+  - Base zero torna o percentual não calculável; períodos ausentes ou parciais são sinalizados.
+  - A contagem de colunas, relacionamentos ou medidas do modelo não determina alunos, matrículas ou cursos.
+  - Revisar cardinalidade, filtros e tabelas calculadas no documento detalhado antes de adotar uma medida
+    DAX como definição da série.
+  - Medidas gerais vinculadas ao calendário de bolsas não são base padrão da série; não herdar cobertura
+    de bolsas ou conversão de ausência para zero.
+  - Mapas de programa e exceções de transferência não comprovam equivalências de cursos.
+  - Trancamento, formação e transferência não serão classificados automaticamente como evasão.
+  period_definition: Série de períodos explícitos e comparáveis; vigência das equivalências cobre todo
+    o recorte utilizado.
+  owner_role: Talita e responsável pelas matrículas/cursos
+  rule_version: enrollment-draft-v3
+  comparison_policy: Contagens exatas; apresentação percentual depende de regra aprovada. Base zero nunca
+    recebe percentual numérico.
+  validation_status: pending
+  decisions:
+  - id: enrollment_source
+    area: source
+    question: Quais objetos, transformações e medidas documentados tratam matrículas, alunos, cursos e
+      programas? Confirmar fonte física e situações autorizadas.
+    owner_role: Responsável pelos dados/DBA
+    status: pending
+    reviewed_on: null
+    evidence_reference: null
+  - id: enrollment_grain
+    area: granularity
+    question: Aprovar matrícula acadêmica ou pessoa e escolher entre as quatro populações documentadas.
+      Para série, confirmar situação do período e restrição de ingresso.
+    owner_role: Talita e responsável pelos dados
+    status: pending
+    reviewed_on: null
+    evidence_reference: null
+  - id: enrollment_formula
+    area: calculation
+    question: Quais filtros, equivalências vigentes e regra de apresentação percentual são aprovados?
+    owner_role: Talita e responsável pelos dados
+    status: pending
+    reviewed_on: null
+    evidence_reference: null
+  - id: enrollment_reference
+    area: comparison
+    question: Quais séries e contagens exatas do mesmo recorte serão referência?
+    owner_role: Talita
+    status: pending
+    reviewed_on: null
+    evidence_reference: null
+  - id: enrollment_acceptance
+    area: functional
+    question: Unidade, comparabilidade e limites da série foram aprovados?
+    owner_role: Talita
+    status: pending
+    reviewed_on: null
+    evidence_reference: null
+  selected_semantic_variant: null
+  semantic_variants:
+  - id: enrollment_current_register
+    evidence_reference: semantic_models_documentation_2026_10_27
+    model: B
+    measure_references:
+    - B-M-033
+    logical_source: cadastro_academico_atual
+    unit: matriculas_academicas_distintas
+    temporal_basis: cadastro_atual
+    description: Matrículas acadêmicas distintas com situação atual de matriculado no cadastro principal.
+    constraints:
+    - Não reconstrói a situação histórica por período.
+    - Situações documentadas devem ser confirmadas pelo responsável.
+  - id: enrollment_period_history
+    evidence_reference: semantic_models_documentation_2026_10_27
+    model: B
+    measure_references:
+    - B-M-035
+    logical_source: historico_situacao_academica
+    unit: matriculas_academicas_distintas
+    temporal_basis: situacao_por_periodo
+    description: 'Candidata para a série: matrícula distinta na situação do período, restringindo ingresso
+      até o período do gráfico.'
+    constraints:
+    - Validar relacionamento com cadastro atual e conversão textual do período.
+    - Não adotar coerção de período ausente para zero.
+  - id: enrollment_latest_each
+    evidence_reference: semantic_models_documentation_2026_10_27
+    model: B
+    measure_references:
+    - B-M-049
+    logical_source: historico_situacao_academica
+    unit: matriculas_academicas_distintas
+    temporal_basis: ultima_referencia_por_identificador_no_recorte
+    description: Última situação por matrícula no contexto com aplicação explícita de coortes desconectadas.
+    constraints:
+    - Não somar períodos nem substituir pela foto global.
+    - TREATAS e seleções de coorte exigem reprodução de contexto e autorização revisadas.
+  - id: enrollment_final_trajectory
+    evidence_reference: semantic_models_documentation_2026_10_27
+    model: B
+    measure_references:
+    - B-M-127
+    - B-M-128
+    logical_source: trajetoria_academica
+    unit: matriculas_academicas_distintas
+    temporal_basis: populacao_final_trajetoria
+    description: População final reconstruída por trajetória, ingresso, habilitações e transferências,
+      filtrada por situação de matrícula.
+    constraints:
+    - Prefixo novo não comprova correção ou aprovação.
+    - Validar conjuntos, exceções, empates e mapas de programa; não copiar exceções individuais mascaradas.
+- id: carga_horaria
+  priority: 3
+  question: Quais são as Horas Reais oficiais e como se apresenta a alocação detalhada por disciplina?
+  population: 'Pendente: docentes selecionados pelo vínculo e cobertura de atuação autorizada, inclusive
+    interdepartamental.'
+  granularity: Horas Reais e alocação por turma/currículo são medidas em granularidades distintas.
+  units:
+  - horas_semanais
+  - horas_semestrais
+  logical_sources:
+  - horas_reais_oficiais
+  - alocacao_disciplina
+  - turma
+  - compartilhamento
+  - classificacao_disciplina
+  - semestre_no_contexto
+  documentary_references:
+  - semantic_models_documentation_2026_10_27
+  physical_source_reference: null
+  logical_keys:
+  - docente_id
+  - referencia_temporal
+  - turma_id
+  - curriculo_id
+  - compartilhamento_id_quando_disponivel
+  parameters:
+  - departamento_vinculo_id
+  - periodo
+  - unidade_de_horas_confirmada
+  filters:
+  - Separar departamento do vínculo e da disciplina
+  - Data de matrícula e exceções de turmas vazias a aprovar
+  formula: A medida documental soma o campo de Horas Reais da fonte dedicada no maior semestre do contexto
+    selecionado. Isso não comprova unicidade por docente/semestre, unidade semanal/semestral nem semestre
+    civil corrente. Antes de implementar, confirmar granularidade, duplicidade e fonte física oficial.
+    Manter horas contratuais e planejamento separados; não substituir o indicador por soma de disciplinas.
+  exceptions:
+  - Atuação interdepartamental depende de cobertura e autorização confirmadas.
+  - Compartilhamento sem identificador/regra fica pendente, sem dedução ou rateio.
+  - Turma com zero alunos gera conferência; não exclui horas do indicador oficial.
+  - Classificação ausente não autoriza inferir TCC/monografia nem disciplina regular.
+  - Arredondamento exige casas, modo e evidência de revisão acordados.
+  - Medidas e caminhos de filtro documentados exigem revisão e conciliação; a inspeção estática não avaliou
+    DAX nem RLS por usuário.
+  - As duas tabelas de planejamento do modelo A são distintas; há relacionamento muitos-para-muitos bidirecional
+    com horários.
+  - Objetos homônimos nos modelos A e B não comprovam fonte compartilhada nem autorização de junção.
+  - Vagas por turma calculadas sem semestre na chave podem duplicar ou colapsar períodos; não transportar
+    essa agregação.
+  period_definition: Referência temporal oficial e unidade por medida; extração e atualização separadas
+    por fonte.
+  owner_role: Talita e responsável pelas fontes de carga horária
+  rule_version: workload-draft-v3
+  comparison_policy: 'Arredondamento de horas pendente: registrar casas, modo e revisão. Não presumir
+    tolerância numérica.'
+  validation_status: pending
+  decisions:
+  - id: workload_source
+    area: source
+    question: Quais objetos e expressões documentados fornecem Horas Reais e alocação? Confirmar origem
+      oficial, transformações e cobertura interdepartamental com o responsável e o DBA.
+    owner_role: Responsável pelos dados/DBA
+    status: pending
+    reviewed_on: null
+    evidence_reference: null
+  - id: workload_grain
+    area: granularity
+    question: Confirmar unidade de Horas Reais, unicidade docente/semestre, maior semestre do contexto
+      e granularidade do planejamento sem multiplicação de linhas.
+    owner_role: Talita e responsável pelos dados
+    status: pending
+    reviewed_on: null
+    evidence_reference: null
+  - id: workload_formula
+    area: calculation
+    question: Como identificar compartilhamento, turmas vazias e classificação sem alterar a métrica oficial?
+    owner_role: Talita e responsável pelos dados
+    status: pending
+    reviewed_on: null
+    evidence_reference: null
+  - id: workload_reference
+    area: comparison
+    question: Qual referência de mesmo recorte e qual arredondamento explícito serão aprovados?
+    owner_role: Talita
+    status: pending
+    reviewed_on: null
+    evidence_reference: null
+  - id: workload_acceptance
+    area: functional
+    question: Distinção das medidas e limitações foram aprovadas por Talita?
+    owner_role: Talita
+    status: pending
+    reviewed_on: null
+    evidence_reference: null
+  selected_semantic_variant: null
+  semantic_variants:
+  - id: workload_official_context
+    evidence_reference: semantic_models_documentation_2026_10_27
+    model: A
+    measure_references:
+    - A-M-009
+    - A-M-010
+    logical_source: horas_reais_oficiais
+    unit: null
+    temporal_basis: contexto_selecionado
+    description: Soma documental de Horas Reais no maior semestre do contexto; unidade ainda não comprovada.
+    constraints:
+    - Confirmar chave docente/semestre e multiplicação de linhas antes de autorizar soma.
+    - Maior semestre no contexto não comprova semestre civil atual nem atualização da fonte.
+    - Unidade não confirmada permanece null; não converter ou emitir valores.

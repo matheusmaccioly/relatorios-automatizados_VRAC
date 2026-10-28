@@ -35,4 +35,4 @@ A documentação versionada não deve conter senhas, connection strings reais, i
 
 Para cada ID, registrar: situação (pendente, em análise ou aprovado), data, responsável, decisão e referência à evidência permitida. Todos os itens começam **pendentes**. Uma resposta não substitui as demais: conectividade não prova autorização; conta de leitura não autoriza publicar todos os dados; servidor disponível não significa segurança homologada.
 
-Consulte as [questões abertas](DECISIONS.md) e os [critérios de passagem](PLAN.md) antes de avançar.
+Consulte as [questões abertas](../DECISIONS.md) e os [critérios de passagem](../PLAN.md) antes de avançar.

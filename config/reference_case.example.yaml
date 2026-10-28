@@ -1,0 +1,27 @@
+# Estrutura documental: preencher somente com agregados sanitizados e autorizados.
+# Nenhum dado esperado ou aceite humano foi fabricado. Não é carregado pela aplicação.
+identifier: "pending_reference"
+analysis_id: "composicao_docente"
+mode: "real"
+synthetic: false
+validation_status: "pending"
+rule_version: null
+period:
+  identifier: null
+  starts_on: null
+  ends_on: null
+  complete: null
+effective_filters: []
+temporal_basis: "pendente"
+snapshot_on: null
+origins: []  # logical_source, version, extracted_at, updated_at por fonte
+expected: []  # metric, unit, value, availability, dimensions, kind
+reviewer_role: null
+reviewed_on: null
+evidence_reference: null
+comparison:
+  integer_absolute_tolerance: 0
+  integer_relative_tolerance: 0
+  hours_decimal_places: null
+  hours_rounding: null
+  hours_approval_reference: null

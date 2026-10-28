@@ -67,3 +67,7 @@ dumps/
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# Documentacao interna fornecida para revisao local; publicacao nao autorizada.
+/docs/ANALISE_MODELOS_SEMANTICOS_VRAC.md
+/config/semantic_model_sources.local.yaml

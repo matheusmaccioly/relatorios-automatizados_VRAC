@@ -1,8 +1,195 @@
 # Estado da entrega
 
-Atualizado em 27/10/2026. **Prompt 1 implementado para execução manual pelo operador.**
+Atualizado em 27/10/2026. **Prompt 2 preparado: catálogo e contratos lógicos com testes sintéticos.**
 **Conexão e inventário institucionais: NÃO VALIDADOS.** SQL Server permanece hipótese.
-Fase 0 preparada; fases 2–7 não iniciadas. O guia original e `AGENTS.md` foram preservados.
+Fontes físicas, fórmulas e aceite funcional continuam pendentes; a base documental
+semântica foi incorporada ao catálogo. Fases 3–7 não iniciadas.
+Fase 0 e ferramentas do Prompt 1 preparadas. Conteúdo do guia original preservado;
+`AGENTS.md` atualizado com a exigência de branding institucional.
+
+## Preparação do commit local — 28/10/2026
+
+A pedido de Matheus, reunidas as alterações pendentes de catálogo, contratos,
+documentação, estrutura de branding e consulta SQL de referência para commit local.
+Os arquivos internos explicitamente ignorados permanecem fora do versionamento.
+Nenhuma consulta SQL foi executada e nenhuma fonte ou regra institucional foi aprovada
+por este registro. Não houve avanço de fase ou publicação.
+
+Verificações repetidas: `.\scripts\check.cmd` concluiu com código 0, lock offline,
+Ruff e formatação aprovados; **182 testes passaram e 1 integração foi excluída**.
+`git diff --check` não encontrou erros de whitespace. Não executados testes de banco,
+homologação funcional ou visual. As validações de Matheus, DSI, DBA e Talita descritas
+neste documento permanecem pendentes.
+
+## Revisão da base das análises — 27/10/2026
+
+Matheus forneceu o caminho local de `docs/ANALISE_MODELOS_SEMANTICOS_VRAC.md` e autorizou
+seu uso nesta revisão. O documento original foi preservado; os registros de inspeção
+abaixo continuam como histórico da extração anterior.
+
+- `config/analyses.yaml`: versão `phase2-semantic-baseline-v3`, baseada em documento
+  detalhado disponível na revisão, com quatro variantes docentes, quatro acadêmicas
+  de matrículas e uma de Horas Reais. Todas sem seleção institucional ou fonte SQL aprovada.
+- `config/semantic_model_sources.local.yaml`: mapeamento local de 12 tabelas e 399
+  definições de colunas, nomes/tipos declarados, referências de medidas e papéis
+  candidatos. Qualificação por modelo impede presumir que objetos homônimos são iguais.
+  Não contém dados pessoais, conexão ou expressões executáveis e não é carregado pelo runtime.
+- Documento detalhado e mapeamento local excluídos do Git e do contexto Docker,
+  respeitando a restrição de publicação do próprio documento. O catálogo distribuível
+  funciona sem esses arquivos. Nenhum commit ou push foi realizado nesta revisão.
+- `catalog.py`, `contracts.py` e CLI: variantes tipadas e validação de referências,
+  modelo, fonte lógica, unidade, base temporal e seleção com aprovação. Pessoas,
+  matrículas funcionais e matrículas acadêmicas têm significados distintos. Mudança
+  de variante ou de base temporal impede conciliação automática mesmo com números iguais.
+- Revisadas população atual versus histórica, coortes/trajetória, calendário incluindo
+  julho, desempates, filtros de bolsas, fontes dedicadas de horas, duplicação de linhas
+  e limites de RLS. Calendário e permissões não foram implementados por inferência.
+- Atualizados catálogo documental, contexto, plano, decisões, README e índice.
+  Preservadas as mudanças anteriores de organização, branding e fases 1/2.
+
+Verificações desta revisão: `.\scripts\check.cmd` aprovou lock offline, Ruff, formatação
+e **182 testes; 1 teste de integração não selecionado**. A CLI
+`.\.venv\Scripts\python.exe -m vrac.analyses` carregou as três análises sem consultar
+fontes. Mapeamento local conferido contra os cabeçalhos de tabelas/colunas e âncoras
+das medidas; hash do documento preservado:
+`84bd9e833627c1e562e0018a9fad2bf806b509a723fc0172866cbcc5f39f7372`.
+Wheel construído offline e conferido: 35 arquivos, catálogo incorporado idêntico ao
+YAML de origem e nove variantes carregadas diretamente do pacote. Documento interno
+e mapeamento local ausentes do wheel. `git check-ignore` confirmou as duas exclusões;
+`git diff --check` não encontrou erros de whitespace.
+
+Não executados: conexão real, Power Query/M, DAX, RLS por usuário, conciliação de números,
+homologação funcional/visual ou implantação. DBA confirma origem física, chave e
+cardinalidade; Talita escolhe população, referência temporal e critérios; Matheus/DSI
+validam acesso. Sem essa confirmação, os adaptadores reais continuam bloqueados.
+
+## Análise documental de modelo semântico — 27/10/2026
+
+- A pedido de Matheus, realizada inspeção local, somente leitura, de um PBIX
+  explicitamente indicado, para explicar estrutura, fórmulas e possibilidades de
+  simplificação. A explicação foi entregue na conversa; o arquivo não foi alterado.
+- Metadados, relacionamentos e expressões foram inspecionados sem atualizar fontes,
+  conectar ao banco ou exportar registros pessoais. Nenhum conteúdo interno foi
+  incluído em consultas externas ou copiado para o repositório.
+- Usado interpretador temporário separado com PBIXRay, sem alterar dependências da
+  aplicação. A listagem resumida do extrator omitia relacionamentos com tabelas
+  calculadas; a inspeção da base de metadados embutida corrigiu essa limitação.
+- Verificações executadas: leitura da estrutura ZIP, inventário de metadados e
+  revisão estática de expressões e caminhos de filtro. Não executados: avaliação
+  DAX, atualização, conciliação de totais, testes de RLS por usuário ou suíte da
+  aplicação, pois não houve alteração de código.
+- Regras encontradas no arquivo são evidência de implementação, sem aprovação
+  institucional presumida. Talita e o responsável pelos dados devem validar
+  população, identidade de pessoa/vínculo, períodos e critérios de carga; Matheus
+  e DSI devem conferir propagação de acesso; DBA deve confirmar fontes e chaves.
+- Nenhuma fase avançou, fonte física foi homologada ou publicação foi realizada.
+
+### Complemento: documentação consolidada dos três modelos
+
+- A pedido de Matheus, a inspeção foi ampliada aos dois PBIX adicionais indicados
+  pelo usuário. Gerado um Markdown consolidado em pasta própria de Downloads,
+  fora do repositório, com os três modelos, explicações, propostas, dicionário,
+  relacionamentos, DAX, regras de acesso, páginas e propriedades semânticas.
+- Conteúdo interno não foi incorporado ao Git. Identificadores individuais em
+  fórmulas e nomes pessoais de papéis foram mascarados; literais textuais de RLS
+  foram substituídos por marcadores estáveis no documento.
+- Verificação estrutural: **aprovada** para cobertura de 1.841 colunas, 152
+  relacionamentos e 333 medidas; 1.028 expressões DAX não vazias reproduzidas com
+  os tratamentos documentados; links internos, cercas de código e UTF-8 conferidos.
+  Contagens incluem estruturas automáticas de datas; não são números institucionais.
+- Comandos de extração, complemento e geração com Python/PBIXRay 0.15.5 estão
+  registrados no próprio artefato. Ambiente de inspeção separado; nenhuma mudança
+  nas dependências da aplicação ou nos PBIX originais.
+- Não executados: Power Query/M, avaliação DAX, atualização, banco institucional,
+  conciliação de totais, testes de acesso por usuário, suíte da aplicação ou
+  homologação visual. Somente documentação foi alterada no repositório.
+- Pendências: Talita e responsáveis pelas fontes validam conceitos, exceções e
+  períodos; Matheus/DSI validam acesso e vigência; DBA confirma fontes físicas,
+  chaves e granularidades. As regras encontradas não foram homologadas.
+- Projetos patrocinados e análises financeiras foram documentados como referência
+  solicitada; continuam fora da implementação atual. Nenhuma fase avançou.
+
+## Entrega do Prompt 2
+
+- [Catálogo estruturado](../config/analyses.yaml) e [definições de negócio](ANALYSIS_CATALOG.md)
+  para composição docente, evolução de matrículas e carga horária, nesta ordem.
+  População, granularidade, unidade, chaves, parâmetros, filtros, fórmula descritiva,
+  exceções, período, responsável, versões e comparação registrados como propostas.
+- Fonte física não mapeada; cinco áreas de aprovação humana pendentes por análise:
+  fonte, granularidade, cálculo, comparação e aceite funcional. O dicionário sanitizado
+  da fase 1 permanece modelo não preenchido; nenhuma tabela ou coluna foi inventada.
+- Contratos tipados de solicitação e resultado, entidades com papéis distintos,
+  unidades, filtros efetivos, UUID, datas por origem, versões, avisos e estados.
+  Nulo, zero, ausência de registros, não calculável e falha permanecem distintos.
+- `blocked_result()` retorna motivos e dados vazios, sem consulta, cálculo ou fallback.
+  Resultados reais válidos/parciais são recusados nesta fase, inclusive após mudar
+  flags do catálogo. Não existe adaptador de análise real nem SQL de análise novo.
+- Referências de comparação e equivalências de cursos com vigência, fonte e registro
+  de aprovação; mapas sintéticos não se aplicam a modo real. Séries permanecem
+  separadas diante de pendência, conflito, vigência incompleta ou cadeia não revisada.
+- Contagens com igualdade exata, sem tolerância ajustável; horas dependem de critério
+  explícito de arredondamento. Conferência de referência não aprova funcionalmente
+  uma análise e não força resultados atuais a coincidir com uma origem antiga.
+- Sete casos determinísticos: duplicidade, nulo, zero, ausência, semestre parcial,
+  denominador zero e fontes com datas distintas. Expectativas de fixtures não são
+  números institucionais ou aprovação de Talita.
+- PyYAML 6.0.3 acrescentado e travado no `uv.lock`; 51 pacotes resolvidos para
+  desenvolvimento. Catálogo incluído no wheel e carregado sem conexão ao banco.
+- Reorganização e pasta de branding anteriores preservadas. Nenhuma alteração visual;
+  materiais oficiais continuam pendentes para a futura interface da fase 3.
+
+## Verificações executadas no Prompt 2
+
+| Verificação | Resultado |
+|---|---|
+| `.\scripts\check.cmd` | Código 0; lock offline, Ruff e formatação aprovados; **161 testes passaram, 1 integração real excluída** |
+| Novos testes da fase 2 | 44 casos cobrindo contratos, unidades, bloqueios, proveniência, igualdade de contagens, critério de horas, referências e equivalências |
+| Leitura YAML | Lista fechada, prioridades e campos validados; tags executáveis, campos duplicados, escopo extra e aprovações incompletas recusados com mensagem sanitizada |
+| Resultados parciais | Preservam nulos e períodos incompletos com aviso; resultado vazio ou incompleto não pode ser válido; métricas/origens ambíguas são recusadas |
+| Casos sintéticos | Determinísticos e identificados; percentual com base zero não numérico; fixture não pode virar aceite funcional humano |
+| Referências | Mesmo recorte/regra/origem; atualização desconhecida ou modificada bloqueia comparação automática; extração e atualização têm significados separados |
+| `.\.venv\Scripts\python.exe -m vrac.analyses` | Código 0; três definições `pending`, cinco decisões pendentes por definição; nenhuma consulta ou cálculo executado |
+| Wheel offline | Gerado e inspecionado: 35 arquivos; catálogo idêntico ao YAML do repositório e carregado pelo recurso empacotado; cache, ferramentas e configuração privada ausentes |
+
+Não executados: conexão real, inventário real, cálculo de análises, conciliação com
+referência de Talita, homologação funcional/visual, implantação ou execução de integração.
+O guia permite esta preparação sem metadados aprovados; isso não conclui a validação
+institucional da fase 1 nem autoriza avançar à fase 3 automaticamente.
+
+## Arquivos do Prompt 2
+
+| Grupo | Arquivos criados ou ajustados |
+|---|---|
+| Contratos e definições | `src/vrac/analyses/{__init__,__main__,contracts,catalog,references,courses,synthetic_cases}.py` |
+| Catálogo e modelos | `config/analyses.yaml`, `config/reference_case.example.yaml`, `config/course_equivalences.example.yaml` |
+| Dependências e distribuição | `pyproject.toml`, `uv.lock` |
+| Testes | `tests/test_analysis_catalog.py`, `tests/test_analysis_contracts.py`, `tests/test_analysis_references.py` |
+| Documentação | `docs/ANALYSIS_CATALOG.md`, `README.md`, índice, contexto, plano, arquitetura, decisões, prévia e este estado |
+
+A lista curta de decisões para Talita e para os responsáveis pelos dados está no
+[catálogo](ANALYSIS_CATALOG.md#decisões-curtas-para-validação-humana). Matheus deve
+liberar somente material sanitizado autorizado e manter o mapa físico privado externo.
+
+## Organização do repositório e branding — 27/10
+
+- Documentação agrupada: prévia em `docs/guides/`, descoberta/dicionário/solicitações
+  DSI em `docs/operations/` e guia original em `docs/references/`. O conteúdo do guia
+  foi preservado e os links relativos foram ajustados.
+- [Índice da documentação](README.md) e mapa do repositório no README principal,
+  mantendo contexto, plano e estado nos caminhos estáveis de `docs/`.
+- Criada [assets/branding/](../assets/branding/README.md), com pastas para logos,
+  ícones, fontes, manuais e templates e um modelo documental de tokens de identidade.
+- Branding PUC-Rio obrigatório registrado nas instruções, contexto, plano,
+  arquitetura e decisões. Nenhum logo, cor, fonte ou variante oficial foi presumido.
+- Matheus deve adicionar os materiais oficiais e identificar o responsável
+  institucional que validará a aplicação visual. O tema atual permanece provisório;
+  o modelo de tokens não é carregado pela aplicação e a interface não foi redesenhada.
+- Esta manutenção altera organização e documentação; código, SQL executável,
+  dependências e comandos de execução permanecem nos mesmos caminhos.
+
+Verificações desta manutenção: links locais, sintaxe TOML, integridade do guia e diff.
+A suíte de aplicação não foi repetida, pois o comportamento executável não foi alterado;
+os 117 testes da fase 1 continuam como registro histórico, não como nova execução.
 
 ## Entrega da fase 1
 
@@ -23,8 +210,8 @@ Fase 0 preparada; fases 2–7 não iniciadas. O guia original e `AGENTS.md` fora
   usuário no Windows; diretório 0700 e arquivo 0600 no POSIX. Nenhum nome físico no console.
 - Modelos agregados de qualidade/cardinalidade desabilitados, sem renderização ou
   execução pela CLI; revisão de objetos, filtros e custo permanece obrigatória.
-- [Roteiro de execução](DATABASE_DISCOVERY.md), revisão de privilégios pelo DBA e
-  [dicionário sanitizado](SANITIZED_DATA_DICTIONARY.md) com material exato para a fase 2.
+- [Roteiro de execução](operations/DATABASE_DISCOVERY.md), revisão de privilégios pelo DBA e
+  [dicionário sanitizado](operations/SANITIZED_DATA_DICTIONARY.md) com material exato para a fase 2.
 
 ## Verificações executadas na fase 1
 
@@ -64,7 +251,7 @@ externo; permanece reservado ao operador fora da sessão do agente.
 | Configuração | `config/database.example.toml`, `config/quality_checks.example.toml`, `pyproject.toml`, `uv.lock`, `.gitignore`, `.dockerignore` |
 | Comandos | `scripts/diagnose-db.cmd`, `scripts/inventory-db.cmd`, `scripts/bootstrap.cmd`, `scripts/bootstrap.ps1`, `scripts/check.cmd` e `scripts/check.ps1` |
 | Testes | `tests/test_db_{cli,config,connection,integration,inventory}.py`, `tests/test_private_output.py`, `tests/conftest.py`, `tests/test_ui.py` |
-| Documentação | `README.md`, `docs/DATABASE_DISCOVERY.md`, `docs/SANITIZED_DATA_DICTIONARY.md`, contexto, plano, arquitetura, decisões e este estado |
+| Documentação | `README.md`, `docs/operations/DATABASE_DISCOVERY.md`, `docs/operations/SANITIZED_DATA_DICTIONARY.md`, contexto, plano, arquitetura, decisões e este estado |
 
 ## Fundação preparada na fase 0 — registro de 26/10
 
@@ -113,7 +300,7 @@ local, sem publicação ou acesso institucional.
 - Revisão visual em navegador e avaliação de usabilidade por Talita ainda não realizadas;
   os testes de interface executados foram automatizados via AppTest. Em 27/10, a prévia
   local respondeu HTTP 200, mas o Computer Use interrompeu a revisão visual por falta
-  de suporte à política de URLs no navegador Windows atual. Roteiro em [PREVIEW.md](PREVIEW.md).
+  de suporte à política de URLs no navegador Windows atual. Roteiro em [PREVIEW.md](guides/PREVIEW.md).
 - Sem conexão ao banco, credenciais, inventário, consultas reais, conciliação funcional,
   autenticação institucional, teste de segurança em homologação ou implantação.
 - SQL Server permanece hipótese. Em 27/10, Matheus autorizou o envio ao remoto GitHub
@@ -130,9 +317,10 @@ local, sem publicação ou acesso institucional.
 | DBA | SGBD, autenticação, fontes e escopos aprovados, conta técnica de leitura e limites de consulta |
 | Talita | Avaliar a demonstração e, antes dos cálculos reais, aprovar definições e caso de referência da composição docente |
 
-Próximo passo da fase 1: confirmar SGBD e escopos com DSI/DBA e executar manualmente
-as ferramentas preparadas, fora da sessão do agente, com registro humano do resultado.
-A lista detalhada está em [DSI_REQUESTS.md](DSI_REQUESTS.md). Nenhuma pendência foi
+Próximos passos: confirmar SGBD e escopos com DSI/DBA e executar manualmente as ferramentas
+da fase 1, fora da sessão do agente; obter o dicionário sanitizado e o aceite humano das
+definições e da referência de composição docente antes da implementação real.
+A lista detalhada está em [DSI_REQUESTS.md](operations/DSI_REQUESTS.md). Nenhuma pendência foi
 tratada como aprovação nem exige modificar o cálculo oficial para avançar.
 
 ## Arquivos da fundação — registro de 26/10
@@ -146,4 +334,4 @@ tratada como aprovação nem exige modificar o cálculo oficial para avançar.
 | Testes | `tests/conftest.py`, `test_foundation.py`, `test_ui.py`, `test_offline.py` |
 | Documentação | `docs/PROJECT_CONTEXT.md`, `PLAN.md`, `ARCHITECTURE.md`, `DECISIONS.md`, `DSI_REQUESTS.md`, `STATUS.md` |
 
-O arquivo `Guia_Desenvolvimento_VRAC_Codex.md` já existia e foi mantido sem alterações.
+O arquivo `docs/references/Guia_Desenvolvimento_VRAC_Codex.md` já existia e foi mantido sem alterações.

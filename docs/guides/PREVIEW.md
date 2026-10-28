@@ -39,9 +39,14 @@ Para conferir a ajuda e os testes sem configuração real:
 Sem `--execute`, os comandos de descoberta recusam a execução antes de ler a configuração.
 O procedimento com banco real depende de confirmação de SGBD, escopo e privilégios com
 DBA/DSI e é executado manualmente fora da sessão do agente. Consulte
-[DATABASE_DISCOVERY.md](DATABASE_DISCOVERY.md). **Conexão e inventário: NÃO VALIDADOS.**
+[DATABASE_DISCOVERY.md](../operations/DATABASE_DISCOVERY.md). **Conexão e inventário: NÃO VALIDADOS.**
 
 ## Evidências desta revisão
+
+O Prompt 2 acrescenta o [catálogo de definições e contratos](../ANALYSIS_CATALOG.md),
+sem alterar a tela. Para conferir suas propostas offline, executar
+`.\.venv\Scripts\python.exe -m vrac.analyses`. A implementação das análises na interface
+permanece para uma solicitação de fase 3, com regras e branding validados.
 
 Em 27/10/2026, a prévia foi iniciada e o endpoint local `/_stcore/health` respondeu
 HTTP 200. Os testes automatizados da interface já cobrem os cenários acima; a suíte

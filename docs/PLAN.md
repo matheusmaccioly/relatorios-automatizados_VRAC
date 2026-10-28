@@ -1,12 +1,12 @@
 # Plano de desenvolvimento
 
-Atualizado em 27/10/2026. O [guia original](../Guia_Desenvolvimento_VRAC_Codex.md) define as fases; este documento organiza entregas, responsáveis e critérios de passagem. A fase 0 está preparada e a solicitação atual autoriza a implementação técnica do Prompt 1. A integração institucional continua pendente; fases 2–7 permanecem planejadas e não iniciadas.
+Atualizado em 27/10/2026. O [guia original](references/Guia_Desenvolvimento_VRAC_Codex.md) define as fases; este documento organiza entregas, responsáveis e critérios de passagem. A solicitação atual autoriza o Prompt 2, com contratos lógicos e testes sintéticos enquanto os metadados aprovados da fase 1 não estiverem disponíveis. A integração institucional continua pendente e as fases 3–7 não foram iniciadas.
 
 Não há prazo fechado: acesso, fontes, regras e infraestrutura ainda dependem de validação. O esforço técnico deve ser registrado separadamente da espera por decisões institucionais. Nenhuma passagem de fase ou publicação é automática.
 
 ## Fase 0 — fundação e demonstração
 
-**Estado:** fundação técnica concluída e verificada em Windows x64. Instalação local, lock e estilo aprovados; 20 testes offline passaram na fase 0. Evidências e verificações atuais em [STATUS.md](STATUS.md). **Responsável técnico:** Matheus, com apoio do Codex no código e nos testes offline. A fase 1 foi iniciada nesta solicitação; as fases 2–7 permanecem não iniciadas.
+**Estado:** fundação técnica concluída e verificada em Windows x64. Instalação local, lock e estilo aprovados; 20 testes offline passaram na fase 0. Evidências e verificações atuais em [STATUS.md](STATUS.md). **Responsável técnico:** Matheus, com apoio do Codex no código e nos testes offline. As ferramentas da fase 1 estão preparadas e os contratos da fase 2 foram iniciados por solicitação; fases 3–7 não iniciadas.
 
 | Entrega | Critério de aceite |
 |---|---|
@@ -25,16 +25,37 @@ Antes do encerramento, registrar comandos de instalação, execução e validaç
 
 As ferramentas manuais de configuração, conexão, diagnóstico e inventário estão implementadas. Consultas fixas usam parâmetros vinculados, limites por schema e timeouts. SQL Server permanece hipótese; o operador deve confirmar SGBD e escopo. Saídas privadas ficam fora do workspace e mensagens de erro são sanitizadas.
 
-O [roteiro de descoberta](DATABASE_DISCOVERY.md) contém comandos, revisão de privilégios e interpretação das limitações. O [dicionário sanitizado](SANITIZED_DATA_DICTIONARY.md) define o material autorizado esperado antes da fase 2. Consultas de qualidade/cardinalidade são apenas templates e não podem ser executadas pela CLI.
+O [roteiro de descoberta](operations/DATABASE_DISCOVERY.md) contém comandos, revisão de privilégios e interpretação das limitações. O [dicionário sanitizado](operations/SANITIZED_DATA_DICTIONARY.md) define o material autorizado esperado antes da fase 2. Consultas de qualidade/cardinalidade são apenas templates e não podem ser executadas pela CLI.
 
 **Conexão e inventário institucionais: NÃO VALIDADOS.** A preparação de código não satisfaz o critério humano de passagem da fase 1. O operador deve executar os comandos em ambiente autorizado, o DBA confirmar escopos e privilégios de leitura e Matheus liberar somente material sanitizado. Nenhum resultado real foi inventado.
+
+## Fase 2 — catálogo e contratos lógicos
+
+[config/analyses.yaml](../config/analyses.yaml) e [ANALYSIS_CATALOG.md](ANALYSIS_CATALOG.md)
+registram definições propostas, priorizando composição docente. Contratos de solicitação,
+resultado, origem, comparação e equivalência de cursos estão implementados com casos
+sintéticos; não calculam as análises nem conectam ao banco. Todos os status institucionais
+permanecem pendentes e os adaptadores reais continuam bloqueados.
+
+A revisão solicitada por Matheus incorporou a documentação detalhada dos modelos
+semânticos: nove variantes acadêmicas, ainda sem escolha institucional. Mapeamento
+local de tabelas/colunas permanece excluído do Git e separado do catálogo empacotável.
+Para docentes, aprovar pessoas versus matrículas funcionais e a referência temporal;
+para matrículas, escolher entre cadastro, período, última situação e trajetória;
+para horas, confirmar fonte física, unicidade e unidade da medida dedicada. A inspeção
+semântica não substitui o inventário físico ou a autorização de acesso da fase 1.
+
+Para avançar, Talita e os responsáveis pelos dados precisam registrar fonte, população,
+granularidade, fórmula, referência de comparação e aceite funcional humano da primeira
+análise. A lista curta de decisões está no catálogo. Sem essa evidência, não declarar
+integração validada nem iniciar implementação real ou a fase 3 automaticamente.
 
 ## Backlog das próximas fases
 
 | Fase e estado | Próximo incremento executável | Evidência necessária para avançar | Validação |
 |---|---|---|---|
 | 1 — ferramentas preparadas; validação institucional pendente | Adaptador condicional opcional, CLI manual, inventário restrito e testes offline implementados; confirmar SGBD e executar diagnóstico fora da sessão do agente | Matheus registra conexão no ambiente autorizado; DBA confirma conta de leitura e objetos permitidos; material sanitizado aprovado fica disponível | Matheus + DBA; DSI para rede/TLS |
-| 2 — não iniciada | Formalizar primeiro a composição docente em catálogo, contratos lógicos, mapeamento e casos sintéticos; registrar fórmulas e granularidade | Definição, fonte, recorte temporal, chaves e exemplo de referência aprovados; pendências bloqueiam apenas o resultado afetado | Talita + responsável pelas fontes/DBA + Matheus |
+| 2 — contratos preparados; validação humana pendente | Catálogo e contratos sintéticos entregues; obter dicionário sanitizado e validar primeiro a composição docente | Definição, fonte, recorte temporal, chaves e exemplo de referência aprovados; pendências bloqueiam apenas o resultado afetado | Talita + responsável pelas fontes/DBA + Matheus |
 | 3 — não iniciada | Entregar composição docente de ponta a ponta: filtros, consulta parametrizada revisada, cálculo separado da interface, tabela, gráfico, metadados e exportação inicial | Testes de duplicidade, vazio e mudança de filtros; conciliação com caso de mesmo recorte e data; demonstração e feedback registrados | Matheus + Talita |
 | 4a — não iniciada | Implementar matrículas por curso/período, com definição validada de matrícula/aluno, ausências e equivalências vigentes | Série conciliada; base zero sem percentual; cursos renomeados e períodos ausentes cobertos por testes | Talita + responsável pelas fontes + Matheus |
 | 4b — não iniciada | Implementar Horas Reais e detalhamento em visões distintas; validar atuação interdepartamental, compartilhamentos, classificação e turmas vazias | Conciliação própria de carga; unidade e cobertura explícitas; nenhuma regra oficial alterada silenciosamente | Talita + responsável pelas fontes + Matheus |
@@ -47,6 +68,12 @@ Na fase 1, os scripts são preparados pelo agente e executados manualmente pelo 
 A fase 4 tem dois incrementos: revisar matrículas antes de iniciar carga horária. A fase 7 começa pela preparação; publicar exige autorização explícita do responsável. Sem infraestrutura aprovada, manter demonstrações acompanhadas com dados sintéticos.
 
 ## Revisões e critérios comuns
+
+Todo elemento visual deve seguir o branding da PUC-Rio. Antes de implementar ou revisar
+telas, gráficos e exportações, obter os materiais oficiais em
+[assets/branding/](../assets/branding/README.md) e registrar a origem/versão e o responsável
+pela validação. A demonstração mantém tema provisório até essa aplicação ser conferida.
+Incluir conformidade visual nos critérios das demonstrações e da homologação do piloto.
 
 Após cada entrega das fases 3, 4a, 4b e 5: demonstrar, registrar feedback sanitizado, separar erro técnico de regra pendente e pedido fora do escopo, priorizar o menor ajuste autorizado e testar novamente. Feedback de usabilidade não equivale à aprovação de fórmula.
 
@@ -64,4 +91,4 @@ Cada análise deve ser testável sem Streamlit. A suíte padrão permanece offli
 | Limiar das verificações, retenção e uso de SQLite operacional | Talita + DSI + Matheus | Fase 5, conforme decisão |
 | Canal de suporte, operador e autorização de publicação | DSI + responsável pelo piloto | Fases 6 e 7 |
 
-As [solicitações para a DSI](DSI_REQUESTS.md) são um roteiro preparado para Matheus. Sua existência não registra envio, aprovação ou provisionamento.
+As [solicitações para a DSI](operations/DSI_REQUESTS.md) são um roteiro preparado para Matheus. Sua existência não registra envio, aprovação ou provisionamento.

@@ -1,0 +1,11 @@
+# Estrutura documental. Sem nomes ou códigos reais e sem equivalências aprovadas.
+# Não é carregado pela aplicação; CourseEquivalence define o contrato tipado.
+schema_version: "course-equivalence-v1"
+equivalences: []
+# Cada registro exige:
+# source_course e target_course: kind=curso, identifier=chave lógica autorizada
+# valid_from e valid_until: datas com vigência explícita
+# source_reference e source_version: origem institucional da equivalência
+# approval_status: pending | approved | rejected
+# synthetic: false para material institucional; fixtures nunca valem em modo real
+# reviewer_role, reviewed_on, evidence_reference: necessários para approved

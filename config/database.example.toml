@@ -1,6 +1,6 @@
 # EXEMPLO SEM VALORES REAIS. Não preencher nem executar este arquivo no workspace.
 # Matheus deve criar sua cópia fora do repositório e da sessão do agente,
-# em diretório privado aprovado pela DSI. Consulte docs/DATABASE_DISCOVERY.md.
+# em diretório privado aprovado pela DSI. Consulte docs/operations/DATABASE_DISCOVERY.md.
 
 [database]
 # SQL Server é hipótese. Alterar a confirmação somente após confirmação humana.

@@ -2,7 +2,7 @@
 
 Fase 1: SQL Server continua hipótese; conexão e inventário estão **NÃO VALIDADOS**.
 Os comandos de diagnóstico e inventário são documentados em
-[DATABASE_DISCOVERY.md](../docs/DATABASE_DISCOVERY.md) para execução manual por Matheus
+[DATABASE_DISCOVERY.md](../docs/operations/DATABASE_DISCOVERY.md) para execução manual por Matheus
 fora da sessão do agente. Não armazenar resultados, credenciais, nomes físicos internos
 ou configurações reais nesta pasta.
 

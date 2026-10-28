@@ -13,13 +13,32 @@ Adotar um monólito modular em Python: Streamlit apresenta a interface; funçõe
 | `src/vrac/authorization.py` | Contrato de autorização e negação de acesso a dados reais enquanto a integração institucional estiver ausente |
 | `src/vrac/synthetic.py` | Dados mínimos determinísticos e identificados como fictícios; nenhum acesso ao banco |
 | `src/vrac/ui.py` | Demonstração em português, filtros e apresentação dos dados sintéticos |
+| `src/vrac/analyses/` | Contratos, catálogo e critérios de referência da fase 2; nenhum cálculo institucional |
 | `config/` | Exemplos de configuração sem credenciais ou nomes físicos institucionais |
-| `sql/` | Local reservado para consultas revisadas de fases futuras; nenhuma consulta institucional na fase 0 |
-| `tests/` | Testes offline de configuração, autorização, dados sintéticos e interface |
+| `assets/branding/` | Materiais oficiais de identidade visual, manual e exemplo documental de tokens |
+| `sql/` | Consultas revisadas de diagnóstico e catálogo; modelos de qualidade desabilitados |
+| `tests/` | Testes offline da aplicação e da descoberta; integração manual separada |
 | `scripts/` | Rotinas de preparação e execução local |
 | `docs/` | Contexto, planejamento, decisões, critérios e pendências |
 
+Os roteiros de uso ficam em `docs/guides/`, os de operação em `docs/operations/` e o guia
+original em `docs/references/`. Contexto, plano, arquitetura, decisões e estado permanecem
+na raiz de `docs/`, com navegação pelo [índice](README.md).
+
 Separar acesso a dados, análises, verificações, gráficos e exportações conforme cada capacidade for implementada. Não criar módulos vazios para antecipar todas as fases. As funções de cálculo não dependerão de Streamlit. Consultas reais ficarão em arquivos SQL revisados, com parâmetros vinculados e uma lista fechada de operações.
+
+## Identidade visual institucional
+
+Interface, gráficos, tabelas e futuras exportações devem seguir o branding da PUC-Rio.
+Os recursos oficiais serão mantidos em [assets/branding/](../assets/branding/README.md),
+separados de código, configurações de banco e dados. A pasta organiza logos, ícones,
+fontes, manuais e templates; `tokens.example.toml` documenta os campos de cores,
+tipografia e marcas sem presumir valores institucionais.
+
+O modelo de tokens ainda não é consumido em execução. A integração centralizada dos
+recursos à interface e às exportações depende dos arquivos e regras oficiais; o tema
+atual é provisório. A conformidade visual exige revisão registrada pelo responsável
+institucional pela identidade visual, sem substituir os aceites funcionais e de segurança.
 
 ## Ambiente reproduzível
 
@@ -53,7 +72,26 @@ A configuração define um endpoint, uma porta, um banco, autenticação, driver
 
 São até quatro consultas de catálogo por schema, com parâmetros vinculados, limite de saída e truncamento explícito. SQLAlchemy pode executar instruções internas de inicialização do dialeto além desse catálogo. Visibilidade permanece desconhecida; uma consulta sem linhas não demonstra inexistência. Chaves e relações podem estar incompletas, inclusive quando o limite interromper uma chave composta.
 
-Os SQL revisados também são incluídos no wheel por `force-include`, para leitura da mesma lista fechada de consultas fora do checkout. `sql/quality/` contém somente templates não executáveis; não há renderizador nem comando que os rode. O [roteiro operacional](DATABASE_DISCOVERY.md) descreve validação do DBA e os materiais sanitizados para a fase 2.
+Os SQL revisados também são incluídos no wheel por `force-include`, para leitura da mesma lista fechada de consultas fora do checkout. `sql/quality/` contém somente templates não executáveis; não há renderizador nem comando que os rode. O [roteiro operacional](operations/DATABASE_DISCOVERY.md) descreve validação do DBA e os materiais sanitizados para a fase 2.
+
+## Definições e contratos — fase 2
+
+O pacote `src/vrac/analyses/` é independente da UI e do adaptador de banco. `contracts.py`
+define identidades lógicas, solicitações, métricas, proveniência e estados. `catalog.py`
+lê somente definições estruturadas, sem executar fórmulas; `blocked_result()` representa
+o bloqueio sem dados ou extração fictícia. `references.py` compara valores fornecidos,
+com recorte/regra/origem explícitos e critérios fixos; não calcula análises nem concede
+aprovação funcional. `courses.py` planeja identidade de séries por equivalências vigentes,
+sem agregar matrículas. `synthetic_cases.py` contém expectativas determinísticas de teste.
+
+O YAML público é empacotado no wheel e lido por loader derivado de `yaml.SafeLoader`,
+com campos duplicados e análises fora do escopo rejeitados. As fontes físicas permanecem
+não mapeadas. Resultados reais válidos/parciais são recusados nesta fase. Unidades e
+datas de cada origem são preservadas; Decimal é serializado como texto, sem perda
+de precisão. Detalhes e decisões humanas estão no [catálogo](ANALYSIS_CATALOG.md).
+
+Nenhum componente visual foi adicionado nesta fase, preservando a exigência de aplicação
+do branding com os materiais oficiais antes da evolução da interface.
 
 ## Limites entre ambientes
 

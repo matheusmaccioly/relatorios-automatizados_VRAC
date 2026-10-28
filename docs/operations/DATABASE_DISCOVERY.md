@@ -2,7 +2,7 @@
 
 Atualizado em 27/10/2026. **Conexão e inventário: NÃO VALIDADOS.** SQL Server continua uma hipótese; o suporte preparado não confirma o ambiente da PUC-Rio. Não houve consulta real nesta sessão do agente. O aplicativo de demonstração continua separado destes comandos e não libera dados reais.
 
-Os comandos abaixo são para Matheus executar manualmente **fora da sessão do agente**, no ambiente autorizado. Não enviar credenciais, configuração real, inventário bruto ou metadados internos no chat. O [guia](../Guia_Desenvolvimento_VRAC_Codex.md) e [AGENTS.md](../AGENTS.md) continuam aplicáveis.
+Os comandos abaixo são para Matheus executar manualmente **fora da sessão do agente**, no ambiente autorizado. Não enviar credenciais, configuração real, inventário bruto ou metadados internos no chat. O [guia](../references/Guia_Desenvolvimento_VRAC_Codex.md) e [AGENTS.md](../../AGENTS.md) continuam aplicáveis.
 
 ## Antes da execução real
 
@@ -25,7 +25,7 @@ SQLAlchemy/pyodbc não instalam nem homologam o driver ODBC do sistema. A DSI de
 
 ## Criar a configuração privada
 
-Copiar manualmente [database.example.toml](../config/database.example.toml) para um arquivo chamado **`dbconfig.toml`** no diretório privado externo. Esse nome exato é obrigatório. Usar caminho absoluto local, arquivo UTF-8 sem BOM e tamanho máximo de 64 KiB. Editar somente essa cópia, fora da sessão do agente. O arquivo versionado deve permanecer com campos vazios e confirmações falsas.
+Copiar manualmente [database.example.toml](../../config/database.example.toml) para um arquivo chamado **`dbconfig.toml`** no diretório privado externo. Esse nome exato é obrigatório. Usar caminho absoluto local, arquivo UTF-8 sem BOM e tamanho máximo de 64 KiB. Editar somente essa cópia, fora da sessão do agente. O arquivo versionado deve permanecer com campos vazios e confirmações falsas.
 
 | Campo | O que obter e registrar |
 |---|---|
@@ -115,7 +115,7 @@ Essa integração executa a prova de conexão, não o inventário completo nem t
 
 ## Qualidade e cardinalidade: execução ainda desabilitada
 
-[quality_checks.example.toml](../config/quality_checks.example.toml) e os [templates SQL](../sql/README.md) apenas preparam a revisão. A CLI `vrac.db` **não carrega nem executa** essas verificações, mesmo que alguém altere suas flags. Tokens `{{APPROVED_*}}` são identificadores lógicos ainda sem mapeamento; não há renderizador ou SQL gerado pela interface.
+[quality_checks.example.toml](../../config/quality_checks.example.toml) e os [templates SQL](../../sql/README.md) apenas preparam a revisão. A CLI `vrac.db` **não carrega nem executa** essas verificações, mesmo que alguém altere suas flags. Tokens `{{APPROVED_*}}` são identificadores lógicos ainda sem mapeamento; não há renderizador ou SQL gerado pela interface.
 
 Antes de qualquer execução futura: DBA/Matheus aprovam objetos, chave, colunas, departamento/período, parâmetros vinculados, timeout e orçamento; revisam uma consulta fixa; registram a aprovação fora do workspace quando contiver nomes internos. Identificadores SQL não são parâmetros de valor: sua substituição exige revisão do arquivo, nunca concatenação de entradas da usuária. `TOP` limita a saída, não o custo de leitura e agrupamento. Não executar contagens globais, `SELECT *`, amostras individuais ou novas consultas só porque o resultado foi vazio.
 

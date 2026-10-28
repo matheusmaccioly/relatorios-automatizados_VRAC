@@ -9,6 +9,11 @@ Não implementar análises financeiras, relatório institucional completo, decis
 ARQUITETURA
 Adotar monólito modular em Python. Preferir Streamlit, pandas e Matplotlib. Usar SQLAlchemy/pyodbc se SQL Server for confirmado. Consultas SQL devem estar em arquivos revisados e parâmetros devem ser vinculados, não concatenados. Não introduzir FastAPI, frontend separado, filas, Redis, Kubernetes ou serviços pagos sem necessidade demonstrada e decisão explícita.
 
+BRANDING INSTITUCIONAL
+Todo elemento visual do sistema deve seguir o branding da PUC-Rio, incluindo interface, cores, tipografia, marcas, ícones, gráficos, tabelas, estados de tela e futuras exportações. Antes de alterar apresentação visual, leia assets/branding/README.md e os materiais oficiais fornecidos em assets/branding/guidelines/.
+Utilize somente arquivos, variantes e valores oficiais autorizados para este projeto. Não inventar logotipos, paletas, fontes ou assinaturas PUC-Rio/VRAC. Centralizar recursos e tokens de identidade para uso consistente na aplicação e nas exportações.
+Enquanto os materiais oficiais não estiverem disponíveis, registrar a identidade visual como pendente e tratar o tema da demonstração como provisório. Não declarar conformidade ou homologação visual sem revisão registrada por Matheus e pelo responsável institucional pela identidade visual.
+
 SEGURANÇA
 Não ler nem imprimir senhas, arquivos .env reais, secrets.toml real, dumps, diretórios privados ou variáveis de ambiente com segredos. Não pesquisar segredos na máquina. Não conectar automaticamente ao banco real; produzir scripts para execução pelo desenvolvedor autorizado fora da sessão do agente. Não enviar dados ou metadados internos para serviços externos sem autorização.
 A conta de execução deve ter somente leitura sobre fontes aprovadas. Não executar CREATE, ALTER, DROP, INSERT, UPDATE, DELETE, MERGE, SELECT INTO ou procedimentos que alterem o banco institucional. Não testar comandos destrutivos no banco real. Melhorias de banco devem ser documentadas para o DBA, não aplicadas pelo agente.

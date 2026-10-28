@@ -1,0 +1,30 @@
+# Documentação do projeto
+
+## Contexto e desenvolvimento
+
+- [Contexto](PROJECT_CONTEXT.md): objetivo, escopo e evidências disponíveis.
+- [Plano](PLAN.md): fases, critérios de passagem e pendências.
+- [Arquitetura](ARCHITECTURE.md): estrutura técnica e responsabilidades.
+- [Catálogo de análises](ANALYSIS_CATALOG.md): definições, contratos, comparação e decisões humanas.
+- [Decisões](DECISIONS.md): decisões adotadas e questões abertas.
+- [Estado da entrega](STATUS.md): mudanças, verificações e limites efetivos.
+
+## Uso e operação
+
+- [Prévia da aplicação](guides/PREVIEW.md): roteiro de conferência da demonstração sintética.
+- [Diagnóstico e descoberta do banco](operations/DATABASE_DISCOVERY.md): execução manual autorizada.
+- [Dicionário sanitizado](operations/SANITIZED_DATA_DICTIONARY.md): material para a próxima fase.
+- [Solicitações para a DSI](operations/DSI_REQUESTS.md): infraestrutura, acessos e operação.
+
+## Branding e referências
+
+- [Materiais de branding da PUC-Rio](../assets/branding/README.md): onde adicionar marcas,
+  ícones, fontes, paleta, manuais e templates; identidade obrigatória para o sistema.
+- [Guia original de desenvolvimento](references/Guia_Desenvolvimento_VRAC_Codex.md):
+  conteúdo original preservado, incluindo os prompts por fase.
+- [Instruções permanentes](../AGENTS.md): regras para manutenção e desenvolvimento.
+
+A documentação semântica fornecida por Matheus e seu mapeamento detalhado são referências
+internas locais, excluídas do Git e do contexto Docker. A síntese, as variantes e suas
+limitações estão no [catálogo](ANALYSIS_CATALOG.md); não há dependência desses arquivos
+locais para instalar, testar ou carregar o catálogo.

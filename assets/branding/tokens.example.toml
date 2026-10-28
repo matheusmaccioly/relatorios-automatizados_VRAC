@@ -1,0 +1,28 @@
+# MODELO DOCUMENTAL. Não é carregado pela aplicação.
+# Preencher uma cópia tokens.toml somente com valores e arquivos oficiais confirmados.
+
+[reference]
+institution = "PUC-Rio"
+status = "pending_official_material"
+source_document = ""
+source_version = ""
+reviewed_by = ""
+reviewed_on = ""
+
+[colors]
+primary = ""
+secondary = ""
+background = ""
+surface = ""
+text = ""
+
+[typography]
+family = ""
+approved_fallbacks = []
+files = []
+
+# Caminhos relativos a assets/branding/. Nenhum arquivo presumido.
+[marks]
+primary_logo = ""
+secondary_logo = ""
+favicon = ""
