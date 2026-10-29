@@ -1,6 +1,6 @@
 # Próximos passos para avançar no desenvolvimento
 
-Atualizado em 28/10/2026. Documento para Matheus, Talita e responsáveis pelas fontes.
+Atualizado em 29/10/2026. Documento para Matheus, Talita e responsáveis pelas fontes.
 Complementa o [plano](PLAN.md) e o [catálogo de análises](ANALYSIS_CATALOG.md).
 Registra pendências; não constitui aprovação ou avanço de fase.
 
@@ -62,6 +62,30 @@ permanecem privados e fora do repositório.
 Conseguir conectar não comprova as regras analíticas, as chaves ou a cobertura.
 A autorização dos schemas também não define, por si só, como contar docentes.
 
+## O que já está construído — 29/10/2026
+
+O fluxo da composição docente foi implementado com a regra de contagem como parâmetro
+explícito. Isso muda a conversa com Talita: não é mais necessário escolher a regra para
+ver o fluxo funcionando. A tela já executa filtros, cálculo, tabela, gráfico, metadados,
+avisos e download, com dados fictícios.
+
+As quatro candidatas documentadas estão disponíveis na tela, todas rotuladas
+**NÃO APROVADA**:
+
+1. Pessoas distintas, foto em uma data.
+2. Pessoas distintas presentes em qualquer mês do período.
+3. Matrículas funcionais na última referência de cada vínculo.
+4. Matrículas funcionais no último mês do recorte.
+
+Na demonstração, o mesmo recorte devolve números diferentes conforme a candidata — por
+exemplo 2 pessoas contra 3 matrículas funcionais no mesmo departamento e período. Isso
+é material de conversa: Talita pode ver a consequência de cada definição antes de
+escolher, em vez de decidir no abstrato.
+
+Enquanto a escolha não estiver registrada com data e evidência, o resultado aparece como
+**parcial**, com as pendências nomeadas na tela e repetidas na exportação. Nenhum número
+desta seção tem validade institucional, e o modo real continua bloqueado.
+
 ## Entrega esperada do Prompt 3
 
 Com a definição da primeira análise registrada, construir o fluxo de composição
@@ -93,9 +117,14 @@ A conta de banco do desenvolvedor não será automaticamente a conta do serviço
 
 ## Próxima ação prática
 
-Matheus organiza uma conversa curta com Talita e o responsável pela fonte para
-responder às perguntas acima e escolher um caso de conferência. Em paralelo,
-solicita ao DBA/DSI os detalhes técnicos que faltam na configuração.
+Matheus organiza uma conversa curta com Talita e o responsável pela fonte. Com o fluxo
+já construído, a conversa pode ser feita **na frente da tela**: mostrar as quatro
+candidatas no mesmo recorte, comparar os números que cada uma produz e registrar qual
+corresponde ao que Talita usa hoje. Em paralelo, solicitar ao DBA/DSI os detalhes
+técnicos que faltam na configuração.
+
+Se a definição de Talita não corresponder a nenhuma das quatro candidatas, registrar a
+regra descrita por ela; a camada de cálculo aceita uma regra nova sem reescrever o fluxo.
 
 Esta documentação não envia mensagens, não executa conexão, não publica a aplicação
 e não altera aprovações. O estado efetivo continua em [STATUS.md](STATUS.md).

@@ -67,13 +67,42 @@ granularidade, fórmula, referência de comparação e aceite funcional humano d
 análise. A lista curta de decisões está no catálogo. Sem essa evidência, não declarar
 integração validada nem iniciar implementação real ou a fase 3 automaticamente.
 
+## Fase 3 — composição docente de ponta a ponta
+
+**Estado:** mecanismo implementado em 29/10/2026 com a regra como parâmetro; definição
+institucional, fonte física e aceite funcional continuam pendentes. A fase não está
+concluída: o critério de passagem é humano.
+
+O fluxo entrega repositório, cálculo separado da interface, filtros de departamento e
+período, tabela, gráfico, metadados, avisos, exportação inicial em CSV/JSON e os seis
+estados de tela. As quatro regras candidatas documentadas estão disponíveis como filtro
+explícito, todas marcadas como não aprovadas. Detalhes em
+[ARCHITECTURE.md](ARCHITECTURE.md) e [STATUS.md](STATUS.md).
+
+| Entrega | Situação |
+|---|---|
+| Porta de dados e adaptador sintético | Implementados; adaptador real recusa antes de conectar |
+| Cálculo testável sem Streamlit | Implementado; 46 testes novos cobrem população, referência temporal, sobreposição, ausência e bloqueio |
+| Tabela, gráfico e metadados com branding | Implementados a partir dos tokens; conferência visual no navegador pendente |
+| Exportação inicial | CSV e JSON do resultado exibido, com recorte, versões e avisos |
+| Estados de tela | `pronto`, `executando`, `vazio`, `parcial`, `bloqueado`, `erro` |
+| Definição institucional da contagem | **Pendente** — Talita e responsável pela fonte |
+| Mapeamento físico e consulta revisada | **Pendente** — DBA; `query_version` permanece nulo |
+| Caso de referência e conciliação | **Pendente** — depende do caso sanitizado autorizado |
+| Aceite funcional humano | **Pendente** — Matheus e Talita, após demonstração |
+
+Para concluir a fase 3: registrar a definição escolhida entre as candidatas (ou a regra
+nova que Talita indicar), mapear a fonte física aprovada, implementar a consulta revisada
+com parâmetros vinculados, conciliar com o caso de referência no mesmo recorte e
+registrar o aceite funcional. Até lá, o fluxo permanece sintético e parcial.
+
 ## Backlog das próximas fases
 
 | Fase e estado | Próximo incremento executável | Evidência necessária para avançar | Validação |
 |---|---|---|---|
 | 1 — ferramentas preparadas; validação institucional pendente | SQL Server e destino informados por Matheus; obter porta, lista nominal dos schemas, autenticação e driver, então executar diagnóstico fora da sessão do agente | Matheus registra conexão no ambiente autorizado; DBA confirma conta de leitura e objetos permitidos; material sanitizado aprovado fica disponível | Matheus + DBA; DSI para rede/TLS |
 | 2 — contratos preparados; validação humana pendente | Catálogo e contratos sintéticos entregues; obter dicionário sanitizado e validar primeiro a composição docente | Definição, fonte, recorte temporal, chaves e exemplo de referência aprovados; pendências bloqueiam apenas o resultado afetado | Talita + responsável pelas fontes/DBA + Matheus |
-| 3 — não iniciada | Entregar composição docente de ponta a ponta: filtros, consulta parametrizada revisada, cálculo separado da interface, tabela, gráfico, metadados e exportação inicial | Testes de duplicidade, vazio e mudança de filtros; conciliação com caso de mesmo recorte e data; demonstração e feedback registrados | Matheus + Talita |
+| 3 — mecanismo implementado; definição, fonte e aceite pendentes | Registrar a definição escolhida, mapear a fonte física e implementar a consulta revisada com parâmetros vinculados; conciliar com o caso de referência | Definição da população e referência temporal aprovadas; dicionário sanitizado; caso de referência no mesmo recorte; demonstração e aceite funcional registrados | Matheus + Talita; DBA para a fonte |
 | 4a — não iniciada | Implementar matrículas por curso/período, com definição validada de matrícula/aluno, ausências e equivalências vigentes | Série conciliada; base zero sem percentual; cursos renomeados e períodos ausentes cobertos por testes | Talita + responsável pelas fontes + Matheus |
 | 4b — não iniciada | Implementar Horas Reais e detalhamento em visões distintas; validar atuação interdepartamental, compartilhamentos, classificação e turmas vazias | Conciliação própria de carga; unidade e cobertura explícitas; nenhuma regra oficial alterada silenciosamente | Talita + responsável pelas fontes + Matheus |
 | 5 — não iniciada | Criar catálogo fechado de verificações, estados de aprovação, exportações e feedback; avaliar armazenamento operacional separado | Recusa não executa consulta; mudança de filtros/dados invalida aprovação; rerun não duplica; arquivos preservam filtros, avisos e proteção contra fórmulas | Matheus + Talita; DSI para armazenamento/retenção |

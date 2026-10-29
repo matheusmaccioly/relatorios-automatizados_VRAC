@@ -12,7 +12,8 @@
 
 ## Uso e operação
 
-- [Prévia da aplicação](guides/PREVIEW.md): roteiro de conferência da demonstração sintética.
+- [Prévia da aplicação](guides/PREVIEW.md): roteiro de conferência da demonstração sintética
+  e do fluxo de composição docente.
 - [Configurar KAPPA/PUC_OLAP](operations/CONFIGURAR_KAPPA.md): modelo preparado e passo a passo para Matheus.
 - [Diagnóstico e descoberta do banco](operations/DATABASE_DISCOVERY.md): execução manual autorizada.
 - [Dicionário sanitizado](operations/SANITIZED_DATA_DICTIONARY.md): material para a próxima fase.

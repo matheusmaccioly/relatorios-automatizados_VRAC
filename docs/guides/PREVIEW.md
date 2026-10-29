@@ -21,8 +21,37 @@ Para iniciá-la novamente, na raiz do projeto:
 
 Os dados incluem docentes repetidos por mês/vínculo, valores ausentes, zero,
 compartilhamento e atuação em outro departamento. São cenários de teste, não regras
-ou números institucionais. Ainda não existem totais consolidados, gráficos das análises,
-exportações ou conexão institucional pela tela.
+ou números institucionais. Não há conexão institucional pela tela.
+
+## Conferência da composição docente
+
+A seção **Análises disponíveis · composição docente** fica abaixo da fixture. Nenhum
+número dela tem validade institucional: a definição da contagem continua pendente.
+
+1. Manter **SINT-A** e **2026.1**. Conferir o aviso de que a regra não está aprovada,
+   com as pendências nomeadas.
+2. Com a regra **Pessoas distintas presentes em qualquer mês do período**, clicar em
+   **Calcular composição docente**. O total deve ser **2 pessoas**, com resultado
+   **parcial**, filtros efetivos, origem, versões e avisos.
+3. Trocar para **Matrículas funcionais na última referência de cada vínculo** e calcular
+   de novo. O total deve ser **3 matrículas funcionais** no mesmo recorte. A diferença é
+   a decisão que precisa ser tomada, não um erro.
+4. Escolher a distribuição **Categoria do vínculo**. As parcelas somam 3 e o total é 2:
+   conferir o aviso de que a mesma pessoa aparece em mais de uma categoria e que as
+   parcelas não são partes exclusivas.
+5. Escolher a distribuição **Quadro**. A fixture não informa quadro: conferir que tudo
+   aparece em **Sem classificação na dimensão**, sem inferência e sem sair do total.
+6. Voltar à regra **Pessoas distintas, foto em uma data** e comparar **01/03/2026** com
+   **01/04/2026**. O total deve mudar de 2 para 1, porque a foto depende da data.
+7. Selecionar **2026.2** e calcular. Deve aparecer o estado `vazio`, com a situação
+   **Sem registros** e célula sem valor — nunca zero.
+8. Trocar qualquer filtro depois de um cálculo. O resultado anterior deve desaparecer,
+   para que nenhum número seja lido fora do seu recorte.
+9. Baixar o CSV e o JSON e conferir que cada linha repete recorte, versões e avisos.
+
+Para ver o bloqueio do modo real, em uma sessão separada, use o comando da seção
+**Configuração e limites** do README. A tela deve recusar antes de carregar qualquer
+dado, sem exibir a seção de análises.
 
 ## O que o Prompt 1 acrescentou
 

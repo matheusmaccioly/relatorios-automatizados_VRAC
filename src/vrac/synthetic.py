@@ -1,8 +1,10 @@
 """Cenários fictícios para testar a fundação; não definem indicadores institucionais."""
 
 from dataclasses import dataclass
+from datetime import date
 from random import Random
 
+from vrac.analyses.contracts import AcademicPeriod
 from vrac.authorization import require_data_access
 from vrac.settings import Settings
 
@@ -10,6 +12,16 @@ DEPARTMENTS = ("SINT-A", "SINT-B")
 PERIODS = ("2025.2", "2026.1", "2026.2")
 SYNTHETIC_SEED = 21
 DATASET_VERSION = "synthetic-v1"
+
+# Calendário fictício da demonstração. Não é o calendário acadêmico da PUC-Rio: o
+# recorte real de cada período, inclusive a inclusão de julho, depende da fonte e
+# da aprovação de Talita (decisão faculty_grain). `2026.2` fica incompleto de
+# propósito, para exercitar o período em curso e o recorte sem registros.
+DEMO_PERIOD_CALENDAR = {
+    "2025.2": (date(2025, 8, 1), date(2025, 12, 31), True),
+    "2026.1": (date(2026, 3, 1), date(2026, 7, 31), True),
+    "2026.2": (date(2026, 8, 1), date(2026, 12, 31), False),
+}
 
 
 @dataclass(frozen=True)
@@ -123,4 +135,14 @@ def select_demo_data(data: SyntheticDataset, *, department: str, period: str) ->
         allocations=tuple(
             row for row in data.allocations if row.department == department and row.period == period
         ),
+    )
+
+
+def demo_period(identifier: str) -> AcademicPeriod:
+    """Período fictício com datas explícitas; nenhum calendário civil é presumido."""
+    if identifier not in DEMO_PERIOD_CALENDAR:
+        raise ValueError("Selecione um período da demonstração.")
+    starts_on, ends_on, complete = DEMO_PERIOD_CALENDAR[identifier]
+    return AcademicPeriod(
+        identifier=identifier, starts_on=starts_on, ends_on=ends_on, complete=complete
     )

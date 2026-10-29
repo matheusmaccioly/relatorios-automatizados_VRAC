@@ -1,11 +1,54 @@
 # Estado da entrega
 
-Atualizado em 29/10/2026. **Prompt 2: contratos dos seis roteiros implementados; aceite institucional pendente.**
+Atualizado em 29/10/2026. **Fluxo da fase 3 implementado com a regra como parâmetro;
+nenhuma regra docente foi aprovada e nenhum número tem validade institucional.**
 **Conexão e inventário institucionais: NÃO VALIDADOS.** SQL Server confirmado por Matheus.
 Fontes físicas, fórmulas e aceite funcional continuam pendentes; a base documental
-semântica foi incorporada ao catálogo. Fases 3–7 não iniciadas.
+semântica foi incorporada ao catálogo. Fases 4–7 não iniciadas.
 Fase 0 e ferramentas do Prompt 1 preparadas. Conteúdo do guia original preservado;
 `AGENTS.md` atualizado com a exigência de branding institucional.
+
+## Fluxo de composição docente com regra parametrizada — 29/10/2026
+
+A pedido de Matheus, implementado o fluxo de ponta a ponta da composição docente sobre
+dados sintéticos, mantendo a definição institucional em aberto. A regra de contagem
+deixou de ser hipótese do código e passou a ser parâmetro explícito, versionado e
+sujeito a aprovação registrada.
+
+Arquivos novos: `src/vrac/analyses/rules.py`, `src/vrac/analyses/repository.py`,
+`src/vrac/analyses/faculty.py`, `src/vrac/presentation.py`, `src/vrac/exports.py`,
+`tests/helpers.py`, `tests/test_faculty_rules.py`, `tests/test_faculty_composition.py`,
+`tests/test_presentation_exports.py`, `tests/test_ui_faculty.py`.
+Arquivos alterados: `src/vrac/ui.py` (nova seção e seção da fixture preservada),
+`src/vrac/synthetic.py` (calendário fictício e `demo_period()`), documentação.
+
+As quatro candidatas documentadas — pessoas em foto, pessoas em qualquer mês,
+matrículas funcionais na última referência por vínculo e no último mês do recorte —
+ficam em `CANDIDATE_FACULTY_RULES`, todas com `ApprovalStatus.PENDING`, sem data e sem
+evidência. Nenhuma é padrão institucional; a ordem na lista não expressa preferência.
+
+Estados que o fluxo produz hoje:
+
+| Situação | Estado do resultado | Consequência na tela |
+|---|---|---|
+| Modo real | `BLOCKED` | O repositório não é consultado; nenhuma conexão é aberta |
+| Regra candidata sem aprovação | `PARTIAL` | Número aparece com as pendências nomeadas e aviso de ausência de validade |
+| Recorte sem registros | `PARTIAL` com `sem_registros` | Estado `vazio`; valor permanece vazio, nunca zero |
+| Período incompleto | `PARTIAL` | `2026.2` é propositalmente incompleto na fixture |
+| Regra aprovada com data e evidência | `VALID` | Alcançável somente após registro humano; exercitado apenas em teste |
+
+Verificações executadas nesta máquina (macOS, fora do Windows institucional):
+**243 testes passaram, 5 foram ignorados e 1 integração foi excluída**; `ruff check` e
+`ruff format --check` aprovados em 73 arquivos. O aplicativo subiu em
+`127.0.0.1:8599` com `/healthz` em 200 e nenhuma exceção no log; o servidor foi
+encerrado em seguida. Os cinco testes ignorados são três do extra `sqlserver`, não
+instalado aqui, e dois específicos de Windows.
+
+Não executados: conferência visual no navegador, homologação funcional com Talita,
+conexão real, inventário, implantação e `scripts/check.cmd` no Windows. O ambiente
+local exigiu `uv sync --locked --python 3.12.13`, porque `.python-version` fixa
+3.12.15 e o `uv` 0.11.28 desta máquina não oferece essa versão; o arquivo versionado
+não foi alterado. Nenhuma fase foi declarada aprovada e nenhum push foi solicitado.
 
 ## Consolidação para commit local — 29/10/2026
 

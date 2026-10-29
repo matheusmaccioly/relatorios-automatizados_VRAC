@@ -1,11 +1,12 @@
 # PoC de análises acadêmicas da VRAC
 
-Fundação de uma aplicação interna para apoiar Talita na preparação de análises de
-docentes, matrículas e carga horária. **Demonstração local exclusivamente sintética** e
-ferramentas manuais de diagnóstico/inventário da fase 1 e contratos lógicos da fase 2.
-O acesso real permanece separado da tela e as análises aguardam aprovação humana.
-O aplicativo funciona sem LLM e sem Power BI. Conexão e inventário institucionais
-permanecem **NÃO VALIDADOS**; SQL Server é uma hipótese.
+Aplicação interna para apoiar Talita na preparação de análises de docentes, matrículas
+e carga horária. **Demonstração local exclusivamente sintética**, com o fluxo completo da
+composição docente, ferramentas manuais de diagnóstico/inventário da fase 1 e contratos
+lógicos da fase 2. O acesso real permanece separado da tela e **nenhuma regra docente foi
+aprovada**: a regra de contagem é um parâmetro explícito e todo resultado sai como parcial
+enquanto a definição institucional não estiver registrada. O aplicativo funciona sem LLM
+e sem Power BI. Conexão e inventário institucionais permanecem **NÃO VALIDADOS**.
 
 O [guia original](docs/references/Guia_Desenvolvimento_VRAC_Codex.md) foi preservado. As instruções
 permanentes estão em [AGENTS.md](AGENTS.md) e o plano em [docs/PLAN.md](docs/PLAN.md).
@@ -113,6 +114,36 @@ sintéticos testam os limites. Modelos de referência e de equivalência de curs
 em `config/`. Adaptadores reais de análises estão bloqueados. A tela da demonstração
 permanece na fundação; sua evolução faz parte da fase 3, com regras e branding aprovados.
 
+## Composição docente — fluxo da fase 3
+
+A tela executa o fluxo completo sobre dados fictícios: filtros de departamento e período,
+regra candidata, distribuição, tabela, gráfico, metadados, avisos e download em CSV/JSON.
+O cálculo fica em `src/vrac/analyses/faculty.py` e é testável sem Streamlit.
+
+A regra de contagem **não é escolhida pelo código**. As quatro candidatas documentadas
+aparecem na tela rotuladas `NÃO APROVADA`:
+
+| Candidata | População | Referência temporal |
+|---|---|---|
+| `pessoas_foto` | Pessoas distintas | Foto em uma data do período |
+| `pessoas_qualquer_mes` | Pessoas distintas | Presença em qualquer mês |
+| `matriculas_ultima_por_vinculo` | Matrículas funcionais | Última referência de cada vínculo |
+| `matriculas_ultimo_mes_global` | Matrículas funcionais | Último mês do recorte |
+
+No mesmo recorte, candidatas diferentes produzem números diferentes — é exatamente a
+decisão que Talita precisa tomar. Enquanto nenhuma estiver aprovada com data e evidência,
+o resultado é **parcial** e traz as pendências na tela e na exportação. `VALID` exige
+aprovação registrada, período completo e todos os dados observados. Em modo real o
+resultado é **bloqueado** sem consultar o repositório: nenhuma conexão é aberta.
+
+Ausência de registros produz o estado `vazio`, com a célula sem valor e a situação
+`Sem registros` — nunca zero. Quando a mesma pessoa aparece em mais de uma categoria,
+as parcelas não somam o total e a sobreposição é avisada, sem rateio. Classificação
+ausente é contada em métrica própria, sem inferência.
+
+As exportações repetem recorte, versões e avisos em cada linha, usam `;` e UTF-8 com BOM
+para o Excel em português e neutralizam texto que seria lido como fórmula.
+
 ## Configuração e limites
 
 Somente `VRAC_ENVIRONMENT` (`development`, `test`, `production`) e `VRAC_DATA_MODE`
@@ -137,9 +168,10 @@ em [docs/DSI_REQUESTS.md](docs/operations/DSI_REQUESTS.md).
 
 ## Desenvolvimento e continuidade
 
-O pacote em `src/vrac/` separa configuração, autorização, dados fictícios e interface.
-O pacote `src/vrac/db/` contém apenas as ferramentas manuais de descoberta; cálculos,
-verificações executáveis, gráficos e exportação serão adicionados nos incrementos correspondentes.
+O pacote em `src/vrac/` separa configuração, autorização, dados fictícios, regras,
+acesso a dados, cálculo, apresentação, exportação e interface. O pacote `src/vrac/db/`
+contém apenas as ferramentas manuais de descoberta; verificações executáveis da fase 5
+e os adaptadores reais serão adicionados nos incrementos correspondentes.
 
 ```powershell
 .\.venv\Scripts\ruff.exe check .

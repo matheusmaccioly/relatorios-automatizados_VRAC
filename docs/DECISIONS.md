@@ -35,6 +35,26 @@ fonte, referência e aceite humano. Nenhum status institucional foi promovido.
 Detalhes e filtros não aprovados continuam indisponíveis. Nenhum novo SQL foi criado
 sem fonte física confirmada; a consulta de referência já existente não foi executada.
 
+## Fluxo docente com regra parametrizada — 29/10/2026
+
+D-021: implementar o fluxo de ponta a ponta da composição docente mantendo a regra como
+parâmetro explícito, em vez de esperar a definição institucional para começar. Motivo:
+as quatro combinações de população e referência temporal já estão documentadas; construir
+o mecanismo em torno delas não escolhe nenhuma e permite demonstrar o fluxo a Talita
+antes do aceite. Consequência: `CANDIDATE_FACULTY_RULES` mantém as quatro candidatas com
+status `pending`, sem data e sem evidência; o resultado é no máximo parcial enquanto
+houver pendência; `VALID` exige aprovação registrada com data e evidência, período
+completo e todos os dados observados. Modo real continua bloqueado sem consultar o
+repositório. Nenhuma variante foi selecionada, nenhuma fonte física foi mapeada e
+nenhum aceite funcional foi registrado. Se Talita definir uma população ou referência
+temporal fora das quatro candidatas, a regra correspondente precisará ser implementada;
+o mecanismo e as camadas permanecem válidos.
+
+D-022: a distribuição por categoria não é apresentada como partes exclusivas do total.
+Quando a mesma identidade aparece em mais de uma categoria, o fluxo conta a sobreposição
+e emite aviso, sem ratear, redistribuir ou ajustar o total. Classificação ausente é
+contada em métrica própria, nunca inferida nem excluída do total.
+
 ## Questões abertas
 
 D-020 — 28/10/2026: aplicar os materiais RGB e tipográficos fornecidos por Matheus

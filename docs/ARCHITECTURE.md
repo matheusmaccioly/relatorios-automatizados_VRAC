@@ -98,6 +98,49 @@ de precisão. Detalhes e decisões humanas estão no [catálogo](ANALYSIS_CATALO
 Nenhum componente visual foi adicionado nesta fase, preservando a exigência de aplicação
 do branding com os materiais oficiais antes da evolução da interface.
 
+## Fluxo de composição docente — fase 3
+
+O fluxo é dividido em quatro camadas, nenhuma delas dependente do Streamlit, exceto a
+última. `rules.py` guarda as regras candidatas: cada `FacultyRule` combina população
+(`FacultyCountingBasis`) e referência temporal (`TemporalBasis`), aponta a variante
+semântica documentada, lista as decisões do catálogo que ainda faltam e carrega um
+`RuleApproval` com a mesma exigência de data e evidência de `DefinitionDecision`.
+`rule_blockers()` soma as pendências da regra às do catálogo; não aprova nada.
+
+`repository.py` define a porta. `FacultyObservation` é a linha lógica que o cálculo
+consome — pessoa, matrícula funcional, departamento do vínculo, competência e atributos
+de distribuição — sem nome físico institucional. `SyntheticFacultyRepository` traduz a
+fixture determinística; `BlockedFacultyRepository` ocupa o lugar do adaptador real e
+recusa antes de abrir conexão. `select_repository()` nunca entrega a fixture em modo real.
+
+`faculty.py` contém o cálculo puro. `compute_faculty_composition()` aplica a referência
+temporal da regra, deduplica pela população escolhida e distribui por uma dimensão da
+lista fechada. A soma de competências nunca substitui a contagem distinta, e a soma das
+categorias pode exceder o total quando uma identidade tem mais de um vínculo — o caso é
+contado em `overlapping` e vira aviso explícito, sem rateio. Classificação ausente é
+contada à parte, sem inferência nem exclusão do total. `faculty_result()` monta o
+`AnalysisResult`: modo real é bloqueado sem consultar o repositório, regra sem aprovação
+produz resultado parcial com as pendências nomeadas, e `VALID` exige aprovação
+registrada, período completo e todos os dados observados.
+
+`presentation.py` deriva tabelas pandas e um gráfico Matplotlib dos tokens de marca,
+sem recalcular: valor ausente mostra a situação do dado, nunca zero. `ViewState` separa
+`pronto`, `executando`, `vazio`, `parcial`, `bloqueado` e `erro`; `vazio` é um estado
+próprio e não um parcial comum. `exports.py` serializa o resultado exibido em CSV e
+JSON, repetindo recorte, versões e avisos em cada linha, com delimitador e BOM que o
+Excel em português reconhece e com neutralização de texto que seria lido como fórmula.
+Resultado bloqueado e modo real não exportam.
+
+`ui.py` apenas monta a solicitação, chama o cálculo e apresenta o estado declarado. A
+regra candidata é um filtro rotulado **NÃO APROVADA**; trocar qualquer filtro descarta o
+resultado anterior, para que nenhum número apareça fora do seu recorte. A seção da
+fixture da fase 0 foi preservada acima da nova seção. Não há `st.metric`: um número
+grande sem suas limitações não é apresentado.
+
+A passagem de fase continua humana. O mecanismo implementado não aprova regra, não
+mapeia fonte física e não libera modo real; `phase3_blockers()` e `rule_blockers()`
+seguem listando o que falta.
+
 ## Limites entre ambientes
 
 Credenciais e arquivos privados permanecem fora do workspace do agente. Exemplos versionados não terão valores reais. `.gitignore` e `.dockerignore` reduzem inclusão acidental, mas não substituem controle de acesso ou isolamento.
