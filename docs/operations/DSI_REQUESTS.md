@@ -11,7 +11,7 @@ Preparado em 26/10/2026 para encaminhamento por Matheus. **Nenhuma solicitação
 | INF-03 | Rede e conectividade autorizada | DSI + DBA | Rede/VPN, destinos, portas e política de saída necessários informados por canal aprovado; sem varredura de rede |
 | IAM-01 | Mecanismo institucional de autenticação | DSI | OIDC ou proxy efetivamente disponível, parâmetros operacionais, política de sessão, logout e expiração aprovados |
 | IAM-02 | Política de autorização | DSI + responsável pelo piloto + Talita | Identidades/grupos, departamentos, análises e níveis de detalhe permitidos; negar por padrão; domínio de e-mail isolado não libera acesso |
-| DB-01 | Confirmação do SGBD e autenticação do banco | DBA + Matheus | Produto, ambiente, método de autenticação e requisitos de driver documentados; não presumir SQL Server ou porta |
+| DB-01 | Completar os detalhes de acesso ao SQL Server informado por Matheus | DBA + Matheus | KAPPA/PUC_OLAP e conta criada informados em 28/10; autorização dos schemas declarada. Registrar porta TCP, nomes exatos dos schemas/objetos, autenticação, driver e confirmação de somente leitura; nenhuma porta ou schema presumidos |
 | DB-02 | Conta técnica independente da conta pessoal | DBA + DSI | Identidade de serviço e somente leitura nas fontes aprovadas, com comprovação administrativa do escopo; sem teste de escrita |
 | DB-03 | Fontes e metadados permitidos | DBA + responsável pelas fontes | Lista delimitada de bancos/schemas/objetos, granularidade permitida e regras de divulgação de metadados ao desenvolvimento |
 | DB-04 | TLS e certificados | DSI + DBA | Cadeia confiável, nomes válidos, instalação e renovação definidos; não aceitar certificado arbitrário nem desativar criptografia |

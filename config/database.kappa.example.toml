@@ -1,0 +1,36 @@
+# MODELO PREPARADO PARA MATHEUS — SEM CREDENCIAIS.
+# Primeiro copie para uma pasta privada FORA do projeto com o nome dbconfig.toml.
+# Preencha SOMENTE a cópia privada. Passo a passo: docs/operations/CONFIGURAR_KAPPA.md.
+
+[database]
+# JÁ PREENCHIDO com o que você informou. Não precisa alterar.
+dbms = "mssql"
+sqlserver_confirmed = true
+server = "KAPPA"
+database = "PUC_OLAP"
+
+# 1. PORTA: troque o 0 pelo número que o DBA/DSI informar. Não use aspas.
+port = 0
+
+# 2. SCHEMAS: coloque os nomes exatos entre aspas, separados por vírgula.
+# Formato: ["NOME_INFORMADO_1", "NOME_INFORMADO_2"]. Não presumir dbo.
+schemas = []
+
+# 3. DRIVER: nome exato do driver ODBC instalado, informado pela DSI.
+driver = ""
+
+# 4. AUTENTICAÇÃO: copie UMA das opções abaixo para dentro das aspas.
+# No SSMS aparece "Autenticação do Windows" -> windows
+# No SSMS aparece "Autenticação do SQL Server" -> sql_password
+auth_mode = ""
+
+# 5. CONFIRMAÇÃO FINAL: troque false por true após preencher os campos acima
+# com o escopo autorizado e confirmar com o DBA a execução e a conta só de leitura.
+# Sua declaração de autorização dos schemas já está registrada; falta a lista nominal.
+scope_approved = false
+
+[credentials]
+# APENAS se escolheu sql_password: preencha seu usuário e senha nesta cópia privada.
+# Se escolheu windows: mantenha ambos vazios. Não envie estes valores no chat.
+username = ""
+password = ""

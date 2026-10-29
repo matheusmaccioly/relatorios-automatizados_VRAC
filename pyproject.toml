@@ -30,6 +30,8 @@ packages = ["src/vrac"]
 [tool.hatch.build.targets.wheel.force-include]
 "sql" = "vrac/sql"
 "config/analyses.yaml" = "vrac/analyses/analyses.yaml"
+"assets/branding/tokens.toml" = "vrac/branding_assets/tokens.toml"
+"assets/branding/logos/RGB/PNG/_puc_rio-H_cor_abr_rgb_23-10-18.png" = "vrac/branding_assets/logos/RGB/PNG/_puc_rio-H_cor_abr_rgb_23-10-18.png"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

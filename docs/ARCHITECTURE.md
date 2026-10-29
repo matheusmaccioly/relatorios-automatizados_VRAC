@@ -35,10 +35,15 @@ separados de código, configurações de banco e dados. A pasta organiza logos, 
 fontes, manuais e templates; `tokens.example.toml` documenta os campos de cores,
 tipografia e marcas sem presumir valores institucionais.
 
-O modelo de tokens ainda não é consumido em execução. A integração centralizada dos
-recursos à interface e às exportações depende dos arquivos e regras oficiais; o tema
-atual é provisório. A conformidade visual exige revisão registrada pelo responsável
-institucional pela identidade visual, sem substituir os aceites funcionais e de segurança.
+`tokens.toml` agora é consumido por `vrac.branding`. `scripts/sync-branding.py` gera o
+tema nativo Streamlit e copia seis pesos tipográficos sem alteração para a pasta
+pública `static/branding/`, restrita a esses recursos. Os originais ficam em assets.
+O logo mantém proporção e respiro. Fontes são servidas pelo próprio app, sem CDN.
+O wheel inclui tokens e logo usados pelo módulo; a interface via checkout usa a
+configuração gerada e as fontes web da raiz. Não há nova exportação nesta entrega.
+Proposta de hierarquia tipográfica, regras visuais ausentes e divergências RGB/hex
+permanecem documentadas. Conformidade exige revisão por Matheus e responsável
+institucional, sem substituir os aceites funcionais e de segurança.
 
 ## Ambiente reproduzível
 

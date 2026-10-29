@@ -1,11 +1,221 @@
 # Estado da entrega
 
-Atualizado em 27/10/2026. **Prompt 2 preparado: catálogo e contratos lógicos com testes sintéticos.**
-**Conexão e inventário institucionais: NÃO VALIDADOS.** SQL Server permanece hipótese.
+Atualizado em 29/10/2026. **Prompt 2: contratos dos seis roteiros implementados; aceite institucional pendente.**
+**Conexão e inventário institucionais: NÃO VALIDADOS.** SQL Server confirmado por Matheus.
 Fontes físicas, fórmulas e aceite funcional continuam pendentes; a base documental
 semântica foi incorporada ao catálogo. Fases 3–7 não iniciadas.
 Fase 0 e ferramentas do Prompt 1 preparadas. Conteúdo do guia original preservado;
 `AGENTS.md` atualizado com a exigência de branding institucional.
+
+## Consolidação para commit local — 29/10/2026
+
+A pedido de Matheus, reunidas as alterações pendentes: contratos dos seis roteiros,
+aplicação dos materiais de branding, modelo KAPPA sem credenciais e documentação de
+configuração/próximos passos. Materiais internos explicitamente ignorados permanecem
+fora do versionamento. As alterações anteriores foram preservadas.
+Extensões AI, PDF, PNG, JPG e TTF marcadas como binárias em `.gitattributes` para
+preservar os recursos originais, sem conversão de finais de linha ou diff textual.
+
+Verificações repetidas: `.\scripts\check.cmd` concluiu com código 0; **210 testes
+passaram e 1 integração foi excluída**, com lock offline, Ruff e formatação aprovados.
+Tema gerado comparado aos tokens e seis fontes web comparadas byte a byte aos
+originais. `git diff --check` sem erros de whitespace. Não executados conexão real,
+inventário, homologação funcional/visual ou implantação. Porta, schemas nominais,
+autenticação, driver e revisão de somente leitura dependem de Matheus/DBA/DSI;
+regras e referência docente continuam dependendo de Talita e fonte. Nenhuma fase
+foi avançada e nenhum push ou publicação foi solicitado nesta tarefa.
+
+## Registro das informações de conexão — 28/10/2026
+
+Complemento documental: criado `docs/PROXIMOS_PASSOS.md` a pedido de Matheus, com
+prioridades, responsáveis, perguntas para Talita, caso de referência e condições
+para o Prompt 3. Link adicionado ao índice `docs/README.md`. Verificados links
+locais e `git diff --check`; sem alteração executável, a suíte não foi repetida.
+Nenhuma conexão, aprovação, avanço de fase, publicação, commit ou push realizados.
+
+Complemento solicitado por Matheus: criado `config/database.kappa.example.toml`,
+modelo sem credenciais com servidor, banco e confirmação de SQL Server preenchidos.
+Os campos pendentes estão numerados; timeouts e limites usam os padrões do código,
+sem expor ajustes desnecessários. `docs/operations/CONFIGURAR_KAPPA.md` explica
+cópia externa, autenticação, os cinco campos de configuração, dados a pedir ao DBA/DSI
+e o comando de diagnóstico. O roteiro técnico aponta para esse caminho simplificado.
+O índice `docs/README.md` também oferece acesso direto ao novo guia.
+Nenhuma configuração privada foi criada ou lida, nem houve conexão. O modelo segue
+intencionalmente incompleto até receber porta, schemas, driver e autenticação e
+completar a confirmação de escopo; a autorização declarada foi preservada.
+
+Verificações deste complemento: sintaxe TOML e compatibilidade com `DatabaseConfig`
+usando apenas substituições sintéticas em memória; bloqueio do modelo incompleto;
+`git diff --check`. Não repetida a suíte de aplicação por não haver alteração de
+código executável. Testes reais permanecem reservados ao operador. Sem commit ou push.
+
+Matheus solicitou atualizar a documentação com SQL Server KAPPA, endereço informado
+`139.82.9.6`, banco `PUC_OLAP` e criação de seu usuário. Declarou que os schemas
+necessários à aplicação estão autorizados, mas ainda não dispõe de porta TCP nem
+dos nomes exatos dos schemas. Esses itens foram registrados como detalhes técnicos
+pendentes, sem desconsiderar a autorização declarada e sem presumir `dbo` ou porta.
+Método de autenticação, driver e revisão administrativa de somente leitura seguem
+pendentes. O login de banco não equivale ao mecanismo de acesso futuro da usuária.
+
+Atualizados `operations/DATABASE_DISCOVERY.md`, `operations/DSI_REQUESTS.md`,
+`PROJECT_CONTEXT.md`, `PLAN.md`, `DECISIONS.md` e este estado. O exemplo
+`config/database.example.toml` permanece genérico e nenhuma configuração real foi
+criada ou lida. Alterações anteriores preservadas; nenhuma mudança de código ou fase.
+
+Verificação documental: `git diff --check`, sem erros de whitespace. Suíte offline
+não repetida por se tratar apenas de documentação. Não executados diagnóstico,
+inventário, conexão real, testes de banco, commit ou push. Os comandos de execução
+pelo operador continuam no roteiro; a configuração exige porta e schemas explícitos
+antes de executar. Matheus/DBA/DSI devem completar esses valores e confirmar
+autenticação, driver, TLS e privilégios. As regras analíticas ainda dependem de Talita
+e dos responsáveis pelas fontes; nenhum aceite foi inferido desta atualização.
+
+## Aplicação dos materiais de identidade visual — 28/10/2026
+
+A pedido de Matheus, integrados os materiais adicionados a `assets/branding/` à
+demonstração existente. Nenhuma regra analítica, fonte real ou fase foi liberada.
+
+| Arquivos | Alteração |
+|---|---|
+| `assets/branding/tokens.toml`, `src/vrac/branding.py` | Centralização de logo, cores, fontes e estilos |
+| `scripts/sync-branding.py`, `.streamlit/config.toml` | Geração de tema nativo Streamlit e caminhos locais de fontes |
+| `static/branding/*.ttf` | Seis cópias byte a byte das fontes originais, somente recursos públicos |
+| `src/vrac/ui.py` | Assinatura horizontal original, tipografia, título e indicação de revisão pendente |
+| `pyproject.toml` | Inclusão dos tokens e logo usados pelo módulo no wheel |
+| READMEs de branding e projeto, arquitetura, contexto, plano, decisões e estado | Origem, aplicação, comandos e limitações |
+
+Lida e renderizada a única página da prancha EMoD de 23-10-18, fornecida junto aos
+brasões RGB. PNG selecionado inspecionado; todos os originais preservados. Não foi
+fornecido manual completo de interface. Amarelo/cinza têm divergência RGB/hex e não
+foram aplicados aos componentes; azul/ciano coincidem. Hierarquia tipográfica e
+dimensões são propostas de layout, não regras homologadas. Nenhum favicon foi criado.
+
+Comandos: `.\.venv\Scripts\python.exe scripts/sync-branding.py` para gerar tema;
+`.\scripts\run-demo.cmd` para abrir o serviço local; `.\scripts\check.cmd` para
+verificações offline. **210 testes passaram e 1 integração foi excluída**; lock,
+Ruff e formatação aprovados. Conferidas igualdade tema/tokens, existência do logo
+e seis cópias de fontes idênticas. Wheel construído offline: 40 arquivos, tokens e
+logo incluídos, cache e documentos internos ausentes. PyMuPDF usado isoladamente
+em `.cache/branding-tools`, sem alteração das dependências ou lock da aplicação.
+
+Serviço temporário em `127.0.0.1:8515`: saúde e página inicial responderam HTTP 200;
+Rethink Sans Regular e Literata Semibold também responderam 200. O serviço anterior
+da porta 8501 não foi alterado; o serviço temporário 8515 foi encerrado ao concluir.
+AppTest verificou filtros, vazio, bloqueio real e erro
+de configuração com a nova apresentação. Computer Use interrompeu a revisão antes
+da captura do navegador porque não conseguiu confirmar a URL atual; nenhuma revisão
+visual da aplicação é declarada concluída.
+
+Não executados: conexão real, homologação funcional/visual, exportações novas,
+implantação, commit ou push. Matheus e responsável institucional devem revisar a
+aplicação, confirmar amarelo/cinza, hierarquia, tamanhos mínimos, favicon e condições
+de distribuição das fontes. Talita deve avaliar legibilidade e uso. Pendências de
+fontes/chaves do DBA e de acesso da DSI permanecem; fases 3–7 não iniciadas.
+
+## Implementação complementar do Prompt 2 — 28/10/2026
+
+Usada a especificação encontrada em `docs/ROTEIROS_ANALISES_VRAC.local.md`; o caminho
+singular sem sufixo informado na solicitação não existe. Preservadas as alterações
+documentais e exclusões já presentes. Nenhum arquivo interno foi incluído no pacote.
+
+- `config/analyses.yaml` e `catalog.py`: versão `phase2-workflows-v4`, associação
+  fechada dos seis roteiros às três famílias e rejeição de associação incompatível.
+- `contracts.py`: papéis separados de departamento histórico e distribuição,
+  quadro/categoria, situação e entidades acadêmicas; percentual docente previsto
+  para o contrato de participação, sem calcular ou aprovar regra de QP.
+- `workflows.py`: contratos de solicitação e resultado por período/métrica,
+  planejamento de dependências, 24 decisões pendentes com responsáveis, filtros
+  fechados, proteção do denominador QP e estados independentes das quatro curvas.
+  Sem SQL, conexão, cálculo de indicadores ou detalhe pessoal na implementação.
+- `__main__.py`: CLI lista roteiros, dependências e impedimentos ao Prompt 3.
+- `tests/test_workflows.py`: 28 testes de contratos e cenários sintéticos, incluindo
+  bolsa bloqueada sem afetar outras curvas, períodos sobrepostos, filtro QP,
+  departamento histórico, cobertura incompleta, base zero e ausência de fallback real.
+- Atualizados catálogo documental, contexto, plano, decisões e este estado.
+
+Comando de validação: `.\scripts\check.cmd` — **210 testes passaram, 1 integração
+excluída**, lock offline, Ruff e formatação aprovados. CLI de conferência:
+`.\.venv\Scripts\python.exe -m vrac.analyses`. A suíte anterior tinha 182 testes;
+os novos casos validam contratos, não aprovação ou execução das 38 regras de aceite.
+
+Não executados: testes reais, consultas, conciliação institucional, novas telas,
+homologação funcional/visual, implantação, commit ou push. Matheus autorizou avanço
+condicional ao Prompt 3; fonte, população, identidade, referência temporal, fórmula
+e caso de comparação docente continuam sem aprovação. A fase 3 não foi iniciada.
+Talita e fonte validam os conceitos e exemplo; DBA confirma chaves/fontes/cobertura;
+Matheus registra evidências; DSI valida acesso e escopos. Branding permanece pendente.
+
+## Roteiros detalhados das análises — 28/10/2026 (registro anterior)
+
+A pedido de Matheus, preparada documentação funcional detalhada para traduzir as
+análises indicadas nos dois painéis em roteiros do aplicativo. A entrega permanece
+documental, dentro da fase 2. Nenhum cálculo, consulta de análise, tela, dependência
+ou contrato executável foi alterado. Fases 3–7 continuam não iniciadas.
+
+O arquivo interno `docs/ROTEIROS_ANALISES_VRAC.local.md` tem seis roteiros: situação
+geral do departamento, geral e QP, histórico semestral, carga horária, dupla função
+e funções administrativas, e o gráfico geral de alunos. Inclui filtros em tabela,
+regras encontradas e propostas, sequência de uso, saídas, templates descritivos,
+contratos lógicos, exportações propostas, 24 decisões pendentes e 38 casos de aceite
+futuros. Casos descritos não são testes executados nem regras homologadas.
+
+O inventário interno `docs/EVIDENCIAS_PAINEIS_VRAC.local.json` registra cinco páginas
+e 59 visuais com consulta, incluindo seletores, IDs, títulos, campos, agregadores,
+filtros resumidos e hashes dos PBIX. Inspeção estática local somente dos JSON de
+`Report/definition/`; sem leitura do DataModel, conexões, credenciais ou registros.
+As fórmulas vêm da referência semântica preexistente e foram cruzadas por nome com
+os visuais; o DAX binário dos PBIX não foi reextraído nesta entrega.
+
+Especificação e inventário ficam excluídos do Git e do contexto Docker, como as
+demais referências internas. Não houve commit, push, envio a serviços externos ou
+publicação. O catálogo empacotável permanece com três famílias e nove variantes.
+
+| Arquivo alterado ou criado | Finalidade |
+|---|---|
+| `docs/ROTEIROS_ANALISES_VRAC.local.md` — local, ignorado | Especificação funcional detalhada para Talita e desenvolvimento |
+| `docs/EVIDENCIAS_PAINEIS_VRAC.local.json` — local, ignorado | Rastreabilidade de páginas e visuais dos dois painéis |
+| `.gitignore`, `.dockerignore` | Excluir os dois novos artefatos internos |
+| `docs/ANALYSIS_CATALOG.md` | Relacionar roteiros documentais às famílias existentes, sem mudar runtime |
+| `docs/PROJECT_CONTEXT.md`, `docs/PLAN.md` | Registrar escopo documental atual e preservar limites de fase |
+| `docs/DECISIONS.md` | Registrar D-018, sem aprovação institucional presumida |
+| `docs/README.md` | Apontar documentos locais e explicar indisponibilidade em outros clones |
+| `docs/STATUS.md` | Registrar entrega, verificações, limites e validações necessárias |
+
+### Verificações desta documentação
+
+| Verificação executada | Resultado |
+|---|---|
+| Script Python inline via `.\.venv\Scripts\python.exe -` | Aprovado: UTF-8, cercas de código, seis roteiros, 24 decisões, 38 casos futuros, 18 links locais/âncoras, estrutura JSON, cinco páginas e 59 visuais conferidos nos PBIX |
+| Hashes SHA-256 dos dois PBIX e da referência semântica | Conferidos; fontes preservadas e correspondentes ao inventário |
+| Revisão paralela de docentes e alunos | Correspondências semânticas revisadas; regras legadas separadas de propostas |
+| Revisão crítica independente | Corrigidos tratamento de QP com classificação incompleta e um link sem âncora; sem alteração do documento original |
+| `git check-ignore -- docs/ROTEIROS_ANALISES_VRAC.local.md docs/EVIDENCIAS_PAINEIS_VRAC.local.json` | Ambos ignorados; exclusões Docker também conferidas |
+| `git diff --check` | Aprovado, sem erros de whitespace |
+
+Comando para abrir a documentação a partir da raiz:
+`Invoke-Item .\docs\ROTEIROS_ANALISES_VRAC.local.md`.
+Para validar a leitura do inventário:
+`.\.venv\Scripts\python.exe -m json.tool .\docs\EVIDENCIAS_PAINEIS_VRAC.local.json > $null`.
+Nenhum desses comandos consulta o banco ou executa análises.
+
+**Não executados:** suíte da aplicação, DAX, Power Query, refresh, banco real,
+conciliação numérica, RLS por usuário, homologação funcional/visual ou implantação.
+Não houve mudança de comportamento executável que justificasse repetir a suíte.
+Os 182 testes registrados na entrega anterior continuam evidência histórica.
+
+**Riscos e bloqueios:** composição atual e presença histórica não são a mesma
+população; QP sem classificação completa não permite participação conclusiva;
+unidade e unicidade de Horas Reais permanecem pendentes; dupla função/gratificação
+não comprovam cargo administrativo; séries acadêmicas têm populações distintas.
+Não há fonte física, regra, acesso ou branding homologados por esta documentação.
+
+**Validação necessária:** Talita e responsáveis pelas fontes aprovam população,
+unidade, QP, calendário, quatro curvas acadêmicas e critérios/vigência de funções;
+DBA confirma objetos, chaves, cardinalidade, cobertura e leitura autorizada; DSI
+valida autenticação, escopos, TLS, cache e exportação; Matheus registra decisões,
+casos sanitizados e a próxima fase autorizada. Matheus e responsável institucional
+validam o branding antes da apresentação visual. As 24 decisões detalhadas ficam
+no documento local; pendências bloqueiam apenas resultados dependentes.
 
 ## Preparação do commit local — 28/10/2026
 

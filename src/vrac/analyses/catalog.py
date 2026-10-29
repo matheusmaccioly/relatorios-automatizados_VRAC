@@ -103,6 +103,7 @@ class SemanticVariant:
 @dataclass(frozen=True, slots=True)
 class AnalysisDefinition:
     id: AnalysisId
+    workflow_ids: tuple[str, ...]
     priority: int
     question: str
     population: str
@@ -205,6 +206,15 @@ def load_catalog(path: Path | None = None) -> AnalysisCatalog:
         for raw in document["analyses"]:
             values = dict(raw)
             values["id"] = AnalysisId(values["id"])
+            workflow_ids = values["workflow_ids"]
+            expected_workflows = {
+                AnalysisId.FACULTY: ["R01", "R02", "R03", "R05"],
+                AnalysisId.ENROLLMENTS: ["R06"],
+                AnalysisId.WORKLOAD: ["R04"],
+            }[values["id"]]
+            if workflow_ids != expected_workflows:
+                raise CatalogError("Roteiros incompatíveis com a família de análise.")
+            values["workflow_ids"] = tuple(workflow_ids)
             values["validation_status"] = ApprovalStatus(values["validation_status"])
             if type(values["priority"]) is not int or values["priority"] < 1:
                 raise CatalogError("Prioridade inválida.")

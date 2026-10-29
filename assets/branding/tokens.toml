@@ -1,0 +1,64 @@
+# Fonte única do tema. Gerar config e cópias web com scripts/sync-branding.py.
+[reference]
+institution = "PUC-Rio"
+status = "applied_pending_review"
+source_document = "logos/RGB/puc-rio_códigosadotados_brasões_23-10-10 RGB.pdf"
+source_version = "EMoD | PUC-RIO_Assinaturas RGB · 23-10-18"
+provided_on = "2026-10-28"
+reviewed_by = ""
+reviewed_on = ""
+
+[colors]
+blue = "#0081AD"
+cyan = "#00B7DD"
+# Neutros presentes nas assinaturas monocromáticas e no fundo do material.
+black = "#000000"
+white = "#FFFFFF"
+# Amarelo/cinza não usados nos componentes: RGB e hex divergem no PDF.
+
+[typography]
+body_family = "Rethink Sans"
+heading_family = "Literata"
+application_status = "proposed_pending_review"
+
+[marks]
+primary_logo = "logos/RGB/PNG/_puc_rio-H_cor_abr_rgb_23-10-18.png"
+logo_alt = "PUC-Rio"
+# Sem recorte ou nova composição. Largura de layout, não tamanho mínimo oficial.
+display_width = 240
+
+[[fonts]]
+family = "Rethink Sans"
+file = "fonts/Rethink Sans/RethinkSans-Regular.ttf"
+weight = "400"
+style = "normal"
+
+[[fonts]]
+family = "Rethink Sans"
+file = "fonts/Rethink Sans/RethinkSans-SemiBold.ttf"
+weight = "600"
+style = "normal"
+
+[[fonts]]
+family = "Rethink Sans"
+file = "fonts/Rethink Sans/RethinkSans-Bold.ttf"
+weight = "700"
+style = "normal"
+
+[[fonts]]
+family = "Literata"
+file = "fonts/Literata/Literata-Regular.ttf"
+weight = "400"
+style = "normal"
+
+[[fonts]]
+family = "Literata"
+file = "fonts/Literata/Literata-SemiBold.ttf"
+weight = "600"
+style = "normal"
+
+[[fonts]]
+family = "Literata"
+file = "fonts/Literata/Literata-Bold.ttf"
+weight = "700"
+style = "normal"

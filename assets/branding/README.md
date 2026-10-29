@@ -1,7 +1,14 @@
 # Branding institucional da PUC-Rio
 
 Coloque nesta pasta os materiais oficiais de identidade visual que orientarão o sistema VRAC.
-**Estado atual: aguardando materiais oficiais e validação da aplicação visual.**
+**Estado atual: materiais recebidos em 28/10/2026 e aplicados à demonstração;
+revisão por Matheus e pelo responsável institucional ainda pendente.**
+
+Foram fornecidas assinaturas RGB (PNG, JPG e AI), uma prancha de referência EMoD
+de 23-10-18 e as famílias Literata e Rethink Sans. Os originais foram preservados.
+O inventário e as limitações estão em [guidelines/README.md](guidelines/README.md).
+O aplicativo utiliza a assinatura horizontal abreviada colorida, sem recorte, e
+aplica a proposta tipográfica Rethink Sans no corpo e Literata nos títulos.
 
 | Material | Onde colocar |
 |---|---|
@@ -24,9 +31,19 @@ Coloque nesta pasta os materiais oficiais de identidade visual que orientarão o
 5. Registrar a revisão da aplicação com Matheus e o responsável institucional pela
    identidade visual antes de declarar conformidade.
 
-Adicionar arquivos ou preencher `tokens.toml` **não altera a interface automaticamente**.
-O consumo desses materiais será integrado à aplicação a partir das regras aprovadas.
-O exemplo é documental e ainda não é carregado pelo aplicativo.
+Os valores em `tokens.toml` agora são consumidos por `src/vrac/branding.py`.
+O exemplo permanece apenas documental. Após alterar tokens ou arquivos selecionados,
+sincronizar os arquivos web e reiniciar a demonstração:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/sync-branding.py
+.\scripts\run-demo.cmd
+```
+
+O script gera `.streamlit/config.toml` e copia seis pesos de fontes, sem alterações,
+para `static/branding/`. Essa pasta pública deve conter somente esses recursos web,
+nunca fontes de dados, documentos internos ou configurações privadas. Nenhum CDN,
+Google Fonts ou download de fontes é usado pela interface.
 
 ## Regra para o desenvolvimento
 
@@ -39,9 +56,10 @@ logotipos, paletas, fontes ou assinaturas PUC-Rio/VRAC por aproximação. Centra
 consumo dos recursos e tokens para manter a identidade consistente entre interface
 e arquivos produzidos pelo sistema.
 
-O tema atual da demonstração é provisório; não representa conformidade institucional.
-A ausência de materiais mantém a aplicação visual pendente, sem impedir os testes
-sintéticos e o desenvolvimento de regras sem apresentação visual.
+O tema foi aplicado aos materiais disponíveis; não representa homologação visual.
+Regras não documentadas (como tamanho mínimo, hierarquia tipográfica institucional,
+favicon e cores semânticas) continuam pendentes. A revisão no navegador também está
+pendente: o Computer Use interrompeu a captura por não conseguir verificar a URL.
 
 Esta pasta recebe recursos de marca autorizados para o projeto. Credenciais, dados
 acadêmicos e documentos privados operacionais continuam fora do workspace e do Git.

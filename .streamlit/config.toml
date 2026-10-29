@@ -1,3 +1,4 @@
+# Gerado por scripts/sync-branding.py a partir de assets/branding/tokens.toml.
 [browser]
 gatherUsageStats = false
 
@@ -5,6 +6,82 @@ gatherUsageStats = false
 address = "127.0.0.1"
 headless = true
 fileWatcherType = "none"
+enableStaticServing = true
 
 [theme]
-primaryColor = "#155E75"
+base = "light"
+primaryColor = "#0081AD"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#000000"
+borderColor = "#0081AD"
+dataframeBorderColor = "#0081AD"
+dataframeHeaderBackgroundColor = "#00B7DD"
+dataframeHeaderTextColor = "#000000"
+linkColor = "#000000"
+font = "Rethink Sans"
+headingFont = "Literata"
+headingFontWeights = [600, 600, 600, 600, 600, 600]
+chartCategoricalColors = ["#0081AD", "#00B7DD", "#000000"]
+baseRadius = "small"
+paddingTop = "2rem"
+paddingBottom = "3rem"
+showWidgetBorder = true
+showSidebarBorder = true
+redColor = "#0081AD"
+redBackgroundColor = "#FFFFFF"
+redTextColor = "#000000"
+orangeColor = "#0081AD"
+orangeBackgroundColor = "#FFFFFF"
+orangeTextColor = "#000000"
+yellowColor = "#0081AD"
+yellowBackgroundColor = "#FFFFFF"
+yellowTextColor = "#000000"
+blueColor = "#0081AD"
+blueBackgroundColor = "#FFFFFF"
+blueTextColor = "#000000"
+greenColor = "#0081AD"
+greenBackgroundColor = "#FFFFFF"
+greenTextColor = "#000000"
+violetColor = "#0081AD"
+violetBackgroundColor = "#FFFFFF"
+violetTextColor = "#000000"
+grayColor = "#0081AD"
+grayBackgroundColor = "#FFFFFF"
+grayTextColor = "#000000"
+
+[[theme.fontFaces]]
+family = "Rethink Sans"
+url = "app/static/branding/RethinkSans-Regular.ttf"
+weight = "400"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Rethink Sans"
+url = "app/static/branding/RethinkSans-SemiBold.ttf"
+weight = "600"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Rethink Sans"
+url = "app/static/branding/RethinkSans-Bold.ttf"
+weight = "700"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Literata"
+url = "app/static/branding/Literata-Regular.ttf"
+weight = "400"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Literata"
+url = "app/static/branding/Literata-SemiBold.ttf"
+weight = "600"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Literata"
+url = "app/static/branding/Literata-Bold.ttf"
+weight = "700"
+style = "normal"

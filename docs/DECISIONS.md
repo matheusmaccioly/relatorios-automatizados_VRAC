@@ -23,12 +23,31 @@ Registro iniciado em 26/10/2026. “Adotada para a fundação” descreve uma de
 | D-015 | Adotada no Prompt 2 em 27/10/2026 | Sem metadados sanitizados aprovados, preparar catálogo e contratos lógicos com casos sintéticos | Fontes físicas não mapeadas, fórmulas propostas e adaptadores reais de análises bloqueados; nenhuma aprovação institucional inferida de testes |
 | D-016 | Adotada no Prompt 2 em 27/10/2026 | Comparar contagens exatamente; horas exigem critério registrado; equivalências de curso precisam cobrir todo o período e ter aprovação | Sem relaxar tolerâncias para conciliar valores, substituir Horas Reais ou unir séries por nomes; fixtures não se aplicam ao modo real |
 | D-017 | Revisão documental solicitada em 27/10/2026 | Basear o catálogo nos modelos acadêmicos A/B, com nove variantes sem escolha automática; manter documento interno e nomes semânticos detalhados em arquivos locais excluídos do Git | Modelo C fora da implementação; nomes de modelo não comprovam SQL; referência física, unidade de horas, calendário, RLS e aceite institucional continuam pendentes |
+| D-018 | Detalhamento documental solicitado em 28/10/2026 | Preparar seis roteiros funcionais a partir das páginas e visuais dos dois painéis indicados; manter especificação e inventário internos somente locais, excluídos de Git/Docker | Evidências de visual e fórmulas documentais separadas de propostas; dupla função, gratificação e cargo administrativo não são equivalências presumidas; nenhum cálculo, contrato executável ou fase nova liberados |
+
+## Complemento dos contratos — 28/10/2026
+
+D-019: implementar somente os contratos lógicos dos seis roteiros nesta entrega,
+com dependências e estados por métrica. As três famílias e nove variantes permanecem;
+R05 não libera análises financeiras e seu encaixe de implementação segue pendente.
+A autorização de Matheus para o Prompt 3 é condicional: faltam definição docente,
+fonte, referência e aceite humano. Nenhum status institucional foi promovido.
+Detalhes e filtros não aprovados continuam indisponíveis. Nenhum novo SQL foi criado
+sem fonte física confirmada; a consulta de referência já existente não foi executada.
 
 ## Questões abertas
 
+D-020 — 28/10/2026: aplicar os materiais RGB e tipográficos fornecidos por Matheus
+à demonstração existente, com fonte única de tokens e fontes servidas localmente.
+Preservar os logos e seu respiro. Usar azul/ciano cujos RGB e hex coincidem; manter
+amarelo/cinza pendentes nos componentes devido às divergências da prancha. Corpo em
+Rethink Sans e títulos em Literata são proposta, sem aprovação institucional presumida.
+Não criar favicon ou assinatura VRAC. Revisão no navegador interrompida pelo Computer
+Use por impossibilidade de verificar a URL; nenhuma automação de navegador posterior.
+
 | ID | Questão | Quem precisa validar | Efeito enquanto pendente |
 |---|---|---|---|
-| Q-001 | Qual é o SGBD, autenticação, rede, porta e conjunto de fontes autorizado? | Matheus + DBA/DSI | Integração real indisponível; SQL Server continua hipótese |
+| Q-001 | SQL Server, KAPPA e PUC_OLAP informados em 28/10; conta criada e autorização dos schemas declaradas por Matheus. Quais porta, schemas/objetos nominais, autenticação, driver e permissões efetivas? | Matheus + DBA/DSI | Integração real indisponível até completar configuração e registrar diagnóstico pelo operador; não presumir porta ou schemas |
 | Q-002 | A conta de execução só pode ler os objetos e recortes aprovados? | DBA | Não declarar privilégio confirmado; não testar comandos de escrita |
 | Q-003 | Qual população, granularidade e referência temporal definem composição docente? | Talita + responsável pelas fontes | Nenhum cálculo institucional aprovado |
 | Q-004 | Matrícula significa inscrição, aluno único ou outra unidade? Quais equivalências de cursos têm vigência aprovada? | Talita + responsável pelas fontes | Série real e combinação de cursos aguardam contrato |

@@ -71,3 +71,7 @@ Desktop.ini
 # Documentacao interna fornecida para revisao local; publicacao nao autorizada.
 /docs/ANALISE_MODELOS_SEMANTICOS_VRAC.md
 /config/semantic_model_sources.local.yaml
+
+# Roteiros e evidencias internas dos paineis; uso documental local.
+/docs/ROTEIROS_ANALISES_VRAC.local.md
+/docs/EVIDENCIAS_PAINEIS_VRAC.local.json

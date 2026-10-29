@@ -1,6 +1,6 @@
 # Plano de desenvolvimento
 
-Atualizado em 27/10/2026. O [guia original](references/Guia_Desenvolvimento_VRAC_Codex.md) define as fases; este documento organiza entregas, responsáveis e critérios de passagem. A solicitação atual autoriza o Prompt 2, com contratos lógicos e testes sintéticos enquanto os metadados aprovados da fase 1 não estiverem disponíveis. A integração institucional continua pendente e as fases 3–7 não foram iniciadas.
+Atualizado em 28/10/2026. O [guia original](references/Guia_Desenvolvimento_VRAC_Codex.md) define as fases; este documento organiza entregas, responsáveis e critérios de passagem. A solicitação atual detalha documentalmente os roteiros da fase 2 a partir dos dois painéis indicados. Contratos lógicos e testes sintéticos anteriores permanecem preparados enquanto os metadados aprovados da fase 1 não estiverem disponíveis. A integração institucional continua pendente e as fases 3–7 não foram iniciadas.
 
 Não há prazo fechado: acesso, fontes, regras e infraestrutura ainda dependem de validação. O esforço técnico deve ser registrado separadamente da espera por decisões institucionais. Nenhuma passagem de fase ou publicação é automática.
 
@@ -23,13 +23,30 @@ Antes do encerramento, registrar comandos de instalação, execução e validaç
 
 ## Fase 1 — preparação técnica e execução pelo operador
 
-As ferramentas manuais de configuração, conexão, diagnóstico e inventário estão implementadas. Consultas fixas usam parâmetros vinculados, limites por schema e timeouts. SQL Server permanece hipótese; o operador deve confirmar SGBD e escopo. Saídas privadas ficam fora do workspace e mensagens de erro são sanitizadas.
+As ferramentas manuais de configuração, conexão, diagnóstico e inventário estão implementadas. Consultas fixas usam parâmetros vinculados, limites por schema e timeouts. Em 28/10/2026, Matheus confirmou SQL Server, servidor KAPPA e banco PUC_OLAP, informou usuário criado e declarou autorizados os schemas necessários à aplicação. Porta TCP e lista nominal dos schemas ainda não estão disponíveis; autenticação, driver e permissões efetivas também precisam ser registrados. Saídas privadas ficam fora do workspace e mensagens de erro são sanitizadas.
 
 O [roteiro de descoberta](operations/DATABASE_DISCOVERY.md) contém comandos, revisão de privilégios e interpretação das limitações. O [dicionário sanitizado](operations/SANITIZED_DATA_DICTIONARY.md) define o material autorizado esperado antes da fase 2. Consultas de qualidade/cardinalidade são apenas templates e não podem ser executadas pela CLI.
 
 **Conexão e inventário institucionais: NÃO VALIDADOS.** A preparação de código não satisfaz o critério humano de passagem da fase 1. O operador deve executar os comandos em ambiente autorizado, o DBA confirmar escopos e privilégios de leitura e Matheus liberar somente material sanitizado. Nenhum resultado real foi inventado.
 
 ## Fase 2 — catálogo e contratos lógicos
+
+Complemento implementado em 28/10: contratos dos seis roteiros, validação de filtros
+e pontos temporais, dependências por métrica e resultados com estados independentes.
+Catálogo `phase2-workflows-v4`, mantendo três famílias e nove variantes. A CLI lista
+os roteiros e `phase3_blockers()` mostra as condições ainda pendentes. A autorização
+condicional de Matheus para o Prompt 3 foi considerada, mas faltam regras docentes,
+fonte, recorte e referência aprovados. Nenhum cálculo da fase 3 foi iniciado.
+Os detalhes a seguir registram a preparação documental anterior.
+
+Em 28/10/2026, a documentação local `docs/ROTEIROS_ANALISES_VRAC.local.md` detalha
+seis roteiros: situação geral, geral e QP, histórico semestral, carga, dupla função
+e funções administrativas, e o gráfico geral de alunos. Há filtros em tabela,
+regras encontradas versus propostas, 24 decisões pendentes e 38 casos de aceite
+futuros. O inventário local identifica cinco páginas e seus visuais. Esses arquivos
+internos estão excluídos do Git/Docker; não ampliam o catálogo executável nem aprovam
+regras, dados ou acesso. O encaixe do detalhamento de funções no plano ainda precisa
+ser decidido, sem início de implementação ou avanço automático de fase.
 
 [config/analyses.yaml](../config/analyses.yaml) e [ANALYSIS_CATALOG.md](ANALYSIS_CATALOG.md)
 registram definições propostas, priorizando composição docente. Contratos de solicitação,
@@ -54,7 +71,7 @@ integração validada nem iniciar implementação real ou a fase 3 automaticamen
 
 | Fase e estado | Próximo incremento executável | Evidência necessária para avançar | Validação |
 |---|---|---|---|
-| 1 — ferramentas preparadas; validação institucional pendente | Adaptador condicional opcional, CLI manual, inventário restrito e testes offline implementados; confirmar SGBD e executar diagnóstico fora da sessão do agente | Matheus registra conexão no ambiente autorizado; DBA confirma conta de leitura e objetos permitidos; material sanitizado aprovado fica disponível | Matheus + DBA; DSI para rede/TLS |
+| 1 — ferramentas preparadas; validação institucional pendente | SQL Server e destino informados por Matheus; obter porta, lista nominal dos schemas, autenticação e driver, então executar diagnóstico fora da sessão do agente | Matheus registra conexão no ambiente autorizado; DBA confirma conta de leitura e objetos permitidos; material sanitizado aprovado fica disponível | Matheus + DBA; DSI para rede/TLS |
 | 2 — contratos preparados; validação humana pendente | Catálogo e contratos sintéticos entregues; obter dicionário sanitizado e validar primeiro a composição docente | Definição, fonte, recorte temporal, chaves e exemplo de referência aprovados; pendências bloqueiam apenas o resultado afetado | Talita + responsável pelas fontes/DBA + Matheus |
 | 3 — não iniciada | Entregar composição docente de ponta a ponta: filtros, consulta parametrizada revisada, cálculo separado da interface, tabela, gráfico, metadados e exportação inicial | Testes de duplicidade, vazio e mudança de filtros; conciliação com caso de mesmo recorte e data; demonstração e feedback registrados | Matheus + Talita |
 | 4a — não iniciada | Implementar matrículas por curso/período, com definição validada de matrícula/aluno, ausências e equivalências vigentes | Série conciliada; base zero sem percentual; cursos renomeados e períodos ausentes cobertos por testes | Talita + responsável pelas fontes + Matheus |
@@ -68,6 +85,12 @@ Na fase 1, os scripts são preparados pelo agente e executados manualmente pelo 
 A fase 4 tem dois incrementos: revisar matrículas antes de iniciar carga horária. A fase 7 começa pela preparação; publicar exige autorização explícita do responsável. Sem infraestrutura aprovada, manter demonstrações acompanhadas com dados sintéticos.
 
 ## Revisões e critérios comuns
+
+Em 28/10/2026, materiais de marca e fontes fornecidos foram integrados à demonstração
+existente, por solicitação de Matheus. Tokens, tema gerado e fontes locais estão
+implementados; não houve avanço analítico de fase. Prancha RGB conferida, sem manual
+completo de interface. Persistem divergências de amarelo/cinza, regras não documentadas,
+conferência no navegador e revisão institucional. Nenhuma homologação foi presumida.
 
 Todo elemento visual deve seguir o branding da PUC-Rio. Antes de implementar ou revisar
 telas, gráficos e exportações, obter os materiais oficiais em

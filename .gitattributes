@@ -1,2 +1,7 @@
 * text=auto eol=lf
 *.cmd text eol=crlf
+*.ai binary
+*.pdf binary
+*.png binary
+*.jpg binary
+*.ttf binary

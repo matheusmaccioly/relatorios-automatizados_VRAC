@@ -1,6 +1,6 @@
 # Contexto do projeto VRAC
 
-Atualizado em 27/10/2026. Fonte: [Guia de desenvolvimento](references/Guia_Desenvolvimento_VRAC_Codex.md). As instruções permanentes estão em [AGENTS.md](../AGENTS.md).
+Atualizado em 28/10/2026. Fonte: [Guia de desenvolvimento](references/Guia_Desenvolvimento_VRAC_Codex.md). As instruções permanentes estão em [AGENTS.md](../AGENTS.md).
 
 ## Objetivo e usuária
 
@@ -10,8 +10,21 @@ O aplicativo será interno, sem LLM, chatbot, agentes em execução, geração d
 
 ## Escopo autorizado nesta entrega
 
-A solicitação atual inclui revisar a base do Prompt 2 com a documentação semântica
-fornecida por Matheus. O catálogo registra nove variantes para as três análises e um
+A solicitação atual detalha os roteiros das análises docentes e do gráfico geral de
+alunos indicados por Matheus, dentro da preparação documental da fase 2. O documento
+local `docs/ROTEIROS_ANALISES_VRAC.local.md` organiza seis roteiros, filtros, regras,
+resultados, decisões e casos de aceite; o inventário local de evidências identifica
+as páginas e os visuais dos dois PBIX. Ambos ficam excluídos do Git e do contexto
+Docker. Nenhuma regra foi aprovada, análise implementada ou fase avançada nesta revisão.
+
+Na implementação complementar solicitada em 28/10, os seis roteiros passaram a ter
+contratos tipados de solicitação, planejamento e resultado por métrica/período.
+As famílias YAML referenciam os roteiros e a CLI expõe suas dependências. As 24
+decisões continuam pendentes. Não foram implementados cálculos nem novas telas.
+Matheus autorizou seguir ao Prompt 3 se não houver interferência; como as regras
+docentes e o aceite humano ainda não estão registrados, a fase 3 permanece pendente.
+
+O catálogo registra nove variantes para as três análises e um
 mapeamento local excluído do Git organiza nomes e tipos de 12 tabelas. São objetos de
 modelos Power BI, sem comprovação de origem SQL. O dicionário físico da fase 1 continua
 não preenchido; fontes e regras permanecem propostas, sem seleção institucional e com
@@ -20,9 +33,12 @@ a organização documental e o branding foram preservados. Não houve conexão r
 inventário institucional ou aceite funcional humano. Fases 3–7 não iniciadas.
 
 Todo o sistema deve seguir a identidade visual institucional. Os materiais oficiais ficam
-em [assets/branding/](../assets/branding/README.md). Logos, paleta, fontes e regras de uso
-ainda não foram fornecidos; a aplicação do branding permanece pendente e o tema da
-demonstração é provisório.
+em [assets/branding/](../assets/branding/README.md). Em 28/10, Matheus forneceu
+assinaturas RGB, prancha EMoD de 23-10-18 e fontes Literata/Rethink Sans. A demonstração
+usa esses arquivos com tokens centralizados e fontes locais. Amarelo/cinza têm
+divergências RGB/hex no material e não foram aplicados aos componentes. Regras de
+interface não documentadas, revisão no navegador e homologação visual permanecem
+pendentes; aplicação dos materiais não significa conformidade institucional aprovada.
 
 As próximas entregas, mediante solicitação de cada fase, priorizam composição docente, depois matrículas e carga horária. Verificações adicionais serão determinísticas e terão catálogo fechado, limites e aprovação quando exigida.
 
@@ -39,11 +55,12 @@ Não desenvolver análise financeira, curva guia, relatório institucional final
 | Item | Situação | Consequência |
 |---|---|---|
 | Guia e instruções do projeto | Disponíveis neste repositório | Orientam esta fase |
-| SGBD | SQL Server é hipótese | Adaptador opcional preparado, condicionado à confirmação humana e à aprovação do escopo |
-| Conectividade, credenciais e permissões | Não validadas nesta sessão | Nenhuma consulta real será executada pelo agente |
+| SGBD e destino | Matheus confirmou SQL Server, servidor KAPPA e banco PUC_OLAP em 28/10/2026 | Destino informado; porta, autenticação, driver e certificado ainda exigem confirmação |
+| Conta e autorização | Matheus informou usuário criado e autorização dos schemas necessários à aplicação | Lista nominal de schemas/objetos e revisão administrativa de somente leitura pendentes; nenhuma credencial registrada |
+| Conectividade e permissões efetivas | Não validadas nesta sessão | Nenhuma consulta real será executada pelo agente |
 | Tabelas, colunas e medidas semânticas | Documentação local fornecida e mapeada; modelos A/B acadêmicos, C fora do escopo | Evidência de implementação; origem física, chaves, autorização e regras ainda exigem confirmação |
 | Fórmulas e casos de referência | Não aprovados | Dados sintéticos não validam regras institucionais |
-| Servidor, login e escopos de acesso | Não definidos pela DSI | Acesso autônomo com dados reais permanece bloqueado |
+| Servidor do aplicativo, login institucional e escopos da usuária | Não definidos pela DSI; distintos do servidor e da conta de banco informados | Acesso autônomo com dados reais permanece bloqueado |
 | Repositório remoto | API confirmou repositório privado em 27/10, com envio de código autorizado por Matheus | Compartilhamento de fontes/metadados internos continua sujeito a liberação específica; Git privado não substitui essa aprovação |
 
 O guia menciona uma reunião de 21/10 e materiais de referência. Esses materiais não foram incorporados como fontes verificadas nesta entrega. As observações transcritas no guia são questões a validar, não um dicionário definitivo do banco.

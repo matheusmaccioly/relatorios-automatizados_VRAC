@@ -1,8 +1,44 @@
 # Diagnóstico e descoberta do banco — fase 1
 
-Atualizado em 27/10/2026. **Conexão e inventário: NÃO VALIDADOS.** SQL Server continua uma hipótese; o suporte preparado não confirma o ambiente da PUC-Rio. Não houve consulta real nesta sessão do agente. O aplicativo de demonstração continua separado destes comandos e não libera dados reais.
+Atualizado em 28/10/2026. **SGBD confirmado por Matheus: SQL Server. Conexão e inventário: NÃO VALIDADOS.** Não houve consulta real nesta sessão do agente. O aplicativo de demonstração continua separado destes comandos e não libera dados reais.
 
 Os comandos abaixo são para Matheus executar manualmente **fora da sessão do agente**, no ambiente autorizado. Não enviar credenciais, configuração real, inventário bruto ou metadados internos no chat. O [guia](../references/Guia_Desenvolvimento_VRAC_Codex.md) e [AGENTS.md](../../AGENTS.md) continuam aplicáveis.
+
+## Informações fornecidas por Matheus — 28/10/2026
+
+Registro solicitado por Matheus nesta conversa; não é resultado de diagnóstico ou
+inventário realizado pelo agente.
+
+| Item | Informação registrada | Situação |
+|---|---|---|
+| SGBD | SQL Server | Confirmado por Matheus |
+| Servidor | `KAPPA` | Informado por Matheus |
+| Endereço informado | `139.82.9.6` | Não testado pelo agente |
+| Banco | `PUC_OLAP` | Informado por Matheus |
+| Conta de Matheus | Usuário criado no servidor | Criação informada; login e credenciais não registrados |
+| Autorização de schemas | Matheus declara que os schemas necessários à aplicação estão autorizados | Autorização declarada registrada; nomes exatos e objetos ainda não detalhados |
+| Porta TCP | Matheus não dispõe dessa informação | Pendente com DBA/DSI; nenhum valor presumido |
+| Lista de schemas | Matheus ainda não dispõe da lista nominal | Pendente com DBA; não presumir `dbo`, usar curinga ou enumerar automaticamente |
+| Autenticação e driver | Método e nome do driver não informados | Pendentes |
+| Permissões efetivas | Sem revisão administrativa registrada nesta entrega | DBA confirma somente leitura e objetos permitidos |
+
+Na cópia privada externa, os valores conhecidos são `dbms = "mssql"`,
+`sqlserver_confirmed = true`, `server = "KAPPA"` e `database = "PUC_OLAP"`.
+O endpoint efetivo e a correspondência com o certificado devem ser confirmados com
+DSI/DBA; não substituir pelo IP para contornar validação de certificado.
+
+A autorização declarada não está sendo tratada como ausente. Falta traduzi-la para
+a lista fechada de nomes que a configuração exige. O exemplo versionado permanece
+genérico, com campos vazios e flags falsas. Não foi criada configuração real no
+repositório. A cópia externa ainda não pode ser concluída com os dados disponíveis:
+o código exige porta entre 1 e 65535, de 1 a 8 schemas explícitos, driver e método de
+autenticação. Não preencher esses campos por aproximação nem desativar as validações.
+`scope_approved` só deverá representar o escopo concreto e a execução aprovados,
+depois de documentar os nomes correspondentes; não comprova permissões técnicas.
+
+Próxima solicitação ao DBA/DSI: porta TCP do endpoint autorizado, nomes exatos dos
+schemas/objetos liberados, autenticação e driver, além da confirmação administrativa
+de somente leitura. Não é necessário fornecer senha ao agente para registrar isso.
 
 ## Antes da execução real
 
@@ -24,6 +60,12 @@ Onde a execução de PowerShell for permitida, a alternativa é `scripts/bootstr
 SQLAlchemy/pyodbc não instalam nem homologam o driver ODBC do sistema. A DSI deve preparar o driver compatível, arquitetura, autenticação e cadeia de certificados. Autenticação Windows usa a identidade do processo autorizado e depende da configuração institucional; não presumir que funcionará em outro sistema operacional ou em container.
 
 ## Criar a configuração privada
+
+**Para o caso KAPPA/PUC_OLAP, comece pelo
+[passo a passo simplificado](CONFIGURAR_KAPPA.md)** e use o
+[modelo específico sem credenciais](../../config/database.kappa.example.toml).
+Servidor, banco e confirmação de SGBD já estão preenchidos. O exemplo genérico
+abaixo continua disponível para outros destinos; não precisa preenchê-lo também.
 
 Copiar manualmente [database.example.toml](../../config/database.example.toml) para um arquivo chamado **`dbconfig.toml`** no diretório privado externo. Esse nome exato é obrigatório. Usar caminho absoluto local, arquivo UTF-8 sem BOM e tamanho máximo de 64 KiB. Editar somente essa cópia, fora da sessão do agente. O arquivo versionado deve permanecer com campos vazios e confirmações falsas.
 

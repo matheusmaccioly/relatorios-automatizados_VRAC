@@ -1,6 +1,7 @@
 """Conferência offline das definições; sem integração com interface ou banco."""
 
 from vrac.analyses.catalog import load_catalog, pending_decisions
+from vrac.analyses.workflows import WORKFLOWS, phase3_blockers
 
 
 def main() -> int:
@@ -18,6 +19,12 @@ def main() -> int:
             f"   {len(item.semantic_variants)} variante(s) documentada(s); "
             "seleção institucional pendente."
         )
+    print("Roteiros propostos (sem cálculos ou adaptadores):")
+    for workflow in WORKFLOWS:
+        print(f"   {workflow.identifier}: {workflow.title}; fase {workflow.phase}")
+        for metric in workflow.metrics:
+            print(f"      {metric.identifier}: pendências {', '.join(metric.decisions)}")
+    print(f"Prompt 3 condicionado a: {', '.join(phase3_blockers(catalog))}.")
     return 0
 
 

@@ -35,8 +35,12 @@ tabelas e futuras exportações. Adicione os materiais oficiais em
 [assets/branding/](assets/branding/README.md): logos, ícones, fontes, manuais, templates
 e a paleta registrada no modelo de tokens.
 
-O tema da demonstração é provisório. A aplicação visual aguarda os materiais oficiais
-e sua validação; adicionar arquivos à pasta não altera automaticamente a interface.
+Os materiais recebidos em 28/10/2026 já foram aplicados à demonstração: assinatura
+horizontal RGB, Rethink Sans no corpo e Literata nos títulos, com fontes locais.
+O tema é gerado a partir de `assets/branding/tokens.toml`; após alterar os tokens,
+execute `.\.venv\Scripts\python.exe scripts/sync-branding.py` e reinicie o app.
+A revisão institucional e a conferência no navegador continuam pendentes.
+Consulte as divergências da paleta em [guidelines](assets/branding/guidelines/README.md).
 
 ## Preparar no Windows
 

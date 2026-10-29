@@ -59,6 +59,56 @@ executa nem aprova uma variante. O padrão docente anterior continua sendo pesso
 
 ## Prioridade e significado
 
+### Roteiros detalhados solicitados em 28/10/2026
+
+A especificação local `docs/ROTEIROS_ANALISES_VRAC.local.md` detalha o uso das famílias
+abaixo em seis roteiros: situação geral, geral e QP, histórico semestral, carga,
+dupla função e funções administrativas, e o gráfico geral de alunos. Os critérios
+de dupla função, gratificação e cargo administrativo permanecem distintos até
+aprovação de natureza e vigência. As quatro séries acadêmicas têm populações
+próprias; os totais docentes exigem identidade e referência temporal compatíveis.
+
+O documento e `docs/EVIDENCIAS_PAINEIS_VRAC.local.json` são internos, locais e
+excluídos de Git/Docker. A implementação complementar do Prompt 2 associa os seis
+roteiros às famílias em `config/analyses.yaml`, versão `phase2-workflows-v4`, preservando
+as nove variantes sem seleção institucional. Os contratos em
+[workflows.py](../src/vrac/analyses/workflows.py) contêm somente conceitos lógicos,
+sem objetos físicos, expressões legadas ou carregamento dos arquivos internos.
+
+| Roteiro | Contrato proposto | Fase do cálculo |
+|---|---|---|
+| R01 | Foto geral, distribuição por quadro e categoria | 3 |
+| R02 | Geral, QP confirmado, classificação pendente, demais e participação | 3 |
+| R03 | Presença semestral com departamento histórico | 3, incremento a revisar |
+| R04 | Horas Reais, contratada, comparação e indicador separados | 4b |
+| R05 | Dupla função, registro de função e confirmação administrativa separados | Encaixe pendente |
+| R06 | Matriculados, bolsistas matriculados, formados e ingressantes independentes | 4a |
+
+`WorkflowRequest` recebe pontos `AnalysisRequest` e métricas de uma lista fechada.
+Exige filtros de escopo compatíveis, referências sem sobreposição, mesma unidade,
+modo e filtros em toda a série. O período vem com datas explícitas: não há calendário
+civil presumido. R01/R02 usam uma única foto. R02 recusa filtro global de quadro para
+preservar o denominador; a seleção comparativa de QP dependerá de regra aprovada.
+Filtro de processo seletivo continua indisponível até validar propagação (V20).
+
+`plan_workflow()` expõe as dependências de cada métrica. `WORKFLOW_DECISIONS` registra
+as 24 perguntas e responsáveis, todas pendentes. V22/V23 bloqueiam execução real;
+V24 permanece critério de apresentação institucional. Nenhum plano executa cálculo.
+Os cinco registros de aceite por família continuam sendo a evidência exigida para
+passagem de fase; IDs de dependência não são uma segunda forma de liberar acesso.
+
+`WorkflowResult` contém um `MetricResult` por métrica/período, com proveniência e
+versões preservadas em `AnalysisResult`. Uma curva pode estar bloqueada e as demais
+válidas, produzindo resultado geral parcial. Toda métrica solicitada exige estado
+explícito; nenhuma ausência vira zero. Percentual conclusivo de QP exige geral
+positivo, QP compatível e classificação completa. Versões do app e do template e
+marca sintética acompanham a serialização. Não é uma exportação para planilha.
+
+Os testes novos verificam esses contratos, bloqueio real, isolamento de curvas,
+denominador QP, datas, filtros e serialização. Não executam as regras T01–T38 por
+inteiro: cálculos docentes, funções, bolsas, ingresso, conclusão e cargas continuam
+nas fases indicadas. Fixtures não aprovam regra institucional.
+
 | Ordem / identificador | Pergunta e população proposta | Granularidade e unidade | Estado |
 |---|---|---|---|
 | 1 · `composicao_docente` | Docentes distintos do departamento e distribuição por vínculo; população depende de situação/vigência/afastamento aprovados | Pessoa é distinta de vínculo e registro temporal. Saída proposta por departamento/período/categoria; unidade: docentes distintos | Fonte, base temporal, classificação e referência pendentes |
@@ -205,6 +255,8 @@ análise. A referência do parser é a [documentação oficial do PyYAML](https:
    de cursos vigentes com aprovação; não deduzir relações ausentes.
 
 Somente após registrar fonte, granularidade, fórmula, comparação e aceite funcional humano
-uma análise poderá avançar à implementação real. A próxima tarefa continua sendo uma
-solicitação explícita de fase 3; esta entrega não altera a tela nem aplica branding sem
-os materiais oficiais, não publica e não acessa o banco.
+uma análise poderá avançar à implementação real. Matheus autorizou condicionalmente
+o Prompt 3 nesta solicitação. A condição ainda depende de identidade, população,
+referência, regra e caso de comparação docente aprovados. `phase3_blockers()` expõe
+as pendências; nenhuma fase é avançada automaticamente. Esta entrega não altera a
+tela nem aplica branding, não publica e não acessa o banco.

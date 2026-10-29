@@ -1,5 +1,5 @@
 # Catálogo lógico baseado em evidência documental; sem aprovação institucional.
-catalog_version: phase2-semantic-baseline-v3
+catalog_version: phase2-workflows-v4
 documentary_evidence:
 - id: semantic_models_documentation_2026_10_27
   reference: docs/ANALISE_MODELOS_SEMANTICOS_VRAC.md (referência interna local, excluída do Git)
@@ -22,6 +22,7 @@ documentary_evidence:
     permissões mascaradas.
 analyses:
 - id: composicao_docente
+  workflow_ids: [R01, R02, R03, R05]
   priority: 1
   question: Quantos docentes distintos compõem o departamento e como se distribuem por vínculo?
   population: Pessoas docentes e matrículas funcionais são populações distintas; variantes documentadas
@@ -31,6 +32,7 @@ analyses:
   units:
   - docentes_distintos
   - matriculas_funcionais_distintas
+  - percentual
   logical_sources:
   - docente
   - vinculo_docente
@@ -176,6 +178,7 @@ analyses:
     - Revisar remoção do filtro de folha e limite de mês.
     - Não comparar com última data por matrícula como se fossem o mesmo indicador.
 - id: evolucao_matriculas
+  workflow_ids: [R06]
   priority: 2
   question: Como evolui a quantidade de matrículas ou de alunos distintos por curso e período?
   population: Matrículas acadêmicas distintas, separando cadastro atual, situação por período, última
@@ -329,6 +332,7 @@ analyses:
     - Prefixo novo não comprova correção ou aprovação.
     - Validar conjuntos, exceções, empates e mapas de programa; não copiar exceções individuais mascaradas.
 - id: carga_horaria
+  workflow_ids: [R04]
   priority: 3
   question: Quais são as Horas Reais oficiais e como se apresenta a alocação detalhada por disciplina?
   population: 'Pendente: docentes selecionados pelo vínculo e cobertura de atuação autorizada, inclusive

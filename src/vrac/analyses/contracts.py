@@ -31,6 +31,14 @@ class EntityKind(StrEnum):
     EMPLOYMENT_CATEGORY = "categoria_vinculo"
     FUNCTIONAL_REGISTRATION = "matricula_funcional"
     ACADEMIC_REGISTRATION = "matricula_academica"
+    HISTORICAL_DEPARTMENT = "departamento_historico"
+    DISTRIBUTION_DEPARTMENT = "departamento_distribuicao"
+    CADRE = "quadro"
+    FUNCTIONAL_CATEGORY = "categoria_funcional"
+    STATUS = "situacao"
+    SHIFT = "turno"
+    QUALIFICATION = "habilitacao"
+    ADMISSION_PROCESS = "processo_seletivo"
 
 
 class TemporalBasis(StrEnum):
@@ -308,9 +316,10 @@ class AnalysisResult:
         if self.data:
             allowed = {
                 AnalysisId.FACULTY: {
+                    MetricUnit.PERCENT,
                     MetricUnit.TEACHERS
                     if self.request.faculty_counting_basis == FacultyCountingBasis.PEOPLE
-                    else MetricUnit.FUNCTIONAL_REGISTRATIONS
+                    else MetricUnit.FUNCTIONAL_REGISTRATIONS,
                 },
                 AnalysisId.WORKLOAD: HOUR_UNITS,
                 AnalysisId.ENROLLMENTS: {

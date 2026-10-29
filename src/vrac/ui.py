@@ -6,13 +6,24 @@ import pandas as pd
 import streamlit as st
 
 from vrac.authorization import authorize_data_access
+from vrac.branding import load_branding
 from vrac.settings import ConfigurationError, load_settings
 from vrac.synthetic import DEPARTMENTS, PERIODS, load_demo_data, select_demo_data
 
 
 def main() -> None:
-    st.set_page_config(page_title="VRAC | Demonstração", page_icon="📊", layout="wide")
+    branding = load_branding()
+    st.set_page_config(page_title="VRAC | Demonstração", layout="wide")
+    st.html(branding.styles)
+    st.image(
+        str(branding.logo),
+        width=branding.tokens["marks"]["display_width"],
+        caption=None,
+    )
     st.title("Análises acadêmicas da VRAC")
+    st.caption(
+        "Identidade visual aplicada aos materiais fornecidos · revisão institucional pendente"
+    )
     try:
         settings = load_settings()
     except ConfigurationError as error:
