@@ -19,15 +19,18 @@ já está contida nos arquivos separados. O logo usado permanece completo e prop
 |---|---|---|---|
 | Azul | `#0081AD` | 0, 129, 173 | Destaques, títulos, controles e bordas |
 | Ciano | `#00B7DD` | 0, 183, 221 | Cabeçalhos de tabelas |
-| Amarelo | `#F1BA2A` | 242, 187, 46 | Não aplicado aos componentes; divergência a confirmar |
-| Cinza | `#869597` | 135, 149, 151 | Não aplicado aos componentes; divergência a confirmar |
+| Amarelo | `#F1BA2A` | 242, 187, 46 | Realces de títulos, faixa do cabeçalho e aviso de demonstração (hex escolhido por Matheus, D-021) |
+| Cinza | `#869597` | 135, 149, 151 | Contornos de blocos, avisos e rodapé; nunca texto (hex escolhido por Matheus, D-021) |
 
-O amarelo RGB equivale a `#F2BB2E` e o cinza RGB a `#879597`; não escolher uma
-interpretação por inferência. As marcas raster originais não foram recoloridas.
+O amarelo RGB equivale a `#F2BB2E` e o cinza RGB a `#879597`. Em 30/10/2026 Matheus
+escolheu os valores hex impressos (D-021); a confirmação institucional segue pendente. As marcas raster originais não foram recoloridas.
 Preto e branco são os neutros presentes nas assinaturas monocromáticas e no fundo.
 Não foram inventadas variantes escurecidas, paletas de alerta ou assinatura VRAC.
+O fundo da página `#F5F5F0` não consta da prancha: escolha de Matheus (D-024),
+pendente de revisão; a assinatura e os blocos de conteúdo permanecem sobre branco.
 Estados são descritos por texto; não dependem somente de cor. O botão azul usa
-texto preto para melhorar contraste, sem alterar a cor fornecida.
+texto branco em negrito (30/10/2026: preto sobre o azul ficou pouco visível na
+revisão de Matheus), sem alterar a cor fornecida.
 
 As fontes fornecidas são Literata e Rethink Sans, com pesos regulares e negritos.
 A escolha corpo/títulos e dimensões de layout é uma proposta para esta demonstração,

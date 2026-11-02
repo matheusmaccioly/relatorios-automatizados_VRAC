@@ -1,5 +1,16 @@
 # Arquitetura inicial
 
+Atualização de 30/10/2026 (D-027): o monólito agora executa os seis roteiros na base
+sintética. `academic_data.py` define as entradas tipadas, `academic.py` calcula R02–R06,
+`faculty_overview.py` mantém R01 e `academic_quality.py` contém dez conferências
+fechadas. `academic_export.py` produz CSV/ZIP em memória; `charts.py` gera gráficos
+Matplotlib/PNG com os tokens existentes. `academic_ui.py` apresenta filtros e
+resultados. O leitor PostgreSQL usa SQL parametrizado em arquivos e snapshot de
+leitura; savepoints isolam falhas de fontes independentes. A identidade sintética,
+conta de leitura e TLS são conferidos antes das consultas. Não há API separada,
+LLM, chatbot, geração dinâmica de SQL, fila ou persistência operacional nova.
+Os parágrafos de fundação abaixo preservam o histórico do desenho.
+
 Atualizado em 27/10/2026. Escopo técnico: demonstração sintética da fase 0 e ferramentas manuais da fase 1, sem conexão institucional validada. O desenho segue o [contexto](PROJECT_CONTEXT.md) e o [plano](PLAN.md).
 
 ## Organização

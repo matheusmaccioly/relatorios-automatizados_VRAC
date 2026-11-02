@@ -24,6 +24,28 @@ Registro iniciado em 26/10/2026. “Adotada para a fundação” descreve uma de
 | D-016 | Adotada no Prompt 2 em 27/10/2026 | Comparar contagens exatamente; horas exigem critério registrado; equivalências de curso precisam cobrir todo o período e ter aprovação | Sem relaxar tolerâncias para conciliar valores, substituir Horas Reais ou unir séries por nomes; fixtures não se aplicam ao modo real |
 | D-017 | Revisão documental solicitada em 27/10/2026 | Basear o catálogo nos modelos acadêmicos A/B, com nove variantes sem escolha automática; manter documento interno e nomes semânticos detalhados em arquivos locais excluídos do Git | Modelo C fora da implementação; nomes de modelo não comprovam SQL; referência física, unidade de horas, calendário, RLS e aceite institucional continuam pendentes |
 | D-018 | Detalhamento documental solicitado em 28/10/2026 | Preparar seis roteiros funcionais a partir das páginas e visuais dos dois painéis indicados; manter especificação e inventário internos somente locais, excluídos de Git/Docker | Evidências de visual e fórmulas documentais separadas de propostas; dupla função, gratificação e cargo administrativo não são equivalências presumidas; nenhum cálculo, contrato executável ou fase nova liberados |
+| D-021 | Escolha de Matheus em 30/10/2026 | Usar amarelo `#F1BA2A` e cinza `#869597` (hex impresso na prancha EMoD 23-10-18) na interface: amarelo em realces e aviso de demonstração, cinza em contornos | Divergência RGB/hex resolvida por decisão do projeto, não por confirmação institucional; texto pequeno permanece preto por contraste; revisão do responsável pela identidade visual pendente (Q-012) |
+| D-022 | Orientação explícita de Matheus em 30/10/2026 | Os cálculos serão baseados nos dashboards existentes e no que já está documentado, sem necessidade de nova validação das regras | Substitui exigências anteriores de reaprovação analítica para essas regras; reproduzir o comportamento documentado e registrar somente lacunas concretas por resultado. Testes técnicos, segurança e limites de fase permanecem aplicáveis; não implica homologação institucional ou conexão validada |
+| D-023 | Solicitação explícita de Matheus em 30/10/2026 | Gerar dados e banco PostgreSQL totalmente sintéticos a partir do modelo semântico documentado para apoiar os próximos passos | Ambiente portátil local separado do SQL Server institucional, carga determinística, TLS e conta de leitura; metadados detalhados e carga ignorados no Git/Docker. Sem extrair dados reais, converter todo o Power BI ou avançar automaticamente às próximas fases |
+| D-024 | Escolha de Matheus em 30/10/2026 | Fundo da página em `#F5F5F0`; cabeçalho com assinatura, avisos e blocos de conteúdo sobre branco | Cor fora da prancha oficial, registrada como decisão do projeto e não como cor institucional; revisão do responsável pela identidade visual pendente (Q-012) |
+| D-025 | Solicitação explícita de Matheus em 30/10/2026 | Conectar a demonstração Streamlit ao PostgreSQL sintético local para carregar filtros, registros docentes e alocações por turma | Driver opcional Psycopg; SQL fixo parametrizado; views locais com mapeamento interno ignorado no Git; conta de leitura, TLS e timeouts. Erros removem resultados anteriores e não ativam memória. Modo institucional bloqueado; sem novos cálculos ou avanço automático das demais fases |
+| D-026 | Solicitação explícita de Matheus em 30/10/2026 | Iniciar a fase 3 somente com a composição docente: R01 reproduz a página Análise Geral (cadastro atual, contagem de matrículas funcionais, Horas Reais do semestre mais recente e semáforo literal); R02 entrega o geral e bloqueia QP | QP não tem regra documentada (V03) e fica bloqueado; filtro salvo de quadro da página não tem valores no inventário e é exibido como lacuna; quadros sintéticos `PROF *` não recebem faixa do semáforo, sem equivalência presumida; matrículas e carga (fases 4a/4b) não iniciadas |
+
+## Ampliação autorizada — 30/10/2026
+
+**D-027 — solicitação explícita de Matheus:** implementar todos os roteiros acadêmicos
+documentados e gerar dados fictícios complementares para avançar o máximo possível.
+Substitui o limite anterior da D-026 de somente composição docente. R01–R06 passam a
+ter cálculo e apresentação sintéticos, com conferências e exportações. Não autoriza
+consulta institucional, publicação, análise financeira ou decisões sobre pessoal.
+
+QP é um grupo configurável de simulação, sem equivalência institucional presumida.
+Unidades comparáveis e quinze atos/vigências fictícios são dados suplementares
+identificados, preservando a carga original. A classificação administrativa depende
+de evidência e vigência explícitas, não de gratificação ou nome de cargo. O acesso
+da aplicação continua somente leitura com TLS; preparação de dados ocorre apenas
+no script local de desenvolvimento. Regras já documentadas seguem a D-022, sem nova
+rodada de validação analítica. Revisão institucional/visual não foi presumida.
 
 ## Complemento dos contratos — 28/10/2026
 
@@ -36,6 +58,12 @@ Detalhes e filtros não aprovados continuam indisponíveis. Nenhum novo SQL foi 
 sem fonte física confirmada; a consulta de referência já existente não foi executada.
 
 ## Questões abertas
+
+Atualização de 30/10/2026: pela D-022, Q-003 a Q-006 deixam de exigir nova aprovação
+das regras já documentadas. Suas perguntas servem apenas para localizar definições
+nos dashboards e documentos; registrar pendência somente onde houver lacuna concreta.
+O mapeamento físico necessário à implementação continua técnico. As demais questões
+mantêm seus escopos; nenhuma nova validação analítica deve ser criada por este registro.
 
 D-020 — 28/10/2026: aplicar os materiais RGB e tipográficos fornecidos por Matheus
 à demonstração existente, com fonte única de tokens e fontes servidas localmente.

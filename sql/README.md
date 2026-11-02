@@ -1,5 +1,26 @@
 # Consultas e modelos SQL
 
+## Demonstração PostgreSQL sintética
+
+Os roteiros R02–R06 acrescentam nove consultas `academic_*.sql` para histórico,
+carga, alocações, funções, vigências, cadastro/situação acadêmica, bolsas e
+convenções de simulação. Cada consulta tem parâmetros vinculados, limite de saída
+e nome fechado no leitor. Os mapeamentos físicos e os INSERTs de atos fictícios
+ficam no script local de preparação, fora do Git/Docker. A interface não cria
+objetos nem insere registros. A conta usada pelo aplicativo continua somente leitura.
+
+`synthetic_demo/` contém a lista fechada de sete consultas da tela: identificação
+da base, departamentos, períodos, registros docentes, alocações e, para a R01,
+`faculty_register.sql` e `faculty_real_hours.sql`, com departamento vinculado. São contratos
+genéricos das views da fixture local, sem nomes de fontes físicas institucionais.
+Departamento e período usam parâmetros Psycopg vinculados; não há SQL recebido da
+interface nem interpretação de texto como regra de acesso. As permissões da conta
+sintética são conferidas separadamente. A instalação das views e seu mapeamento
+interno permanecem locais, em script e SQL ignorados por Git/Docker, conforme o
+[guia da base sintética](../docs/operations/SYNTHETIC_POSTGRES.md).
+
+## Descoberta institucional — histórico da fase 1
+
 Fase 1: SQL Server continua hipótese; conexão e inventário estão **NÃO VALIDADOS**.
 Os comandos de diagnóstico e inventário são documentados em
 [DATABASE_DISCOVERY.md](../docs/operations/DATABASE_DISCOVERY.md) para execução manual por Matheus

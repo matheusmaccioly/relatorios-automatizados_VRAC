@@ -12,8 +12,10 @@
 
 ## Uso e operação
 
+- [Análises sintéticas R01–R06](guides/ANALISES_SINTETICAS.md): calcular os roteiros, escolher filtros e baixar tabelas, gráficos e pacote completo.
 - [Prévia da aplicação](guides/PREVIEW.md): roteiro de conferência da demonstração sintética.
 - [Configurar KAPPA/PUC_OLAP](operations/CONFIGURAR_KAPPA.md): modelo preparado e passo a passo para Matheus.
+- [PostgreSQL sintético](operations/SYNTHETIC_POSTGRES.md): gerar e executar a base local de desenvolvimento sem extrair dados reais.
 - [Diagnóstico e descoberta do banco](operations/DATABASE_DISCOVERY.md): execução manual autorizada.
 - [Dicionário sanitizado](operations/SANITIZED_DATA_DICTIONARY.md): material para a próxima fase.
 - [Solicitações para a DSI](operations/DSI_REQUESTS.md): infraestrutura, acessos e operação.

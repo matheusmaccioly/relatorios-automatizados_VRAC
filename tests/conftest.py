@@ -11,6 +11,7 @@ import pytest
 def offline_environment(monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest) -> None:
     monkeypatch.delenv("VRAC_ENVIRONMENT", raising=False)
     monkeypatch.delenv("VRAC_DATA_MODE", raising=False)
+    monkeypatch.delenv("VRAC_DEMO_SOURCE", raising=False)
     monkeypatch.setenv("STREAMLIT_BROWSER_GATHER_USAGE_STATS", "false")
 
     if (
@@ -61,6 +62,11 @@ def offline_environment(monkeypatch: pytest.MonkeyPatch, request: pytest.Fixture
         from sqlalchemy.engine import Engine
 
         monkeypatch.setattr(Engine, "connect", deny_network)
+    if find_spec("psycopg") is not None:
+        import psycopg
+
+        monkeypatch.setattr(psycopg, "connect", deny_network)
+        monkeypatch.setattr(psycopg.Connection, "connect", deny_network)
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:

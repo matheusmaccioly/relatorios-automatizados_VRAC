@@ -1,0 +1,110 @@
+"""Exportar os roteiros calculados, com filtros e proveniência em cada tabela."""
+
+import csv
+import io
+import json
+from collections.abc import Mapping, Sequence
+from dataclasses import asdict
+from datetime import datetime
+from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
+
+from vrac.analyses.academic import CalculatedAnalysis, ResultTable
+from vrac.analyses.export import safe_cell
+
+FILTER_LABELS = {
+    "first_period": "Semestre inicial",
+    "last_period": "Semestre final",
+    "workload_period": "Semestre da carga",
+    "qp_cadres": "Grupo QP simulado",
+    "courses": "Cursos",
+    "cadres": "Quadros",
+    "categories": "Categorias",
+    "qualifications": "Habilitações",
+    "shifts": "Turnos",
+    "levels": "Níveis",
+    "entry_kinds": "Formas de ingresso",
+}
+
+
+def table_csv(result: CalculatedAnalysis, table: ResultTable, generated_at: datetime) -> bytes:
+    stream = io.StringIO()
+    writer = csv.writer(stream, delimiter=";", lineterminator="\r\n")
+    metadata = [
+        ("Identificação", "DEMONSTRAÇÃO — DADOS SINTÉTICOS, sem validade institucional"),
+        ("Análise", f"{result.kind}: {result.title}"),
+        ("Tabela", table.title),
+        ("Departamento", result.department),
+        ("Situação", result.status),
+        ("Origem", result.source),
+        ("Versão dos dados", result.version),
+        ("Versão do cálculo", result.calculation_version),
+        ("Snapshot", result.fingerprint),
+        ("Unidade", table.unit),
+        ("Gerado em UTC", generated_at.isoformat()),
+    ]
+    metadata += [
+        (f"Filtro: {FILTER_LABELS[key]}", ", ".join(value) if isinstance(value, tuple) else value)
+        for key, value in asdict(result.filters).items()
+    ]
+    metadata += [("Aviso", value) for value in result.notes]
+    if table.note:
+        metadata.append(("Limitação da tabela", table.note))
+    for row in (*metadata, (), table.columns, *table.rows):
+        writer.writerow([safe_cell(value) for value in row])
+    return stream.getvalue().encode("utf-8-sig")
+
+
+def summary_table(result: CalculatedAnalysis) -> ResultTable:
+    return ResultTable(
+        "summary",
+        "Resultados calculados",
+        ("Indicador", "Valor", "Unidade", "Situação"),
+        tuple((m.label, m.value, m.unit, m.status) for m in result.metrics),
+        "por indicador",
+    )
+
+
+def report_zip(
+    results: Sequence[CalculatedAnalysis],
+    generated_at: datetime,
+    images: Mapping[str, bytes] | None = None,
+    additional_files: Mapping[str, bytes] | None = None,
+) -> bytes:
+    """Pacote fechado das análises solicitadas, sem persistir registros no servidor."""
+    stream = io.BytesIO()
+    with ZipFile(stream, "w", compression=ZIP_DEFLATED) as archive:
+
+        def write(name: str, data: bytes) -> None:
+            if ".." in name or name.startswith(("/", "\\")) or "\\" in name:
+                raise ValueError("Nome inválido no pacote de exportação.")
+            info = ZipInfo(name, date_time=generated_at.timetuple()[:6])
+            info.compress_type = ZIP_DEFLATED
+            archive.writestr(info, data)
+
+        manifest = {
+            "synthetic": True,
+            "validity": "DEMONSTRAÇÃO SEM VALIDADE INSTITUCIONAL",
+            "generated_at_utc": generated_at.isoformat(),
+            "analyses": [asdict(r) for r in results],
+        }
+        write("manifesto.json", json.dumps(manifest, ensure_ascii=False, indent=2).encode("utf-8"))
+        write(
+            "LEIA-ME.txt",
+            (
+                "DEMONSTRAÇÃO — DADOS TOTALMENTE SINTÉTICOS.\n"
+                "Cada CSV inclui filtros, unidades, avisos e identificação do snapshot.\n"
+                "Ausente não é zero. Estoques acadêmicos e contagens mensais não são somados.\n"
+                "QP, unidades comparáveis e comprovações administrativas "
+                "são simulações explícitas.\n"
+                "Nenhum resultado recomenda contratação, avalia produtividade "
+                "ou confirma regra institucional.\n"
+            ).encode(),
+        )
+        for result in results:
+            for table in (summary_table(result), *result.tables):
+                write(f"{result.kind}/{table.key}.csv", table_csv(result, table, generated_at))
+        for name, data in (images or {}).items():
+            write(name, data)
+        for name, data in (additional_files or {}).items():
+            write(name, data)
+    return stream.getvalue()

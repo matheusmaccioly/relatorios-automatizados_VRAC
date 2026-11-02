@@ -1,7 +1,9 @@
 [CmdletBinding()]
 param(
     [ValidateRange(1024, 65535)]
-    [int]$Port = 8501
+    [int]$Port = 8501,
+    [ValidateSet('postgres', 'memory')]
+    [string]$Source = 'postgres'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -14,6 +16,7 @@ if (-not (Test-Path -LiteralPath $VracPython -PathType Leaf)) {
 # Este comando sempre inicia somente uma demonstracao sintetica local.
 $env:VRAC_ENVIRONMENT = 'development'
 $env:VRAC_DATA_MODE = 'synthetic'
+$env:VRAC_DEMO_SOURCE = $Source
 Write-Host 'DEMONSTRACAO: somente dados sinteticos em acesso local.'
 Push-Location $VracProjectRoot
 try {

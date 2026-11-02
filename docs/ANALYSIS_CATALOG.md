@@ -1,9 +1,23 @@
 # Catálogo de análises e regras — Prompt 2
 
-**Estado: base revista com a documentação semântica fornecida por Matheus, sem aprovação
-institucional.** Há candidatos documentados para fontes, colunas e medidas dos modelos
-acadêmicos; o dicionário físico da fase 1 continua não preenchido. Não há conectividade
-ou regra real validada. Este catálogo formaliza decisões antes dos cálculos e não implementa a fase 3.
+**Implementação sintética atual (D-027, 30/10/2026):** R01–R06 disponíveis na aplicação,
+com cálculos, gráficos, tabelas, conferências e exportações. O
+[guia dos roteiros](guides/ANALISES_SINTETICAS.md) descreve regras e limites. Os estados
+de aprovação e fontes físicas do catálogo abaixo continuam históricos/institucionais;
+não bloqueiam os executores sintéticos nem declaram integração real aprovada.
+O grupo QP, unidades compatíveis e atos administrativos suplementares são simulações
+explicitamente identificadas. Nenhuma nova regra institucional foi inventada.
+
+**Diretriz vigente em 30/10/2026 (D-022): reproduzir os cálculos dos dashboards
+existentes conforme a documentação disponível, sem nova validação das regras.**
+Matheus dispensou a revalidação analítica; as exigências históricas de aprovação
+abaixo não devem ser cobradas novamente para regras já documentadas. Lacunas ou
+contradições concretas devem ser registradas no resultado afetado, sem criar regras.
+Os estados `pending` dos contratos existentes ainda refletem a preparação anterior;
+não foram alterados nesta tarefa documental e não representam nova exigência humana.
+O dicionário físico continua não preenchido e a conectividade não foi comprovada.
+Testes técnicos e controles de segurança permanecem aplicáveis. Nenhum cálculo ou
+fase 3 foi implementado nesta atualização.
 
 A definição estruturada fica em [config/analyses.yaml](../config/analyses.yaml).
 Campos de fonte física permanecem `null`; nomes de fontes/chaves são conceitos propostos,

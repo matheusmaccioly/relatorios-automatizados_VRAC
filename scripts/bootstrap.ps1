@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([switch]$SqlServer)
+param([switch]$SqlServer, [switch]$Postgres)
 
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
@@ -62,12 +62,10 @@ try {
     }
     & $VracUv python install $pythonVersion
     if ($LASTEXITCODE -ne 0) { throw 'Falha ao preparar o Python local.' }
-    if ($SqlServer) {
-        & $VracUv sync --locked --extra sqlserver
-    }
-    else {
-        & $VracUv sync --locked
-    }
+    $vracSyncArguments = @('sync', '--locked')
+    if ($SqlServer) { $vracSyncArguments += @('--extra', 'sqlserver') }
+    if ($Postgres) { $vracSyncArguments += @('--extra', 'postgres') }
+    & $VracUv @vracSyncArguments
     if ($LASTEXITCODE -ne 0) { throw 'Falha ao instalar as dependencias do lock.' }
     Write-Host 'Ambiente preparado. Execute .\scripts\check.ps1 e .\scripts\run-demo.ps1.'
 }

@@ -1,11 +1,16 @@
 # PoC de análises acadêmicas da VRAC
 
-Fundação de uma aplicação interna para apoiar Talita na preparação de análises de
-docentes, matrículas e carga horária. **Demonstração local exclusivamente sintética** e
-ferramentas manuais de diagnóstico/inventário da fase 1 e contratos lógicos da fase 2.
-O acesso real permanece separado da tela e as análises aguardam aprovação humana.
-O aplicativo funciona sem LLM e sem Power BI. Conexão e inventário institucionais
-permanecem **NÃO VALIDADOS**; SQL Server é uma hipótese.
+Aplicação interna para apoiar Talita nas análises de docentes, matrículas e carga
+horária. **Os seis roteiros documentados estão disponíveis em demonstração local
+exclusivamente sintética**, com PostgreSQL, filtros, tabelas, gráficos, conferências
+programadas e exportações CSV/PNG/ZIP. Não há dependência de LLM ou Power BI.
+O modo institucional permanece bloqueado; SQL Server foi confirmado por Matheus,
+mas conexão e inventário institucionais não foram executados pelo agente.
+
+Para usar todos os roteiros, abrir a aba **Análises por período**, escolher o
+departamento, **Carregar ou atualizar dados** e **Calcular análises selecionadas**.
+O [guia das análises sintéticas](docs/guides/ANALISES_SINTETICAS.md) explica filtros,
+regras, simulações explícitas e arquivos exportados.
 
 O [guia original](docs/references/Guia_Desenvolvimento_VRAC_Codex.md) foi preservado. As instruções
 permanentes estão em [AGENTS.md](AGENTS.md) e o plano em [docs/PLAN.md](docs/PLAN.md).
@@ -48,7 +53,7 @@ PowerShell 5.1 ou superior, Windows x64/ARM64 e acesso HTTPS aos distribuidores 
 são necessários para a primeira instalação. Não é necessário Python previamente instalado.
 
 ```powershell
-.\scripts\bootstrap.cmd
+.\scripts\bootstrap.cmd --postgres
 .\scripts\check.cmd
 .\scripts\run-demo.cmd
 ```
@@ -63,9 +68,21 @@ institucional impedir downloads ou comandos batch, solicitar a forma aprovada pe
 
 A demonstração fica em <http://127.0.0.1:8501>; `Ctrl+C` encerra o processo.
 O [roteiro da prévia](docs/guides/PREVIEW.md) orienta a conferência da tela e explica o que mudou no Prompt 1.
-Use `SINT-A / 2026.1` para os exemplos e `2026.2` para o caso sem registros.
+O comando de demonstração usa o PostgreSQL sintético local. Sua preparação está no
+[guia da base sintética](docs/operations/SYNTHETIC_POSTGRES.md), incluindo as projeções
+de leitura da aplicação. Com a base já preparada, iniciá-la antes da tela:
+
+```powershell
+.\.venv\Scripts\python.exe -m vrac.dev.postgres_runtime start
+.\scripts\run-demo.cmd
+```
+
+Use `SINT-A / 2026.2` para os exemplos e `SINT-VAZIO` para o caso sem registros.
 Trocar um filtro remove a prévia anterior até clicar novamente em **Mostrar dados de demonstração**.
 Não existem cálculos institucionais, exportações ou login simulado nesta fase.
+Para usar explicitamente os exemplos originais sem PostgreSQL, executar
+`.\scripts\run-demo.cmd --memory`. Essa opção permite conferir a tela em uma
+instalação sem os materiais locais do modelo; falhas do banco nunca a ativam.
 
 ## Diagnóstico e inventário — Prompt 1
 
@@ -138,8 +155,9 @@ em [docs/DSI_REQUESTS.md](docs/operations/DSI_REQUESTS.md).
 ## Desenvolvimento e continuidade
 
 O pacote em `src/vrac/` separa configuração, autorização, dados fictícios e interface.
-O pacote `src/vrac/db/` contém apenas as ferramentas manuais de descoberta; cálculos,
-verificações executáveis, gráficos e exportação serão adicionados nos incrementos correspondentes.
+O pacote `src/vrac/db/` contém ferramentas de descoberta e o leitor restrito da
+fixture PostgreSQL. `analyses/` contém os cálculos puros, conferências e exportações;
+`academic_ui.py` apresenta os roteiros e `charts.py` aplica a identidade aos gráficos.
 
 ```powershell
 .\.venv\Scripts\ruff.exe check .

@@ -1,10 +1,12 @@
 # Referência de configuração pública. Este arquivo NÃO é carregado pela aplicação.
-# Configure somente as duas variáveis abaixo na sessão do operador:
+# Configure somente as três variáveis abaixo na sessão do operador:
 # VRAC_ENVIRONMENT = development | test | production
 # VRAC_DATA_MODE = synthetic | real
+# VRAC_DEMO_SOURCE = memory | postgres (somente para demonstração sintética)
 # Valores inválidos bloqueiam a tela. Modo real está sempre bloqueado na fase 0.
 environment = "development"
 data_mode = "synthetic"
+demo_source = "memory"  # run-demo.cmd/.ps1 selecionam postgres explicitamente.
 
 # Não incluir credenciais, servidor, banco, identidades ou nomes físicos aqui.
 # Segredos futuros deverão ficar fora do workspace, em mecanismo aprovado pela DSI.

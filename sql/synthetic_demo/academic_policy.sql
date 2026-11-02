@@ -1,0 +1,3 @@
+SELECT real_hours_unit, contracted_hours_unit, synthetic_units, synthetic_appointments
+FROM vrac_sintetico.analysis_simulation_policy
+LIMIT 2;

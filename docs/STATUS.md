@@ -1,11 +1,391 @@
 # Estado da entrega
 
-Atualizado em 29/10/2026. **Prompt 2: contratos dos seis roteiros implementados; aceite institucional pendente.**
+Atualizado em 02/11/2026 (consolidação para commit local). **Seis roteiros acadêmicos implementados sobre dados sintéticos, com gráficos, tabelas, conferências e exportações.**
 **Conexão e inventário institucionais: NÃO VALIDADOS.** SQL Server confirmado por Matheus.
-Fontes físicas, fórmulas e aceite funcional continuam pendentes; a base documental
-semântica foi incorporada ao catálogo. Fases 3–7 não iniciadas.
+Fontes físicas e aceite funcional da aplicação continuam pendentes; as fórmulas
+documentadas não exigem nova validação analítica. Fases 3/4a/4b executáveis na base
+sintética; fase 5 parcialmente implementada; fases 6/7 institucionais não iniciadas.
 Fase 0 e ferramentas do Prompt 1 preparadas. Conteúdo do guia original preservado;
 `AGENTS.md` atualizado com a exigência de branding institucional.
+
+## Consolidação para commit local — 02/11/2026
+
+Matheus solicitou o commit das alterações pendentes. O conjunto reúne os roteiros
+R01–R06, conexão e ferramentas do PostgreSQL sintético, gráficos, exportações,
+ajustes visuais já registrados, testes e documentação. Nenhuma mudança funcional
+adicional foi introduzida nesta tarefa; somente este registro foi atualizado.
+
+Verificações repetidas antes do commit: Ruff e formatação aprovados; suíte offline
+com `--basetemp .cache/pytest-precommit-20261102`: **304 passaram, 1 integração
+institucional excluída**. `git diff --check` aprovado. Exclusões conferidas para
+documentação semântica interna, mapeamentos, receitas `.local.py`, caches, carga SQL,
+bancos e exportações geradas. Credenciais e arquivos do cluster ficam fora do Git.
+
+Comandos de verificação: `.\.venv\Scripts\python.exe -m ruff check .`,
+`.\.venv\Scripts\python.exe -m ruff format --check .` e
+`.\.venv\Scripts\python.exe -m pytest -m 'not integration' -q --basetemp .cache/pytest-precommit-20261102`.
+Não repetidos testes com PostgreSQL ou SQL Server, conferência visual, instalação
+ou implantação; o pedido atual é exclusivamente consolidar o trabalho em commit.
+Nenhum serviço foi reiniciado e nenhum push ou publicação foi solicitado.
+
+Sem novos riscos ou bloqueios para o commit local. Permanecem os limites e as
+pendências institucionais descritos abaixo para Matheus/DSI/DBA/Talita, sem nova
+exigência de validação das fórmulas documentadas e sem avanço de fase nesta tarefa.
+
+## Seis roteiros acadêmicos na base sintética — 30/10/2026
+
+Matheus solicitou implementar todas as análises documentadas e gerar os dados
+fictícios necessários para avançar a aplicação (D-027). A autorização amplia o
+escopo anterior da D-026, que era somente composição docente. O modo real continua
+bloqueado; nenhum dado institucional foi extraído ou consultado.
+
+| Roteiro | Entrega sintética |
+|---|---|
+| R01 | Composição do cadastro atual preservada, com resumo, gráfico, lista e CSVs; integra o pacote completo. Resultados antigos são removidos se o conteúdo do cadastro mudar |
+| R02 | Geral e grupo QP configurável, classificação ausente, demais e participação; denominador preservado. O grupo é simulação explícita, não definição institucional |
+| R03 | Presença semestral por pessoa, séries por quadro, detalhe mensal e cobertura; identidade opaca, lotação histórica, lotes/exclusões e calendário janeiro–julho reproduzidos |
+| R04 | Cargas oficiais por vínculo/semestre, contratada, distribuições, semáforo literal e alocações separadas; diferença/razão somente em unidades sintéticas declaradas; zeros/nulos preservados |
+| R05 | Dupla função, registros de função e comprovações administrativas separados; vigências e sobreposições de papéis distintos, sem inferir por gratificação e sem valores financeiros |
+| R06 | Quatro séries acadêmicas por período/curso: MT/MC, bolsistas elegíveis, FR/TD e ingresso com a exceção documentada; variação sem percentual na base zero, ausência sem zero fictício |
+
+A aba **Análises por período** permite carregar o snapshot e executar um roteiro
+ou os seis em conjunto, para um departamento ou todos. Oferece filtros em tabela,
+avisos, gráficos com fontes/cores dos tokens institucionais, tabelas equivalentes,
+CSV por tabela, PNG por gráfico e ZIP completo com manifesto JSON. As saídas
+identificam demonstração, filtros, unidades, fonte, versão do cálculo, horário e
+hash do snapshot. CSV preserva precisão numérica e protege fórmulas, inclusive
+prefixos após espaços. Dez conferências programadas descrevem qualidade/cobertura
+sem decisões de pessoal. Resultados são removidos ao mudar filtros ou atualizar
+dados; falha na origem não aciona memória.
+
+Preparação da base: sete novas views analíticas e duas tabelas suplementares
+para convenções dimensionais e **15 atos/vigências totalmente fictícios**, com
+casos administrativos/não administrativos e papéis sucessivos/simultâneos. A carga
+original de 13 fontes, 406 colunas e 3.909 registros foi preservada. O script é
+repetível sem duplicar atos. As unidades da simulação não comprovam a dimensão
+institucional de Horas Reais. QP continua sem definição institucional; a seleção
+de quadros é exibida e exportada como exemplo configurável.
+
+Arquivos desta tarefa:
+
+- `src/vrac/analyses/academic_data.py`, `academic_fixture.py`, `academic.py`,
+  `academic_quality.py`, `academic_export.py`: entradas tipadas, cenários em memória,
+  cálculos puros, conferências fechadas e exportações.
+- `src/vrac/academic_ui.py`, `ui.py`, `charts.py`, `demo_data.py`,
+  `db/synthetic_postgres.py`: interface dos roteiros, filtros/snapshot, gráficos e
+  leitor. Savepoints isolam indisponibilidade de fontes independentes; inclusive
+  falha no cadastro docente não bloqueia histórico ou fontes acadêmicas.
+- `src/vrac/analyses/export.py`: proteção adicional contra fórmulas e precisão
+  numérica preservada nos CSVs existentes; `analyses/__main__.py` diferencia o
+  catálogo institucional da demonstração já executável.
+- Nove arquivos `sql/synthetic_demo/academic_*.sql` na lista fechada do leitor,
+  sempre com parâmetros vinculados e limite de saída. A conta continua de leitura
+  com TLS `verify-full`; não há SQL arbitrário na interface.
+- `tests/test_academic_analyses.py`, `test_academic_ui.py`, `test_academic_reader.py`:
+  cálculos, gráfico/ZIP, fluxos de tela e falhas independentes.
+- `.gitignore`/`.dockerignore` e documentação: README, contexto, plano, catálogo,
+  arquitetura, decisões, próximos passos, índice, documentação SQL, guia PostgreSQL,
+  este estado e novo `docs/guides/ANALISES_SINTETICAS.md`.
+- `scripts/prepare-academic-analyses.local.py` e o SQL de preparação em `.cache/`
+  permanecem locais/ignorados por conterem mapeamento interno. Nenhum commit ou
+  push solicitado; alterações anteriores preservadas.
+
+Verificações executadas:
+
+- Ruff e formatação aprovados. Suíte offline em
+  `.cache/pytest-all-analyses-delivery`: **304 passaram, 1 integração institucional
+  excluída**. Testes cobrem deduplicação, múltiplos vínculos/lotes/bolsas, calendário,
+  ingresso futuro, dupla diplomação, FR/TD sem HF, zero/nulo/ausência, base zero,
+  vigências, grupos incompletos, parâmetros, precisão, proteção de células,
+  snapshot, filtros, erro sem fallback e falha isolada de fontes.
+- Integração explícita com PostgreSQL sintético pela conta de leitura e Streamlit
+  AppTest: seis roteiros em conjunto, filtros e limpeza de resultados, departamento
+  vazio, métricas, gráficos e botões de exportação passaram. As quatro séries de
+  todos os seis semestres coincidiram com consultas SQL de referência independentes;
+  o total de Horas Reais coincidiu com a fonte dedicada.
+- Pacote demonstrativo em `.cache/synthetic-postgres/vrac-analises-demonstracao.zip`:
+  **36 arquivos — 27 CSVs, 7 PNGs, manifesto e instruções**. PNGs das séries de
+  alunos e funções renderizados e inspecionados, com texto e identificação visíveis.
+- Instância do projeto na porta 8501 reiniciada para carregar os novos roteiros;
+  `/_stcore/health` retornou HTTP 200. Aplicação e PostgreSQL permanecem iniciados.
+- `git diff --check` e exclusões locais conferidos. Sem nova dependência ou serviço.
+
+Comandos na instalação já preparada:
+
+```powershell
+.\.venv\Scripts\python.exe -m vrac.dev.postgres_runtime start
+.\.venv\Scripts\python.exe scripts/prepare-academic-analyses.local.py
+.\scripts\run-demo.cmd
+.\.venv\Scripts\python.exe -m pytest -m 'not integration' -q --basetemp .cache/pytest-all-analyses-delivery
+```
+
+Orientações para Talita no [guia de uso](guides/ANALISES_SINTETICAS.md). Não executados:
+SQL Server/KAPPA, conciliação com registros institucionais, autenticação institucional,
+homologação de segurança/visual/usabilidade, publicação ou implantação. Fase 5
+permanece parcial: feedback persistido e aprovações operacionais não foram criados.
+
+Riscos/limites específicos: QP institucional, equivalências de curso, unidade real
+de carga e comprovação administrativa institucional não foram inventados. Nas
+simulações, convenções e evidências são explicitamente fictícias. Campos ausentes
+continuam ausentes; fontes opcionais indisponíveis afetam somente suas métricas.
+O catálogo institucional mantém estados históricos pendentes sem bloquear a
+demonstração. Não há bloqueio para uso local sintético; Matheus/Talita podem avaliar
+o fluxo e pedir ajustes concretos. DSI/DBA ainda precisam prover fontes físicas,
+conta/escopos, autenticação e infraestrutura antes do acesso real. Não é necessária
+uma nova rodada de aprovação das fórmulas já documentadas (D-022).
+
+## Fase 3 — composição docente (R01 e geral da R02) — 30/10/2026
+
+A pedido de Matheus, com escopo escolhido por ele (somente composição docente) e
+origem PostgreSQL sintética. Implementação iniciada após a outra sessão concluir a
+conexão da D-025; suas alterações foram preservadas.
+
+| Arquivo | Alteração |
+|---|---|
+| `src/vrac/analyses/faculty_overview.py` | Cálculo puro da R01: contagem distinta de matrículas (cartão/quadro), contagem de linhas por categoria, Horas Reais do semestre mais recente por matrícula (A-M-009/010), semáforo literal A-CC-007 com comparação sem diferenciar maiúsculas, filtros fechados, estados vazio/filtro vazio, avisos e texto descritivo |
+| `src/vrac/analyses/faculty_overview_fixture.py` | Cenários em memória: pessoa com dois vínculos, quadro ausente, horas zero/nulas/sem registro, quadro reconhecido e não reconhecido pelo semáforo, departamento vazio |
+| `sql/synthetic_demo/faculty_register.sql`, `faculty_real_hours.sql` | Consultas revisadas com departamento vinculado; CPF sai do banco somente como hash opaco para o aviso de múltiplos vínculos |
+| `src/vrac/db/synthetic_postgres.py`, `src/vrac/demo_data.py` | Duas consultas novas na lista fechada; mesmo snapshot e conferência de identidade sintética; sem fallback para memória |
+| `src/vrac/analyses/export.py` | CSV de resumo e de lista de conferência com identificação DEMONSTRAÇÃO, filtros, origem, unidade, avisos e proteção contra fórmulas |
+| `src/vrac/charts.py` | Barras Matplotlib de série única em azul, fontes locais, sem legenda, tabela equivalente ao lado |
+| `src/vrac/ui.py`, `src/vrac/branding.py` | Aba "Situação geral do departamento" antes dos registros de demonstração; cálculo só por ação explícita; resultado removido ao mudar filtro ou departamento |
+| `tests/test_faculty_overview.py`, `tests/test_postgres_demo_reader.py`, `tests/test_ui.py` | Fidelidade às regras, bordas do semáforo, zero/nulo/ausente, agregações dos visuais, filtros, exportação, parâmetros vinculados, CPF não exposto, tela; testes de tela passam a localizar widgets por chave |
+
+Lacunas registradas apenas no resultado afetado: (1) QP sem regra documentada — geral
+calculado; QP, demais e participação bloqueados; (2) valores do filtro salvo de quadro
+da página não constam do inventário — todos os quadros exibidos, com aviso; (3) os
+quadros sintéticos `PROF PRINCIPAL/HORISTA/SUPLEMENTAR` não correspondem aos nomes do
+semáforo (`PRINCIPAL`, `COMPLEMENTAR TEMPO INTEGRAL/PARCIAL`) e recebem "Sem regra
+definida", reproduzindo o painel sem equivalência presumida; (4) seletores de Status
+CH, centro, carga semanal e tipo de vínculo da página não foram reproduzidos nesta entrega.
+
+Verificações: Ruff e formatação aprovados; suíte offline com `--basetemp` da sessão:
+**280 passaram, 2 falharam (ACL NTFS em `test_private_output.py`, mesmas falhas de
+ambiente já registradas), 1 integração excluída**. Execução real contra o PostgreSQL
+sintético local pela conta de leitura: SINT-A 9, SINT-B 8, SINT-C 8 matrículas e
+SINT-VAZIO sem resultado numérico. Capturas da tela nos modos PostgreSQL e memória
+(servidor temporário 8517, encerrado). O servidor da porta 8501 não foi alterado e
+precisa ser reiniciado para exibir a nova aba.
+
+Não executados: SQL Server/KAPPA, conciliação com o painel real, avaliação de Talita,
+homologação visual. Matrículas (4a) e carga horária (4b) não iniciadas.
+
+## Aplicação conectada ao PostgreSQL sintético — 30/10/2026
+
+Por solicitação de Matheus (D-025), a demonstração Streamlit consulta a base
+`vrac_sintetico` em `127.0.0.1:55432` para carregar filtros, registros docentes e
+alocações por turma. A instância em <http://127.0.0.1:8501> foi reiniciada com essa
+origem explícita e seu endpoint de saúde retornou HTTP 200. O banco e a aplicação
+permanecem iniciados localmente. Nenhum acesso institucional foi realizado.
+
+Alterações desta tarefa:
+
+- `src/vrac/db/synthetic_postgres.py`: conexão fixa à fixture com Psycopg, conta
+  de leitura, TLS `verify-full`, timeouts, identidade sintética conferida e
+  snapshot consistente. Consultas em lista fechada, com filtros vinculados e
+  limite de 5.000 linhas por tabela.
+- `sql/synthetic_demo/`: cinco consultas genéricas de identificação, filtros e
+  registros. O mapeamento interno está em quatro views da base sintética, preparado
+  por `scripts/connect-synthetic-app.local.py` e `03-app-views.sql`, locais e ignorados.
+- `src/vrac/demo_data.py`, `settings.py` e `synthetic.py`: escolha explícita entre
+  memória e PostgreSQL, opções vindas da fonte, origem e horário de consulta no
+  resultado. `VRAC_DEMO_SOURCE` é a terceira variável pública de configuração.
+- `src/vrac/ui.py`: origem PostgreSQL identificada na tela e na tabela de filtros;
+  falhas removem resultados anteriores, sem fallback. Estado vazio por tabela e
+  por recorte. Vagas preenchidas não são rotuladas como alunos/matrículas únicas;
+  a unidade das horas do modelo não é presumida.
+- `pyproject.toml`/`uv.lock`: extra opcional `postgres`, Psycopg e componente binário
+  fixados em 3.3.6. `scripts/bootstrap.cmd/.ps1` aceitam a opção PostgreSQL;
+  `scripts/run-demo.cmd/.ps1` iniciam essa origem por padrão. Memória permanece
+  disponível por `--memory` ou `-Source memory`, sem ativação por erro de conexão.
+- Testes do leitor em `tests/test_postgres_demo_reader.py`; testes de tela,
+  configuração e proteção offline ampliados em `tests/test_ui.py`,
+  `tests/test_foundation.py` e `tests/conftest.py`.
+- `.gitignore`, `.dockerignore`, exemplo de configuração, README, guia da prévia,
+  guia PostgreSQL, documentação SQL, contexto, plano, próximos passos, decisões e
+  este estado atualizados. Alterações anteriores de branding e interface preservadas.
+
+Verificações executadas: Ruff e formatação aprovados; suíte offline com
+`--basetemp .cache/pytest-connected-postgres-final`: **243 passaram, 1 integração
+institucional excluída**. O bloqueio offline inclui agora o driver PostgreSQL nativo.
+Testes cobrem identidade da base/conta/TLS, parâmetros, filtros inválidos, limites,
+zero/nulo, recorte vazio, tabela vazia, erro sanitizado, remoção de resultados
+anteriores e ausência de fallback.
+
+Teste explícito contra a base sintética com o leitor e Streamlit AppTest passou:
+quatro departamentos e seis semestres provenientes do PostgreSQL; `SINT-A / 2026.2`
+exibiu **46 linhas docentes e 2 alocações**; troca de filtro removeu a prévia;
+`SINT-B` preservou horas ausentes e `SINT-VAZIO` mostrou ausência sem total zero.
+Conta de leitura e consultas fixas usadas em todo esse fluxo. SQL de projeção
+instalado somente no cluster sintético desta entrega. Exclusões locais e
+`git diff --check` conferidos.
+
+Comandos (base e projeções desta instalação já preparadas):
+
+```powershell
+.\scripts\bootstrap.cmd --postgres
+.\.venv\Scripts\python.exe -m vrac.dev.postgres_runtime start
+.\.venv\Scripts\python.exe scripts/connect-synthetic-app.local.py
+.\scripts\run-demo.cmd
+```
+
+Instruções e alternativa sem PostgreSQL no
+[guia de execução](operations/SYNTHETIC_POSTGRES.md). Testes institucionais,
+homologação visual/funcional por Talita, novas análises, gráficos e exportações
+não foram executados ou implementados nesta tarefa. Não houve avanço automático
+das fases analíticas, commit, push ou publicação.
+
+Limites: a prévia preserva linhas mensais/lotes e vínculos; não é contagem de
+docentes distintos. Horas Reais semestrais por vínculo reaparecem nas linhas
+mensais e não podem ser somadas. Currículo e chave do grupo de compartilhamento
+ficam ausentes porque a fonte consultada não os fornece; nenhuma chave foi
+inventada. A demonstração depende do cluster local e do certificado/credenciais
+gerados fora do workspace. Sem bloqueios para uso sintético local; Matheus pode
+seguir com a primeira análise solicitada. Nenhuma revalidação analítica foi
+solicitada a Talita; pendências de acesso institucional da DSI/DBA permanecem
+separadas e não bloqueiam esta demonstração.
+
+## PostgreSQL sintético para desenvolvimento — 30/10/2026
+
+A pedido de Matheus (D-023), gerada e carregada uma base exclusivamente sintética
+com as 13 fontes listadas a partir da documentação semântica acadêmica: **406 colunas,
+3.909 registros**, semente `20261030`, seis semestres entre 2024.1 e 2026.2,
+24 pessoas docentes com 25 vínculos e 120 matrículas acadêmicas. Existe ainda uma
+tabela de identificação sintética com versão e semente. Nenhum registro real foi
+extraído e nenhuma conexão institucional foi executada.
+
+PostgreSQL portátil **18.6**, obtido da EDB indicada pelo site oficial do PostgreSQL,
+executando em `127.0.0.1:55432`; banco/esquema `vrac_sintetico`. Arquivo de origem e
+SHA-256 registrados em `.tools/postgres/download.json` (ignorado). Conta de consulta
+`vrac_sintetico_reader` com `SELECT`, sem escrita/criação; conexão conferida com TLS
+e `verify-full`. Credenciais aleatórias, certificado e cluster ficam fora do
+workspace, em diretório temporário restrito criado exclusivamente para esta base.
+Não foi instalado serviço do Windows. O cluster permanece iniciado após os testes.
+
+Arquivos desta tarefa: `src/vrac/dev/__init__.py`,
+`src/vrac/dev/semantic_postgres.py`, `src/vrac/dev/postgres_runtime.py`,
+`tests/test_synthetic_postgres.py`, `.gitignore`, `.dockerignore`,
+`docs/operations/SYNTHETIC_POSTGRES.md`, índice, contexto, plano, próximos passos,
+decisões e este estado. Receita `scripts/synthetic-postgres.local.py` e pacote
+`.cache/synthetic-postgres/bundle-v1/` contêm metadados internos e foram mantidos
+locais, ignorados por Git/Docker. Alterações anteriores de interface/branding e
+documentação foram preservadas.
+
+Verificações executadas:
+
+- Ruff e formatação aprovados; suíte offline: **225 passaram, 1 integração
+  institucional excluída**, incluindo 14 testes do novo gerador/executor.
+- Duas gerações com a mesma semente produziram SQL idêntico; outra semente mudou
+  os valores previstos. Nomes e tipos são extraídos do documento, sem DDL físico
+  presumido ou execução de DAX.
+- Banco carregado e comparado ao manifesto: contagens das 13 fontes e 406 colunas
+  coincidem. Relações dos cenários, duplicidade, múltiplos lotes e zero/nulo conferidos.
+- Conexão da conta de leitura e permissões conferidas. Reinício do cluster e nova
+  execução do comando de início passaram, preservando os registros.
+- Tentativas de repetir a carga sobre o esquema existente e de carregar no banco
+  local `postgres` foram recusadas; contagens preservadas e nenhum esquema criado
+  nesse outro banco. Corrigida a comparação de loopback para usar `host(inet)`;
+  o cast textual inclui máscara de rede. Corrigida também a espera por pipes
+  herdados por processos do servidor no Windows.
+- `git diff --check`; exclusões da receita, SQL e manifesto conferidas.
+
+Comandos na raiz do projeto:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/synthetic-postgres.local.py
+.\.venv\Scripts\python.exe -m vrac.dev.postgres_runtime start
+.\.venv\Scripts\python.exe -m vrac.dev.postgres_runtime stop
+.\.venv\Scripts\python.exe -m pytest -m 'not integration' --basetemp .cache/pytest-postgres-complete -q
+```
+
+O pacote inicial já existe: para regenerar, escolher saída nova com `--output`,
+conforme o [guia de execução](operations/SYNTHETIC_POSTGRES.md). Não executados
+integração institucional, conexão da tela Streamlit a PostgreSQL, homologação
+funcional/visual ou publicação. A base é a preparação solicitada para os próximos
+incrementos; fases analíticas não foram iniciadas automaticamente.
+
+Limites: colunas periféricas e cálculos não reproduzidos ficam `NULL`, listados no
+manifesto; não são zero. RLS, Power Query, DAX e auxiliares não foram integralmente
+convertidos. Não há chaves institucionais presumidas. O diretório temporário depende
+da retenção local do Windows e pode ser recriado a partir da carga. Nenhuma nova
+validação de regras foi solicitada a Talita. Matheus poderá usar a base no próximo
+incremento; pendências de DSI/DBA para uso institucional permanecem separadas e não
+bloqueiam o desenvolvimento sintético. Sem commit, push ou publicação.
+
+## Base dos cálculos — 30/10/2026
+
+Matheus orientou reproduzir os dashboards existentes com base na documentação já
+disponível, sem outro processo de validação das regras. Decisão registrada como
+D-022 e refletida no contexto, plano, catálogo e próximos passos. Exigências
+históricas de reaprovação analítica ficam substituídas por essa orientação.
+Nenhum cálculo, estado de contrato ou controle de acesso foi alterado.
+
+Verificação documental: `git diff --check`. Suíte de aplicação e testes de banco
+não executados nesta tarefa, que altera somente documentação. Nenhum comando de
+execução novo. Sem avanço de fase ou publicação. Risco técnico remanescente:
+lacunas concretas na reprodução e no mapeamento físico devem ser registradas por
+resultado. Matheus/DSI/DBA mantêm as pendências de configuração e acesso seguro;
+não há nova validação de fórmulas solicitada a Talita.
+
+## Layout institucional da demonstração — 30/10/2026
+
+Matheus relatou a tela sem logo, sem fontes e só com azul. Causa: o servidor aberto
+na porta 8501 fora iniciado em 27/10, antes do branding, e não recarrega código
+(`fileWatcherType none`). Com autorização dele, encerrados os processos antigos das
+portas 8501 (27/10) e 8515 (28/10) e iniciada a demo atual por `run-demo.cmd` na 8501.
+
+A pedido de Matheus, a tela ficou mais institucional com os recursos já no repositório:
+- **D-021:** amarelo `#F1BA2A` e cinza `#869597` pelo hex impresso, escolha de Matheus,
+  pendente de revisão institucional. Acrescentados a `tokens.toml`, ao tema
+  (`yellowColor`, `grayColor`, cores categóricas de gráficos) e aos READMEs de branding.
+- `src/vrac/ui.py`: cabeçalho com assinatura colorida, sobretítulo "PUC-Rio · VRAC",
+  título "Análises acadêmicas" em Literata azul e faixa azul/ciano/amarela; blocos
+  com contorno cinza e borda superior azul; rodapé com o nome da instituição.
+- `src/vrac/branding.py`: estilos em um template único preenchido só pelos tokens;
+  títulos de seção com marca amarela; aviso de demonstração em amarelo; erros com
+  borda preta. Texto pequeno continua preto (azul e cinza não têm contraste suficiente).
+  A faixa tricolor é composição de layout, não elemento de marca.
+
+Ajuste posterior no mesmo dia: Matheus apontou baixa visibilidade do preto sobre o azul
+no botão principal. Texto do botão passou a branco em negrito (APCA ~Lc 70 contra ~Lc 37
+do preto; a razão WCAG 2 favorece o preto, mas subestima esse caso). Azul inalterado.
+
+Fundo da página: Matheus escolheu `#F5F5F0` (D-024, fora da prancha oficial). Token
+`colors.background` e `backgroundColor` do tema; cabeçalho com assinatura, avisos e
+blocos em branco com contorno cinza. O corpo das tabelas usa o fundo do tema.
+
+Verificações: Ruff e formatação aprovados; suíte offline com `--basetemp` da sessão:
+**209 passaram, 2 falharam (ACL NTFS em `test_private_output.py`, mesmas falhas de
+ambiente já registradas acima), 1 integração excluída**. Capturas via Chrome headless
+em `127.0.0.1:8501` nos estados inicial e com dados. Demo atualizada permanece em
+execução na 8501. Não houve homologação visual nem avaliação de Talita.
+
+## Melhoria de layout da demonstração — 30/10/2026
+
+A pedido de Matheus, reorganizada a tela sintética sem alterar dados, regras, filtros
+ou estados. Nenhuma fase avançou; o tema continua aplicado e com revisão pendente.
+
+- `src/vrac/ui.py`: cabeçalho com assinatura e título lado a lado; filtros e botão
+  na mesma linha dentro de um bloco "Análises disponíveis"; resultados em bloco
+  próprio com abas para as duas tabelas e contagem de **linhas** (não docentes únicos).
+  Nulos exibidos como "ausente", distintos de zero (antes o Streamlit mostrava "None",
+  contrariando a legenda "célula vazia"). Números com vírgula decimal, alinhados à direita.
+- `src/vrac/branding.py`: CSS só com azul/ciano/preto dos tokens — faixa azul no topo,
+  avisos com contorno azul (antes sem contraste com o fundo), títulos de seção azuis
+  (o seletor anterior era sobreposto pelo tema) e abas com sublinhado ciano.
+- `assets/branding/tokens.toml`: largura de exibição do logo 240 → 200 (valor de
+  layout, não tamanho mínimo oficial; o arquivo original não foi alterado).
+- `scripts/sync-branding.py` e `.streamlit/config.toml`: `toolbarMode = "minimal"`,
+  removendo o botão "Deploy" do Streamlit.
+- `tests/test_ui.py`: novo teste de "ausente" distinto de zero nas duas tabelas.
+
+Verificações: Ruff e formatação aprovados; suíte offline com `--basetemp` no
+diretório temporário da sessão: **209 passaram, 2 falharam, 1 integração excluída**.
+As 2 falhas (`test_private_output.py`, ACL NTFS) ocorrem igualmente sem estas
+alterações (conferido com `git stash`) e decorrem do sandbox do agente bloquear o
+diretório temporário padrão; Matheus deve repetir `.\scripts\check.cmd` localmente.
+Capturas locais via Chrome headless em `127.0.0.1:8517` (estado inicial e com dados);
+serviço encerrado. Não houve revisão de Talita nem homologação visual institucional.
 
 ## Consolidação para commit local — 29/10/2026
 

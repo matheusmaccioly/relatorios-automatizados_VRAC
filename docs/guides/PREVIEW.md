@@ -9,25 +9,35 @@ Para iniciá-la novamente, na raiz do projeto:
 
 ## Conferência da tela
 
+Em 30/10/2026, Matheus solicitou a ligação da demonstração ao PostgreSQL sintético
+(D-025). Os comandos de início selecionam essa origem; a tela identifica
+**PostgreSQL sintético** e carrega filtros e registros da base local. Preparação e
+dependência opcional em [PostgreSQL sintético](../operations/SYNTHETIC_POSTGRES.md).
+Os exemplos antigos em memória continuam disponíveis somente pela opção explícita
+`.\scripts\run-demo.cmd --memory`.
+
 1. Abrir o endereço no navegador e conferir o aviso **DEMONSTRAÇÃO — somente dados
    sintéticos, sem validade institucional**.
 2. Selecionar **SINT-A** e **2026.1** e clicar em **Mostrar dados de demonstração**.
    Conferir a tabela de filtros, os registros docentes fictícios e as alocações
-   fictícias por turma e currículo.
+   fictícias por turma. Conferir **Origem: PostgreSQL sintético** na tabela de filtros.
 3. Alterar o departamento ou o período. A prévia anterior deve desaparecer até
    clicar novamente no botão; os dados anteriores não representam o novo filtro.
-4. Selecionar **2026.2** e clicar novamente. Deve aparecer uma explicação de ausência
+4. Selecionar **SINT-VAZIO** e clicar novamente. Deve aparecer uma explicação de ausência
    de registros, sem apresentar zero como resultado calculado.
 
 Os dados incluem docentes repetidos por mês/vínculo, valores ausentes, zero,
 compartilhamento e atuação em outro departamento. São cenários de teste, não regras
 ou números institucionais. Ainda não existem totais consolidados, gráficos das análises,
 exportações ou conexão institucional pela tela.
+Vagas preenchidas não são alunos únicos. A fonte consultada não fornece currículo
+ou grupo de compartilhamento: esses campos ficam ausentes. Horas Reais reaparecem
+nas linhas mensais; não somá-las. A unidade não é inferida nesta exibição.
 
 ## O que o Prompt 1 acrescentou
 
 O Prompt 1 acrescenta ferramentas de diagnóstico e inventário para o desenvolvedor,
-separadas da interface de Talita. A tela continua a demonstração da fundação.
+separadas da interface de Talita. A conexão PostgreSQL foi acrescentada posteriormente.
 Para conferir a ajuda e os testes sem configuração real:
 
 ```powershell

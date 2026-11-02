@@ -17,6 +17,7 @@ dependencies = [
 
 [project.optional-dependencies]
 sqlserver = ["SQLAlchemy>=2.0,<3", "pyodbc>=5.3,<6"]
+postgres = ["psycopg[binary]>=3.2,<4"]
 
 [project.scripts]
 vrac-db = "vrac.db.cli:main"

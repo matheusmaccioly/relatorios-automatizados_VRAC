@@ -29,6 +29,10 @@ def main() -> None:
         'fileWatcherType = "none"',
         "enableStaticServing = true",
         "",
+        "[client]",
+        # Oculta ações de publicação do Streamlit; a PoC não é publicada pela interface.
+        'toolbarMode = "minimal"',
+        "",
         "[theme]",
     ]
     for key, value in theme.items():

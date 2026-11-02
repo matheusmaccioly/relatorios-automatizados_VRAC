@@ -12,7 +12,7 @@ from vrac.synthetic import load_demo_data, select_demo_data
 def test_settings_defaults_read_only_public_configuration() -> None:
     class PublicConfigurationOnly(Mapping[str, str]):
         def __getitem__(self, key: str) -> str:
-            assert key in {"VRAC_ENVIRONMENT", "VRAC_DATA_MODE"}
+            assert key in {"VRAC_ENVIRONMENT", "VRAC_DATA_MODE", "VRAC_DEMO_SOURCE"}
             raise KeyError(key)
 
         def __iter__(self) -> Iterator[str]:
@@ -31,6 +31,7 @@ def test_settings_defaults_read_only_public_configuration() -> None:
     [
         {"VRAC_ENVIRONMENT": "valor-sensivel-de-teste"},
         {"VRAC_DATA_MODE": "valor-sensivel-de-teste"},
+        {"VRAC_DEMO_SOURCE": "valor-sensivel-de-teste"},
         {"VRAC_ENVIRONMENT": "production"},
     ],
 )
@@ -42,7 +43,7 @@ def test_invalid_configuration_fails_without_echoing_values(configuration: dict[
 
 @pytest.mark.parametrize(
     "configuration",
-    [{"environment": "development"}, {"data_mode": "synthetic"}],
+    [{"environment": "development"}, {"data_mode": "synthetic"}, {"demo_source": "postgres"}],
 )
 def test_direct_settings_cannot_bypass_validation(configuration: dict[str, str]) -> None:
     with pytest.raises(ConfigurationError):

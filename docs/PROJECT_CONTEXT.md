@@ -1,6 +1,20 @@
 # Contexto do projeto VRAC
 
-Atualizado em 28/10/2026. Fonte: [Guia de desenvolvimento](references/Guia_Desenvolvimento_VRAC_Codex.md). As instruções permanentes estão em [AGENTS.md](../AGENTS.md).
+Atualizado em 30/10/2026. Fonte: [Guia de desenvolvimento](references/Guia_Desenvolvimento_VRAC_Codex.md). As instruções permanentes estão em [AGENTS.md](../AGENTS.md).
+
+## Diretriz vigente para os cálculos — 30/10/2026
+
+Matheus determinou que os cálculos devem reproduzir os dashboards existentes e as
+regras já documentadas, sem nova validação ou aprovação dessas regras. Essa decisão
+(D-022) substitui as exigências anteriores de revalidação das fórmulas registradas
+abaixo. Não criar regras alternativas nem exigir novo caso de referência como
+condição para aceitar as definições documentadas. Se faltar informação para reproduzir
+um cálculo, registrar a lacuna concreta e limitar seu efeito ao resultado afetado.
+
+Testes técnicos de fidelidade da implementação permanecem aplicáveis. A decisão
+não comprova conexão ou mapeamento físico e não altera os requisitos de segurança,
+a revisão visual ou a fase autorizada. Os registros datados anteriores descrevem
+o histórico e devem ser lidos conforme esta diretriz.
 
 ## Objetivo e usuária
 
@@ -9,6 +23,31 @@ Talita, da VRAC/PUC-Rio, precisa consultar informações acadêmicas para avalia
 O aplicativo será interno, sem LLM, chatbot, agentes em execução, geração dinâmica de código ou dependência operacional de Power BI. Talita deverá utilizá-lo pelo navegador, sem instalar Python ou receber credenciais do banco. O Codex participa apenas do desenvolvimento.
 
 ## Escopo autorizado nesta entrega
+
+Em 30/10/2026, Matheus autorizou implementar todas as análises documentadas e gerar
+os dados fictícios necessários para avançar a aplicação (D-027). Esse pedido amplia
+o limite anterior da D-026: os roteiros R01–R06 estão implementados na demonstração,
+incluindo histórico docente, matrículas, carga, funções, gráficos, conferências e
+exportações. QP configurável, unidades comparáveis e atos administrativos adicionais
+são simulações explícitas; não foram convertidos em regras institucionais aprovadas.
+O [guia de uso](guides/ANALISES_SINTETICAS.md) descreve o resultado atual. Os registros
+seguintes preservam as entregas anteriores; fases 3/4 e parte da 5 foram implementadas
+somente na base sintética. Integração, autenticação e publicação institucionais continuam
+pendentes; não houve consulta ao SQL Server real.
+
+Matheus solicitou em 30/10/2026 conectar a aplicação ao PostgreSQL sintético (D-025).
+A demonstração existente agora carrega filtros, registros docentes e alocações por
+turma com consultas fixas parametrizadas e conta de leitura. Os lançadores selecionam
+essa origem explicitamente; falhas removem resultados anteriores, sem fallback para
+memória. O modo institucional continua bloqueado e não foram acrescentados cálculos
+ou análises de outras fases. Detalhes no guia da base sintética abaixo.
+
+Em 30/10/2026, Matheus solicitou gerar dados e banco sintéticos em PostgreSQL a partir
+do modelo semântico já documentado (D-023). Esta entrega prepara essa base local para
+os próximos passos; não troca o destino SQL Server institucional nem implementa novas
+análises. Gerador e executor ficam em `vrac.dev`; receita com nomes internos e carga
+ficam locais e ignoradas. O [guia de PostgreSQL sintético](operations/SYNTHETIC_POSTGRES.md)
+descreve execução, cenários e limites. Os parágrafos seguintes preservam o histórico.
 
 A solicitação atual detalha os roteiros das análises docentes e do gráfico geral de
 alunos indicados por Matheus, dentro da preparação documental da fase 2. O documento

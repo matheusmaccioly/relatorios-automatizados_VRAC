@@ -9,6 +9,7 @@ de 23-10-18 e as famílias Literata e Rethink Sans. Os originais foram preservad
 O inventário e as limitações estão em [guidelines/README.md](guidelines/README.md).
 O aplicativo utiliza a assinatura horizontal abreviada colorida, sem recorte, e
 aplica a proposta tipográfica Rethink Sans no corpo e Literata nos títulos.
+Azul, ciano, amarelo e cinza são usados; amarelo/cinza pelo hex impresso (D-021).
 
 | Material | Onde colocar |
 |---|---|

@@ -75,3 +75,8 @@ Desktop.ini
 # Roteiros e evidencias internas dos paineis; uso documental local.
 /docs/ROTEIROS_ANALISES_VRAC.local.md
 /docs/EVIDENCIAS_PAINEIS_VRAC.local.json
+
+# Receita de desenvolvimento com metadados internos; banco gerado em .cache/.
+/scripts/synthetic-postgres.local.py
+/scripts/connect-synthetic-app.local.py
+/scripts/prepare-academic-analyses.local.py

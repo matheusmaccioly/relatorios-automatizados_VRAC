@@ -8,10 +8,17 @@ set "VRAC_SYNC_EXTRA="
 if "%~1"=="--sqlserver" (
     set "VRAC_SYNC_EXTRA=--extra sqlserver"
 ) else if not "%~1"=="" (
-    echo Argumento invalido. Use bootstrap.cmd ou bootstrap.cmd --sqlserver.
+    if "%~1"=="--postgres" (
+        set "VRAC_SYNC_EXTRA=--extra postgres"
+    ) else (
+        echo Argumento invalido. Use bootstrap.cmd, bootstrap.cmd --sqlserver ou bootstrap.cmd --postgres.
+        exit /b 1
+    )
+)
+if not "%~2"=="" (
+    echo Use somente um extra por chamada.
     exit /b 1
 )
-if not "%~2"=="" exit /b 1
 
 set "VRAC_UV_VERSION=0.13.5"
 set "VRAC_UV=%VRAC_PROJECT_ROOT%\.tools\uv\uv.exe"

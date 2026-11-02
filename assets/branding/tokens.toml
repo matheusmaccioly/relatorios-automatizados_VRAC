@@ -14,7 +14,13 @@ cyan = "#00B7DD"
 # Neutros presentes nas assinaturas monocromáticas e no fundo do material.
 black = "#000000"
 white = "#FFFFFF"
-# Amarelo/cinza não usados nos componentes: RGB e hex divergem no PDF.
+# Amarelo/cinza: RGB e hex divergem no PDF. Matheus escolheu o hex impresso em
+# 30/10/2026 (D-021); revisão institucional pendente.
+yellow = "#F1BA2A"
+gray = "#869597"
+# Fundo da página escolhido por Matheus em 30/10/2026 (D-024); não consta da
+# prancha oficial. Blocos de conteúdo e a assinatura permanecem sobre branco.
+background = "#F5F5F0"
 
 [typography]
 body_family = "Rethink Sans"
@@ -25,7 +31,7 @@ application_status = "proposed_pending_review"
 primary_logo = "logos/RGB/PNG/_puc_rio-H_cor_abr_rgb_23-10-18.png"
 logo_alt = "PUC-Rio"
 # Sem recorte ou nova composição. Largura de layout, não tamanho mínimo oficial.
-display_width = 240
+display_width = 200
 
 [[fonts]]
 family = "Rethink Sans"

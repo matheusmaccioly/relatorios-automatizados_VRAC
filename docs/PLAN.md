@@ -1,5 +1,42 @@
 # Plano de desenvolvimento
 
+## Entrega atual — todos os roteiros sintéticos, 30/10/2026
+
+D-027 registra a autorização de Matheus para implementar todos os roteiros já
+documentados e completar os dados fictícios necessários. R01–R06 agora têm fluxo
+de demonstração, gráficos e exportações; histórico, matrículas e carga usam as
+regras documentadas. QP, comparação dimensional e comprovações administrativas
+adicionais são simulações declaradas, sem inferência de regra institucional.
+Conferências programadas e pacote de exportação antecipam a parte local da fase 5.
+O [guia das análises](guides/ANALISES_SINTETICAS.md) orienta o uso. Critérios de
+acesso institucional e publicação das fases 6/7 não foram cumpridos ou simulados.
+
+## Diretriz vigente — 30/10/2026
+
+Conforme orientação de Matheus (D-022), os dashboards existentes e a documentação
+já disponível definem os cálculos. As exigências de nova aprovação de fórmulas,
+populações e referências presentes no histórico deste plano ficam substituídas
+pela reprodução das regras documentadas. Não exigir rodada adicional de validação
+analítica ou novo caso de referência para aceitar essas regras. Testes offline
+devem conferir a fidelidade do código a elas; informação ausente ou contraditória
+deve ser registrada somente para o resultado afetado, sem inventar uma solução.
+
+Continuam aplicáveis as dependências técnicas de fontes físicas e acesso seguro,
+os requisitos de interface e a execução apenas da fase solicitada. Esta atualização
+documental não inicia outra fase nem declara integração ou homologação concluídas.
+Os critérios abaixo refletem o histórico até esta decisão.
+
+Complemento autorizado em 30/10/2026 (D-023): preparar PostgreSQL sintético a partir
+da documentação semântica local, com carga determinística e conta de leitura. É uma
+base de desenvolvimento para os próximos incrementos, sem migração do SQL Server,
+conexão institucional ou início automático das fases analíticas. Execução e limites
+no [guia da base sintética](operations/SYNTHETIC_POSTGRES.md).
+
+Conexão solicitada na sequência (D-025): a demonstração consulta filtros e suas duas
+tabelas no PostgreSQL sintético local, com conta de leitura, TLS e parâmetros
+vinculados. Esta entrega liga a base à tela existente; não implementa os cálculos
+das fases 3/4 nem amplia o escopo para outras análises. O modo real segue bloqueado.
+
 Atualizado em 28/10/2026. O [guia original](references/Guia_Desenvolvimento_VRAC_Codex.md) define as fases; este documento organiza entregas, responsáveis e critérios de passagem. A solicitação atual detalha documentalmente os roteiros da fase 2 a partir dos dois painéis indicados. Contratos lógicos e testes sintéticos anteriores permanecem preparados enquanto os metadados aprovados da fase 1 não estiverem disponíveis. A integração institucional continua pendente e as fases 3–7 não foram iniciadas.
 
 Não há prazo fechado: acesso, fontes, regras e infraestrutura ainda dependem de validação. O esforço técnico deve ser registrado separadamente da espera por decisões institucionais. Nenhuma passagem de fase ou publicação é automática.
@@ -73,10 +110,10 @@ integração validada nem iniciar implementação real ou a fase 3 automaticamen
 |---|---|---|---|
 | 1 — ferramentas preparadas; validação institucional pendente | SQL Server e destino informados por Matheus; obter porta, lista nominal dos schemas, autenticação e driver, então executar diagnóstico fora da sessão do agente | Matheus registra conexão no ambiente autorizado; DBA confirma conta de leitura e objetos permitidos; material sanitizado aprovado fica disponível | Matheus + DBA; DSI para rede/TLS |
 | 2 — contratos preparados; validação humana pendente | Catálogo e contratos sintéticos entregues; obter dicionário sanitizado e validar primeiro a composição docente | Definição, fonte, recorte temporal, chaves e exemplo de referência aprovados; pendências bloqueiam apenas o resultado afetado | Talita + responsável pelas fontes/DBA + Matheus |
-| 3 — não iniciada | Entregar composição docente de ponta a ponta: filtros, consulta parametrizada revisada, cálculo separado da interface, tabela, gráfico, metadados e exportação inicial | Testes de duplicidade, vazio e mudança de filtros; conciliação com caso de mesmo recorte e data; demonstração e feedback registrados | Matheus + Talita |
-| 4a — não iniciada | Implementar matrículas por curso/período, com definição validada de matrícula/aluno, ausências e equivalências vigentes | Série conciliada; base zero sem percentual; cursos renomeados e períodos ausentes cobertos por testes | Talita + responsável pelas fontes + Matheus |
-| 4b — não iniciada | Implementar Horas Reais e detalhamento em visões distintas; validar atuação interdepartamental, compartilhamentos, classificação e turmas vazias | Conciliação própria de carga; unidade e cobertura explícitas; nenhuma regra oficial alterada silenciosamente | Talita + responsável pelas fontes + Matheus |
-| 5 — não iniciada | Criar catálogo fechado de verificações, estados de aprovação, exportações e feedback; avaliar armazenamento operacional separado | Recusa não executa consulta; mudança de filtros/dados invalida aprovação; rerun não duplica; arquivos preservam filtros, avisos e proteção contra fórmulas | Matheus + Talita; DSI para armazenamento/retenção |
+| 3 — implementada em demonstração sintética (D-027) | R01, comparação QP configurável e presença semestral disponíveis; avançar a integração somente com fontes físicas autorizadas | Testes offline e conferências na fixture; composição institucional de QP permanece lacuna específica | Matheus + Talita para uso; DBA/DSI para origem real |
+| 4a — implementada em demonstração sintética (D-027) | Quatro séries acadêmicas, filtros por curso, ausências, variações e exportações; nenhuma equivalência automática | Comparação com SQL independente na fixture; ingresso futuro, bolsas repetidas e base zero cobertos | Matheus + Talita para uso; fonte institucional antes do modo real |
+| 4b — implementada em demonstração sintética (D-027) | Horas Reais, contratada, indicador literal e alocações separados; comparação apenas em unidades sintéticas declaradas | Conferência com fonte dedicada; zeros/nulos e semáforo testados; sem rateio ou substituição por disciplinas | Matheus + Talita para uso; unidade institucional permanece específica |
+| 5 — implementação local parcial (D-027) | Dez conferências descritivas e exportações CSV/PNG/ZIP com filtros, avisos e snapshot; feedback persistido e aprovações operacionais não implementados | Filtros removem resultados anteriores; recarga usa novo snapshot; arquivos protegem fórmulas e identificam dados fictícios | Matheus + Talita para uso; DSI para eventual retenção/armazenamento |
 | 6 — não iniciada | Integrar login aprovado, aplicar autorização antes de consultar/recuperar/exportar e testar isolamento de sessão | Homologação de autenticação, escopos, conta técnica, HTTPS, cache e retenção; aceite de segurança e funcional registrado | DSI + DBA + Talita + Matheus |
 | 7 — não iniciada | Preparar serviço interno, configuração de operação, suporte, atualização, retorno de versão e guia de uso | Responsável autoriza publicação; operador confirma implantação; Talita conclui casos acordados; suporte e recuperação definidos | DSI/operador + Talita + Matheus |
 

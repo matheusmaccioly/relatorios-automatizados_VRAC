@@ -8,10 +8,13 @@ headless = true
 fileWatcherType = "none"
 enableStaticServing = true
 
+[client]
+toolbarMode = "minimal"
+
 [theme]
 base = "light"
 primaryColor = "#0081AD"
-backgroundColor = "#FFFFFF"
+backgroundColor = "#F5F5F0"
 secondaryBackgroundColor = "#FFFFFF"
 textColor = "#000000"
 borderColor = "#0081AD"
@@ -22,7 +25,7 @@ linkColor = "#000000"
 font = "Rethink Sans"
 headingFont = "Literata"
 headingFontWeights = [600, 600, 600, 600, 600, 600]
-chartCategoricalColors = ["#0081AD", "#00B7DD", "#000000"]
+chartCategoricalColors = ["#0081AD", "#00B7DD", "#F1BA2A", "#869597", "#000000"]
 baseRadius = "small"
 paddingTop = "2rem"
 paddingBottom = "3rem"
@@ -34,7 +37,7 @@ redTextColor = "#000000"
 orangeColor = "#0081AD"
 orangeBackgroundColor = "#FFFFFF"
 orangeTextColor = "#000000"
-yellowColor = "#0081AD"
+yellowColor = "#F1BA2A"
 yellowBackgroundColor = "#FFFFFF"
 yellowTextColor = "#000000"
 blueColor = "#0081AD"
@@ -46,7 +49,7 @@ greenTextColor = "#000000"
 violetColor = "#0081AD"
 violetBackgroundColor = "#FFFFFF"
 violetTextColor = "#000000"
-grayColor = "#0081AD"
+grayColor = "#869597"
 grayBackgroundColor = "#FFFFFF"
 grayTextColor = "#000000"
 

@@ -1,6 +1,7 @@
 """Cenários fictícios para testar a fundação; não definem indicadores institucionais."""
 
 from dataclasses import dataclass
+from datetime import datetime
 from random import Random
 
 from vrac.authorization import require_data_access
@@ -30,9 +31,9 @@ class TeachingAllocation:
     period: str
     teacher_id: str
     class_id: str
-    curriculum_id: str
+    curriculum_id: str | None
     sharing_id: str | None
-    allocated_hours: float
+    allocated_hours: float | None
     students: int | None
     classification: str | None
 
@@ -43,6 +44,8 @@ class SyntheticDataset:
     allocations: tuple[TeachingAllocation, ...]
     version: str = DATASET_VERSION
     synthetic: bool = True
+    source: str = "Memória"
+    loaded_at: datetime | None = None
 
 
 def load_demo_data(settings: Settings, *, seed: int = SYNTHETIC_SEED) -> SyntheticDataset:
