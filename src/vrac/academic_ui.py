@@ -19,6 +19,13 @@ from vrac.analyses.academic_export import report_zip, summary_table, table_csv
 from vrac.analyses.academic_quality import inspect_source
 from vrac.analyses.export import detail_csv, summary_csv
 from vrac.analyses.faculty_overview import OverviewFilters, compute_overview, filter_options
+from vrac.analyses.verification import (
+    IDENTITY,
+    RULE_ID,
+    Context,
+    Status,
+    VerificationSession,
+)
 from vrac.branding import Branding
 from vrac.charts import academic_chart, figure_png
 from vrac.demo_data import (
@@ -32,7 +39,7 @@ from vrac.faculty_presentation import (
     render_faculty_details,
     render_faculty_metric,
 )
-from vrac.organisation_ui import organisation_filters
+from vrac.organisation_ui import OrganisationScope, organisation_filters
 from vrac.settings import Settings
 from vrac.web_charts import interactive_chart
 
@@ -40,7 +47,13 @@ ALL_ANALYSES = "Todos os roteiros (R01–R06)"
 
 
 def _clear(*, source: bool = False) -> None:
-    for key in ("suite_results", "suite_result_key", "suite_generated", "suite_overview"):
+    for key in (
+        "suite_results",
+        "suite_result_key",
+        "suite_generated",
+        "suite_overview",
+        "suite_verification",
+    ):
         st.session_state.pop(key, None)
     if source:
         st.session_state.pop("suite_source", None)
@@ -350,10 +363,10 @@ def workbench(settings: Settings, branding: Branding, options: DemoOptions) -> N
                 [
                     {
                         "Código": c.identifier,
-                        "Conferência": c.description,
-                        "Ocorrências": c.count,
+                        "Motivo para conferência": c.description,
+                        "Evidência: ocorrências": c.count,
                         "Tipo": c.level,
-                        "Tratamento": c.consequence,
+                        "Limitação e tratamento": c.consequence,
                     }
                     for c in checks
                 ]
@@ -409,6 +422,7 @@ def workbench(settings: Settings, branding: Branding, options: DemoOptions) -> N
         f"extração {loaded_at:%d/%m/%Y %H:%M:%S} UTC · "
         f"cálculo {generated_at:%d/%m/%Y %H:%M:%S} UTC · atualização da fonte: não disponível"
     )
+    _render_verification(settings, selected, scope, filters, source)
     show_overview = selected == ALL_ANALYSES or names.get(selected) == "R01"
     labels = (["R01 · Situação geral"] if show_overview else []) + [
         f"{r.kind} · {r.title}" for r in results
@@ -434,3 +448,76 @@ def workbench(settings: Settings, branding: Branding, options: DemoOptions) -> N
         mime="application/zip",
         key="suite_download_all",
     )
+
+
+def _render_verification(
+    settings: Settings,
+    selected: str,
+    scope: OrganisationScope,
+    filters: AnalysisFilters,
+    source: AcademicSource,
+) -> None:
+    from vrac.db.synthetic_postgres import query_missing_classification
+
+    with st.expander("Pontos para conferência adicionais — experimento sintético"):
+        st.caption(
+            "As dez conferências de qualidade acima usam o snapshot já carregado. "
+            "Este aprofundamento pode consultar novamente o PostgreSQL sintético; "
+            "a identidade local simulada não substitui acesso institucional."
+        )
+        st.write(
+            "E01 v1 · Classificação ausente em alocações no semestre e departamentos "
+            "selecionados. A consulta é experimental, sem regra institucional aprovada. "
+            "Limites: uma verificação, até cinco departamentos e 5.000 alocações; "
+            "até 61 comandos de leitura incluindo a revalidação, com até 5 segundos por comando."
+        )
+        enabled = st.checkbox("Habilitar E01 para esta demonstração", key="suite_check_enable")
+        mode = st.radio("Modo de execução", ("Sob aprovação", "Automático"), key="suite_check_mode")
+        session = st.session_state.setdefault("suite_verification", VerificationSession())
+        context = Context(
+            identity=IDENTITY,
+            analysis=selected,
+            filters=filters,
+            department=scope.label,
+            departments=scope.departments,
+            source_arguments=tuple(sorted(scope.source_arguments.items())),
+            reference=source.fingerprint,
+        )
+        session.select(context)
+        applicable = (
+            selected == ALL_ANALYSES or selected.startswith("R04 ·")
+        ) and "allocations" in source.available
+        outcome = session.run(
+            settings,
+            automatic=False,
+            enabled=frozenset(),
+            applicable=applicable,
+            query=lambda ctx: query_missing_classification(settings, ctx),
+        )
+        existing = session.outcomes.get(RULE_ID)
+        if existing is not None:
+            outcome = existing
+        if enabled and mode == "Sob aprovação" and outcome.status == Status.SUGGESTED:
+            approve, decline = st.columns(2)
+            if approve.button("Autorizar consulta experimental", key="suite_check_approve"):
+                session.decide(True)
+                outcome = session.outcomes[RULE_ID]
+            if decline.button("Recusar consulta", key="suite_check_decline"):
+                session.decide(False)
+                outcome = session.outcomes[RULE_ID]
+        execute = enabled and mode == "Automático"
+        if enabled and mode == "Sob aprovação" and outcome.status == Status.APPROVED:
+            execute = st.button("Executar consulta autorizada", key="suite_check_execute")
+        if execute:
+            outcome = session.run(
+                settings,
+                automatic=mode == "Automático",
+                enabled=frozenset({RULE_ID}),
+                applicable=applicable,
+                query=lambda ctx: query_missing_classification(settings, ctx),
+            )
+        st.write(f"Estado: **{outcome.status.value}**. {outcome.reason}")
+        if outcome.evidence:
+            st.write(f"Evidência: {outcome.evidence}")
+        if outcome.limitation:
+            st.write(f"Limitação: {outcome.limitation}")

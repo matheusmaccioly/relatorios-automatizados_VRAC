@@ -73,11 +73,14 @@ def test_refresh_failure_removes_data_and_does_not_switch_sources(
 
 
 def test_r01_can_be_selected_and_shows_all_breakdowns_and_details():
+    from vrac.analyses.verification import RULE_ID, Status
+
     app = AppTest.from_file(str(APP), default_timeout=60).run()
     app.selectbox(key="suite_analysis").select("R01 · Situação geral do departamento").run()
     app.button(key="suite_load").click().run()
     app.button(key="suite_run").click().run()
     assert not app.exception and not app.error
+    assert app.session_state["suite_verification"].outcomes[RULE_ID].status == Status.NOT_APPLICABLE
     assert len(app.get("vega_lite_chart")) == 3
     assert len(app.metric) == 1 and app.metric[0].value == "5"
     assert any("Estado das Horas Reais" in frame.value.columns for frame in app.dataframe)

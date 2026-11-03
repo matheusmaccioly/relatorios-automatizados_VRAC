@@ -228,6 +228,38 @@ def load_academic_source(
         )
 
 
+def query_missing_classification(settings: Settings, context: object) -> int:
+    """E01: revalidar o snapshot e reler alocações na mesma transação de leitura."""
+    from vrac.analyses.academic import period_code
+    from vrac.analyses.verification import MAX_DEPARTMENTS, Context
+
+    if not isinstance(context, Context) or not 1 <= len(context.departments) <= MAX_DEPARTMENTS:
+        raise DemoDataError("Recorte experimental inválido.")
+    arguments = dict(context.source_arguments)
+    if set(arguments) not in ({"department"}, {"department", "departments"}):
+        raise DemoDataError("Recorte experimental inválido.")
+    with _connection(settings) as (connection, version):
+        source = _read_academic_source(connection, version, **arguments)
+        if source.fingerprint != context.reference or "allocations" not in source.available:
+            raise DemoDataError("Snapshot alterado ou alocações indisponíveis.")
+        available = _options(connection).departments
+        effective = resolve_departments(
+            available, arguments["department"], arguments.get("departments")
+        )
+        if tuple(sorted(effective)) != tuple(sorted(context.departments)):
+            raise DemoDataError("Departamentos não correspondem ao snapshot.")
+        semester = period_code(context.filters.workload_period)
+        count = 0
+        total = 0
+        for department in effective:
+            rows = _rows(connection, Query.TEACHING_ALLOCATIONS, {"department": department})
+            total += len(rows)
+            if total > MAX_ROWS:
+                raise DemoDataError("Limite de alocações excedido.")
+            count += sum(row["semester"] == semester and not row["classification"] for row in rows)
+        return count
+
+
 def _read_academic_source(
     connection: "Connection",
     version: str,

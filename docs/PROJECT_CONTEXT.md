@@ -1,5 +1,10 @@
 # Contexto do projeto VRAC
 
+**Prompt 5, incremento de modos:** conferências existentes preservadas e E01
+experimental com autorização sintética por sessão. PostgreSQL sintético, feedback,
+XLSX/SVG e aceite humano permanecem pendentes conforme
+[registro](guides/PROMPT5_VERIFICACOES.md). Não há acesso institucional.
+
 **4b, carga horária:** conferência offline e correções mínimas realizadas;
 execução PostgreSQL sintético e confirmação de Matheus pendentes. A 4a permanece
 concluída por seu aceite anterior. [Detalhes](guides/PROMPT4B_CARGA.md).

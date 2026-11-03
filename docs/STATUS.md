@@ -1,5 +1,75 @@
 # Estado da entrega
 
+## Conexão sintética indisponível na demonstração — 03/11/2026
+
+A tentativa orientada de iniciar a aplicação na porta 8516 recebeu relato de
+“acesso negado”; não havia processo ouvindo nessa porta na verificação posterior.
+Matheus informou depois que o navegador mostrou `ERR_CONNECTION_REFUSED`: o
+serviço não estava ouvindo. Preparado `scripts/run-demo-8516.cmd` para iniciar a
+demonstração pelo ambiente do próprio desenvolvedor, sem depender da política de
+scripts PowerShell; execução e conexão pela interface ainda precisam de confirmação.
+Nenhuma permissão foi alterada.
+
+A aplicação na porta 8515 informou falha ao consultar o PostgreSQL sintético.
+Observado um processo `postgres` ouvindo em `127.0.0.1:55432` e o driver
+`psycopg` disponível no ambiente da aplicação. Esses indícios não confirmam
+identidade do banco, certificado, autenticação ou consulta bem-sucedida. Matheus
+executou a verificação de presença: certificado e arquivo de autenticação estão
+presentes; a existência não comprova validade ou acesso. Preparado diagnóstico
+manual sanitizado `python -m vrac.dev.synthetic_connection_diagnostic --execute`,
+que usa a conexão sintética fixa de leitura e não imprime exceções, credenciais,
+caminhos nem dados acadêmicos. Matheus executou o comando e informou
+`CONEXAO_E_OPCOES_OK`: conexão, identidade sintética e opções foram conferidas no
+processo dele; a falha anterior da aplicação na 8515 ainda requer verificação no
+contexto em que ela foi iniciada.
+Cinco testes offline e Ruff dos arquivos novos passaram; sem `--execute`, o
+diagnóstico não conecta. O agente não acessou arquivos privados nem executou a
+conexão, alteração de TLS, reinício ou reconstrução.
+
+## Demonstração local em porta alternativa — 03/11/2026
+
+A porta 8501 já tinha um serviço Streamlit com resposta de saúde `ok`; sua
+identidade não foi confirmada nem o processo interrompido. Iniciada a demonstração
+atual em `127.0.0.1:8515` com `scripts/run-demo.ps1 -Port 8515`; endpoint de saúde
+retornou `ok`. Essa verificação não confirma conexão PostgreSQL, conteúdo da
+interface ou conciliação de resultados. Nenhum teste de software, consulta a banco,
+acesso institucional ou publicação foi realizado nesta operação.
+
+## Prompt 5 · modos de conferência sintéticos — 03/11/2026
+
+Implementado incremento experimental de modos para E01: habilitação explícita,
+aprovação ou recusa, execução automática limitada, estados, vínculo de identidade
+simulada/análise/filtros/regra/referência e preservação do resultado por sessão.
+A E01 consulta somente a origem PostgreSQL sintética, revalidando o snapshot na
+mesma transação de leitura; C01–C10 continuam conferências do snapshot. Falha ou
+recusa não bloqueia análises básicas. Catálogo E01 versionado; regras institucionais
+e limiar não foram habilitados. [Uso, limites e critérios](guides/PROMPT5_VERIFICACOES.md).
+
+Verificações: suíte offline `pytest -m 'not integration'` com **397 aprovados e
+1 excluído**, incluindo testes dos modos, mudanças de contexto, rerun, falha,
+consulta parametrizada simulada e interface. Ruff check e format passaram em
+`src tests app.py scripts` (79 arquivos). A tentativa de `ruff format --check .`
+falhou por erro interno do Ruff ao percorrer diretórios com acesso negado; a
+verificação nos diretórios de código citados passou. Após acrescentar a asserção
+de não aplicabilidade na R01, o teste específico da interface passou (1 teste).
+Sem PostgreSQL sintético
+nesta revisão: o certificado havia sido registrado como ausente na conferência
+anterior e sua disponibilidade não foi reavaliada em diretório privado; o leitor
+depende também de arquivo de credencial. Matheus pode conferir com
+`.\scripts\run-demo.cmd`, seguindo o guia. Não se acessou base institucional ou
+segredos; nenhum resultado sintético valida origem real.
+
+Prompt 5 permanece **parcial**: XLSX/SVG, exportação da E01, feedback associado à
+execução/backlog, armazenamento operacional e metadados completos de C01–C10 não
+foram implementados neste incremento. Avaliação humana e conferência abrangente
+das exportações permanecem pendentes. Q-008/Q-009 registram armazenamento,
+retenção e orçamento/limiares; templates não aprovados continuam desabilitados.
+A execução PostgreSQL e confirmação humana do Prompt 4b seguem pendentes e afetam
+a confiança na carga, sem bloquear o controle experimental. Matheus confere os
+dois modos e a 4b; Talita avalia clareza, evidências, limitações e arquivos; DSI e
+DBA tratam autenticação, retenção e fontes reais apenas na etapa final. Sem nova
+aprovação geral de fórmulas, publicação ou avanço de fase.
+
 ## Prompt 4b · carga horária sintética — 03/11/2026
 
 Conferência **offline parcial**, sem execução PostgreSQL pelo agente nem aceite
