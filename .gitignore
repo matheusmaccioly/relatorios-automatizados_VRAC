@@ -21,6 +21,20 @@ dist/
 secrets.toml
 *.secrets.toml
 *.local.toml
+*.local.yaml
+*.local.yml
+# Configurações novas ficam locais por padrão; exemplos e arquivos essenciais
+# do projeto continuam compartilháveis. Arquivos já rastreados seguem no Git.
+*.yaml
+*.yml
+*.toml
+!*.example.yaml
+!*.example.yml
+!*.example.toml
+!/pyproject.toml
+!/.streamlit/config.toml
+!/config/analyses.yaml
+!/assets/branding/tokens.toml
 database.toml
 dbconfig.toml
 vrac-discovery-private/

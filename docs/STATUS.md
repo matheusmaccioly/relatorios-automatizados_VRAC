@@ -1481,3 +1481,8 @@ O arquivo `docs/references/Guia_Desenvolvimento_VRAC_Codex.md` já existia e foi
 ### Prévia local — 03/11/2026
 
 A pedido de Matheus, PostgreSQL sintético iniciado com verificações aprovadas e conta somente leitura. Streamlit já respondia em http://127.0.0.1:8501; endpoint de saúde retornou HTTP 200 (ok). Nova instância recusada porque a porta está ocupada. Sem alteração de código, avanço de fase ou publicação. Suíte de testes e conferência funcional no navegador não executadas nesta operação; Matheus pode conferir os roteiros na prévia.
+# Higiene de configurações — 03/11/2026
+
+Novos arquivos YAML, YML e TOML são ignorados por padrão, com exceções para
+exemplos e configurações essenciais do projeto. Arquivos já rastreados continuam
+versionados; o `.gitignore` não remove arquivos do histórico nem protege segredos.
