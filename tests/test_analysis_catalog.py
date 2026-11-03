@@ -10,6 +10,7 @@ from vrac.analyses.catalog import (
     ApprovalStatus,
     CatalogError,
     DecisionArea,
+    SyntheticStatus,
     blocked_result,
     load_catalog,
     pending_decisions,
@@ -26,6 +27,10 @@ def test_catalog_has_only_the_three_priorities_and_explicit_pending_approvals() 
     assert [item.id for item in catalog.analyses] == list(AnalysisId)
     for definition in catalog.analyses:
         assert definition.validation_status == ApprovalStatus.PENDING
+        assert definition.synthetic_status == SyntheticStatus.IMPLEMENTED_OFFLINE_VERIFIED
+        assert definition.synthetic_mapping_reference.startswith(
+            "docs/operations/SYNTHETIC_SOURCE_MAP.md#"
+        )
         assert definition.physical_source_reference is None
         assert {item.area for item in definition.decisions} == set(DecisionArea)
         assert len(pending_decisions(definition)) == 5
@@ -61,6 +66,7 @@ def test_blocked_result_never_queries_or_falls_back_to_synthetic_numbers(mode: D
         "unknown_field",
         "wrong_priority",
         "duplicate_analysis",
+        "false_synthetic_verification",
     ],
 )
 def test_invalid_catalog_cannot_silently_expand_scope_or_approve_rules(
@@ -78,6 +84,8 @@ def test_invalid_catalog_cannot_silently_expand_scope_or_approve_rules(
         first["connection_string"] = "private-marker"
     elif corruption == "wrong_priority":
         document["analyses"][0]["priority"], document["analyses"][1]["priority"] = 2, 1
+    elif corruption == "false_synthetic_verification":
+        first["synthetic_status"] = "institutionally_approved"
     else:
         document["analyses"][1] = dict(first)
     path = tmp_path / "catalog.yaml"

@@ -1,5 +1,11 @@
 # Diagnóstico e descoberta do banco — fase 1
 
+**D-028 — 03/11/2026: diagnóstico/inventário institucionais somente na etapa final
+do projeto e deploy.** Desenvolvimento e preparação usam o PostgreSQL sintético
+existente. Os procedimentos abaixo ficam reservados para esse momento; não são
+dependência para os incrementos sintéticos dos Prompts 2–5. Nenhuma conexão ou
+validação real é declarada por essa mudança de sequência.
+
 Atualizado em 28/10/2026. **SGBD confirmado por Matheus: SQL Server. Conexão e inventário: NÃO VALIDADOS.** Não houve consulta real nesta sessão do agente. O aplicativo de demonstração continua separado destes comandos e não libera dados reais.
 
 Os comandos abaixo são para Matheus executar manualmente **fora da sessão do agente**, no ambiente autorizado. Não enviar credenciais, configuração real, inventário bruto ou metadados internos no chat. O [guia](../references/Guia_Desenvolvimento_VRAC_Codex.md) e [AGENTS.md](../../AGENTS.md) continuam aplicáveis.

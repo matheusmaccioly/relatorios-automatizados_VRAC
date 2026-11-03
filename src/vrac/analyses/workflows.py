@@ -495,8 +495,16 @@ class WorkflowResult:
         }
 
 
-def phase3_blockers(catalog: AnalysisCatalog) -> tuple[str, ...]:
-    """Critérios de passagem; não altera fase, aprova regras ou libera modo real."""
+def phase3_blockers(catalog: AnalysisCatalog, *, mode: DataMode = DataMode.REAL) -> tuple[str, ...]:
+    """Pendências documentais institucionais; D-028 permite o incremento sintético.
+
+    Não confere disponibilidade do PostgreSQL nem substitui autorização de acesso.
+    O padrão real preserva os bloqueios do contrato anterior.
+    """
+    if not isinstance(mode, DataMode):
+        raise ContractError("Modo de dados inválido.")
+    if mode == DataMode.SYNTHETIC:
+        return ()
     definition = catalog.get(AnalysisId.FACULTY)
     blockers = list(pending_decisions(definition))
     if definition.validation_status != ApprovalStatus.APPROVED:

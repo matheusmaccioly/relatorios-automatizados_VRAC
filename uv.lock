@@ -778,6 +778,7 @@ name = "vrac-analises"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "altair" },
     { name = "matplotlib" },
     { name = "pandas" },
     { name = "pyyaml" },
@@ -801,6 +802,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "altair", specifier = ">=6.3,<7" },
     { name = "matplotlib", specifier = ">=3.10,<4" },
     { name = "pandas", specifier = ">=2.3,<4" },
     { name = "psycopg", extras = ["binary"], marker = "extra == 'postgres'", specifier = ">=3.2,<4" },

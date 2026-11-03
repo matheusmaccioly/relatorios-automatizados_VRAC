@@ -1,10 +1,43 @@
 # Próximos passos para avançar no desenvolvimento
 
-Atualizado em 30/10/2026. Documento para Matheus, Talita e responsáveis pelas fontes.
+Atualizado em 03/11/2026. Documento para Matheus, Talita e responsáveis pelas fontes.
 Complementa o [plano](PLAN.md) e o [catálogo de análises](ANALYSIS_CATALOG.md).
 Registra pendências; não constitui aprovação ou avanço de fase.
 
 ## Objetivo imediato
+
+**Prompt 4a concluído no escopo sintético:** em 03/11, Matheus confirmou nesta
+conversa “tudo validado por mim e conciliado”. Próximo incremento: **4b, carga
+horária**, mediante solicitação própria, reutilizando o que já existe.
+Nenhuma implementação da 4b iniciada nesta atualização documental.
+
+Evidência anterior pelo agente: [registro R06](guides/PROMPT4A_MATRICULAS.md),
+38 cenários/2.612 comparações sem divergência, correções pontuais em formados por
+curso e descrição de variação ausente, testes de filtros/arquivos/lacunas.
+Conciliação posteriormente confirmada por Matheus; nenhuma execução PostgreSQL
+ou inspeção de relatório adicional ocorreu na sessão do agente.
+Talita revisa clareza e uso. Não publicar automaticamente.
+Fontes e integração institucionais permanecem para a etapa final e deploy.
+
+**Prompt 3 implementado em 03/11:** composição/comparação/histórico docentes e
+gráficos Altair, reutilizando R04/R05. [Entrega e roteiro](guides/PROMPT3_DOCENTES.md).
+Revisar manualmente os gráficos em desktop/janela estreita e avaliar o uso com
+Talita; automação do navegador bloqueada por política de URLs. Não houve leitura
+PostgreSQL ou institucional. Outros prompts somente quando solicitados.
+O parágrafo seguinte preserva o ponto de partida do Prompt 2.
+
+**Prompt 2 concluído em 03/11:** [mapa R01–R06](operations/SYNTHETIC_SOURCE_MAP.md)
+e catálogo alinhados à implementação, conferidos offline. A conexão de leitura
+sintética não pôde ser conferida por certificado local ausente. O Prompt 3, quando
+solicitado, poderá reutilizar R01, SQL/leitores, fixtures e testes sem inventário
+institucional. Para futura conferência viva, recuperar o ambiente sintético pelo
+procedimento existente, preservando TLS. Esta tarefa não avançou ao Prompt 3.
+
+**Diretriz vigente (D-028): continuar na base sintética existente até a etapa final
+do projeto e deploy.** Próximos prompts podem completar mapa lógico, fluxos,
+verificações, exportações e feedback sem configuração real ou inventário
+institucional. Diagnóstico/inventário reais, mapa físico e conferência institucional
+ficam para a etapa final; as referências seguintes a esses itens têm esse momento.
 
 Os seis roteiros já estão disponíveis sobre a base sintética (D-027), por solicitação
 posterior de Matheus para implementar todas as análises documentadas. Começar pelo
@@ -35,7 +68,7 @@ analítica nem rodada de perguntas a Talita para aprovar essas regras.
 |---|---|---|---|
 | 1 | Localizar no dashboard e na documentação a unidade de contagem, situações e tratamento de vínculos | Matheus/Codex no desenvolvimento | Referência à regra existente, sem nova aprovação |
 | 2 | Reproduzir referência temporal, calendário, QP e categorias do dashboard | Matheus/Codex no desenvolvimento | Implementação fiel às definições documentadas |
-| 3 | Identificar fontes físicas, colunas, chaves e cobertura das definições escolhidas | DBA + Matheus | Dicionário sanitizado autorizado, com granularidade e vínculos entre fontes |
+| 3 | Mapa lógico/sintético concluído por código e fixture; falta repetir conferência no PostgreSQL após recuperar certificado local. Fontes institucionais somente na etapa final | Matheus no próximo incremento sintético; DBA + Matheus somente na etapa real | Mapa versionável disponível; nenhuma correspondência real presumida |
 | 4 | Conferir tecnicamente o código contra as regras documentadas com testes offline | Matheus/Codex no desenvolvimento | Testes técnicos; nenhum novo caso institucional exigido para aceitar a regra |
 | 5 | Demonstrar o fluxo e conferir filtros, leitura dos resultados e downloads | Matheus + Talita | Feedback registrado e aceite funcional humano da entrega implementada |
 
@@ -58,6 +91,10 @@ Registrar a referência documental de cada regra. Se houver lacuna ou contradiç
 identificá-la concretamente e limitar seu efeito ao resultado afetado.
 
 ## Conexão e fontes de dados
+
+**Execução institucional somente na etapa final e deploy (D-028).** Não completar
+configuração real nem executar diagnóstico/inventário como próximo passo agora.
+O desenvolvimento usa a conexão PostgreSQL sintética já implementada.
 
 Servidor e banco foram informados por Matheus, assim como a criação de seu usuário
 e a autorização dos schemas necessários. Ainda faltam porta TCP, lista nominal de
@@ -105,9 +142,11 @@ A conta de banco do desenvolvedor não será automaticamente a conta do serviço
 
 ## Próxima ação prática
 
-Matheus organiza uma conversa curta com Talita e o responsável pela fonte para
-responder às perguntas acima e escolher um caso de conferência. Em paralelo,
-solicita ao DBA/DSI os detalhes técnicos que faltam na configuração.
+Seguir, quando solicitado, ao trabalho restante do Prompt 2 sobre o mapa
+lógico/sintético e depois aos incrementos dos Prompts 3–5 e feedback nessa base.
+Reproduzir fórmulas documentadas sem nova validação geral ou reunião obrigatória.
+Manter o roteiro institucional disponível para a etapa final, sem solicitar sua
+execução agora nem tratar a ausência de retorno real como bloqueio do desenvolvimento.
 
 Esta documentação não envia mensagens, não executa conexão, não publica a aplicação
 e não altera aprovações. O estado efetivo continua em [STATUS.md](STATUS.md).

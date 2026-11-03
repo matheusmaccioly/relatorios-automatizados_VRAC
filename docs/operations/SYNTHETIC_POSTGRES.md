@@ -1,5 +1,11 @@
 # PostgreSQL sintético para desenvolvimento
 
+**Prompt 2 — revisão de 03/11/2026:** o [mapa lógico/sintético](SYNTHETIC_SOURCE_MAP.md)
+registra as entradas dos seis roteiros e separa DDL, receita, convenções e fontes
+institucionais pendentes. Nesta revisão a conexão viva não pôde ser conferida:
+certificado local ausente, sem mudança de TLS ou fallback. Os procedimentos abaixo
+registram a preparação existente; não foram repetidos para recriar o cluster.
+
 Os seis roteiros já utilizam essa base. Para calcular, filtrar e exportar os
 resultados, seguir o [guia das análises sintéticas](../guides/ANALISES_SINTETICAS.md).
 Depois de preparar a carga original e a conexão da tela, executar também
@@ -141,7 +147,7 @@ O recorte inicial `SINT-A / 2026.2` apresenta 46 linhas docentes e 2 alocações
 essas linhas não representam contagem de docentes únicos. `SINT-VAZIO` cobre o
 estado sem registros. A aplicação não lê configurações ou credenciais institucionais.
 
-O leitor usa cinco arquivos SQL fixos em `sql/synthetic_demo/`, valores vinculados,
+O leitor atual usa 16 arquivos SQL fixos em `sql/synthetic_demo/`, valores vinculados,
 TLS `verify-full`, host/banco/conta restritos à fixture local, transação de leitura
 com snapshot consistente, limite de 5.000 linhas por tabela e timeouts explícitos.
 Não cria objetos ou modifica a base a partir da interface. Antes da leitura,
@@ -163,6 +169,24 @@ somadas. Nenhuma unidade semanal ou semestral é presumida a partir do tipo num�
 
 ## Verificações técnicas e limites
 
+O [Prompt 4a](../guides/PROMPT4A_MATRICULAS.md) prepara conferência de leitura R06
+no **banco existente**, sem iniciar cluster, recriar ou carregar dados. Executar
+somente pelo desenvolvedor, preservando configuração/TLS e usando pasta nova:
+
+```powershell
+.\.venv\Scripts\python.exe -m vrac.dev.student_reconciliation --execute --output .cache/prompt4a-postgres
+```
+
+Referências SQL independentes e leitor de produção compartilham uma transação
+REPEATABLE READ; resultados incluem total/curso, filtros, valores, diferenças,
+versões e snapshot. Execução **não realizada na sessão do agente do Prompt 4a**.
+Após a entrega, Matheus confirmou nesta conversa “tudo validado por mim e
+conciliado”, encerrando a 4a sintética por aceite humano, sem nova execução ou
+inspeção de relatório adicional pelo agente.
+Testes offline da rotina/SQL em SQLite não comprovam leitura PostgreSQL. A projeção
+de bolsas por pares matrícula/departamento não tem vigência por período; Centro
+permanece não informado sem relação explícita. Detalhes/saídas e limites no guia.
+
 O início confere a carga, metadados sintéticos, relações essenciais da fixture,
 cenários de deduplicação, zero/nulo e a conexão TLS da conta de leitura. Esta conta
 tem `SELECT` nas tabelas, sem permissão de escrita ou criação no esquema; o padrão
@@ -177,9 +201,10 @@ Campos periféricos, financeiros e cálculos ainda não reproduzidos ficam ausen
 essa ausência não deve ser interpretada como zero. As Horas Reais sintéticas são
 geradas independentemente do detalhamento de disciplinas.
 
-O banco está ligado às tabelas e filtros da demonstração existente. Novas análises,
-gráficos e exportações continuam sujeitos ao incremento solicitado. Não é serviço
+R01–R06 já têm leitores, cálculos, gráficos e exportações sintéticos, conforme D-027;
+o mapa do Prompt 2 documenta essas entradas sem recriá-las. Novos ajustes continuam
+sujeitos ao incremento solicitado. Não é serviço
 institucional: o diretório temporário pode ser removido pelo sistema; a carga pode
 ser recriada pelos arquivos locais. Não há necessidade de nova validação analítica
 de fórmulas já documentadas (D-022). Lacunas concretas de conversão serão tratadas
-no resultado afetado quando cada análise for implementada.
+no resultado afetado, sem bloquear os demais roteiros sintéticos.

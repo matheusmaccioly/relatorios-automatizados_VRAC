@@ -13,11 +13,13 @@
 ## Uso e operação
 
 - [Análises sintéticas R01–R06](guides/ANALISES_SINTETICAS.md): calcular os roteiros, escolher filtros e baixar tabelas, gráficos e pacote completo.
+- [Prompt 4a · matrículas](guides/PROMPT4A_MATRICULAS.md): conciliação R06, correções, limites, rotina PostgreSQL e aceite de Matheus; 4a sintética concluída.
+- [Prompt 4b · carga horária](guides/PROMPT4B_CARGA.md): conferência offline, limites e rotina PostgreSQL pendente.
 - [Prévia da aplicação](guides/PREVIEW.md): roteiro de conferência da demonstração sintética.
-- [Configurar KAPPA/PUC_OLAP](operations/CONFIGURAR_KAPPA.md): modelo preparado e passo a passo para Matheus.
+- [Configurar KAPPA/PUC_OLAP](operations/CONFIGURAR_KAPPA.md): modelo preparado para a etapa final e deploy; não executar agora (D-028).
 - [PostgreSQL sintético](operations/SYNTHETIC_POSTGRES.md): gerar e executar a base local de desenvolvimento sem extrair dados reais.
-- [Diagnóstico e descoberta do banco](operations/DATABASE_DISCOVERY.md): execução manual autorizada.
-- [Dicionário sanitizado](operations/SANITIZED_DATA_DICTIONARY.md): material para a próxima fase.
+- [Diagnóstico e descoberta do banco](operations/DATABASE_DISCOVERY.md): execução manual institucional reservada à etapa final e deploy.
+- [Dicionário sanitizado](operations/SANITIZED_DATA_DICTIONARY.md): evidência institucional futura; mapa lógico/sintético pode avançar sem esse retorno.
 - [Solicitações para a DSI](operations/DSI_REQUESTS.md): infraestrutura, acessos e operação.
 
 ## Branding e referências
@@ -34,6 +36,11 @@ limitações estão no [catálogo](ANALYSIS_CATALOG.md); não há dependência d
 locais para instalar, testar ou carregar o catálogo.
 
 ## Roteiros internos das análises
+
+O [mapa lógico/sintético R01–R06](operations/SYNTHETIC_SOURCE_MAP.md) é versionável:
+registra contratos neutros, granularidades, chaves, campos, unidades e evidências,
+sem incorporar a expansão local para nomes internos. Fontes institucionais pendentes
+permanecem no modelo de dicionário separado.
 
 A especificação detalhada de 28/10/2026 está disponível localmente em
 [Roteiros de análise de docentes e alunos](ROTEIROS_ANALISES_VRAC.local.md), com

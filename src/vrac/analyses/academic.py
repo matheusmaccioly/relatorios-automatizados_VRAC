@@ -156,6 +156,13 @@ def _result(
         tuple(charts or ()),
         tuple(dict.fromkeys(notes)),
         narrative,
+        calculation_version="academic-docentes-v2"
+        if kind in {AnalysisKind.QP, AnalysisKind.HISTORY}
+        else "academic-matriculas-v2"
+        if kind == AnalysisKind.STUDENTS
+        else "academic-carga-v2"
+        if kind == AnalysisKind.WORKLOAD
+        else "academic-r02-r06-v1",
     )
 
 
@@ -229,22 +236,73 @@ def calculate_qp(source: AcademicSource, filters: AnalysisFilters) -> Calculated
         "Partição da população",
         ("Grupo", "Matrículas"),
         (
-            ("Grupo selecionado", len(qp)),
-            ("Demais classificados", len(others)),
+            ("Grupo selecionado", len(qp) if selected else None),
+            ("Demais classificados", len(others) if selected else None),
             ("Quadro ausente", len(unknown)),
         ),
         "matrículas funcionais distintas",
+    )
+    departments = []
+    for department in sorted({_label(r.department) for r in rows}):
+        local = [r for r in rows if _label(r.department) == department and r.registration]
+        local_general = {r.registration for r in local}
+        local_qp = {r.registration for r in local if r.cadre in filters.qp_cadres}
+        local_unknown = {r.registration for r in local if not r.cadre} - local_qp
+        local_complete = selected and not local_unknown
+        departments.append(
+            (
+                department,
+                len(local_general),
+                len(local_qp) if selected else None,
+                len(local_unknown),
+                len(local_general - local_qp) if local_complete else None,
+                100 * len(local_qp) / len(local_general)
+                if local_complete and local_general
+                else None,
+            )
+        )
+    department_table = ResultTable(
+        "departments",
+        "Comparação entre departamentos — cadastro atual",
+        (
+            "Departamento",
+            "Geral",
+            "Grupo QP simulado",
+            "Classificação ausente",
+            "Demais",
+            "Participação (%)",
+        ),
+        tuple(departments),
+        "matrículas funcionais distintas; participação em %",
+        "O grupo QP não reduz o geral de cada departamento. Matrículas presentes em "
+        "mais de um departamento não devem ser somadas para obter o geral do recorte.",
+    )
+    notes.append(
+        "O filtro Quadros docentes não se aplica à R02: use Quadros do grupo QP para "
+        "definir o numerador; categoria recorta ambos os conjuntos. Na comparação "
+        "departamental, cada participação usa o geral do próprio departamento."
     )
     return _result(
         AnalysisKind.QP,
         source,
         filters,
         metrics,
-        [table, bars],
+        [table, bars, department_table],
         notes,
-        [ChartSpec("groups", "Composição do grupo simulado", "Grupo", ("Matrículas",), "bar")]
+        [
+            ChartSpec("groups", "Composição do grupo simulado", "Grupo", ("Matrículas",), "bar"),
+            ChartSpec(
+                "departments",
+                "Geral e QP por departamento",
+                "Departamento",
+                ("Geral", "Grupo QP simulado"),
+                "grouped_bar",
+            ),
+        ]
         if selected
-        else [],
+        else [
+            ChartSpec("departments", "Geral por departamento", "Departamento", ("Geral",), "bar")
+        ],
         status="Simulação" if complete else "Parcial",
         narrative=f"O cadastro contém {len(general)} matrículas funcionais distintas. "
         "O grupo é definido exclusivamente pelos quadros exibidos nos filtros.",
@@ -280,7 +338,7 @@ def calculate_history(source: AcademicSource, filters: AnalysisFilters) -> Calcu
             eligible[p].append(row)
     cadres = tuple(sorted({r.cadre for rows in eligible.values() for r in rows if r.cadre}))
     shown = filters.cadres or cadres
-    summary, by_cadre, monthly, details = [], [], [], []
+    summary, by_cadre, monthly, monthly_history, details = [], [], [], [], []
     for period in periods:
         rows = eligible[period]
         total = len({r.person_key for r in rows}) if observed[period] else None
@@ -297,6 +355,25 @@ def calculate_history(source: AcademicSource, filters: AnalysisFilters) -> Calcu
                     period_label(period),
                     f"{period // 10}-{month:02}",
                     len({r.person_key for r in rows if r.reference_date.month == month}),
+                )
+            )
+        observed_months = {r.reference_date.month for r in observed[period]}
+        expected_months = range(1, 8) if period % 10 == 1 else range(8, 13)
+        for month in expected_months:
+            month_rows = [r for r in rows if r.reference_date.month == month]
+            present = month in observed_months
+            monthly_history.append(
+                (
+                    period_label(period),
+                    f"{period // 10}-{month:02}",
+                    month,
+                    len({r.person_key for r in month_rows}) if present else None,
+                    *(
+                        len({r.person_key for r in month_rows if r.cadre == cadre})
+                        if present
+                        else None
+                        for cadre in shown
+                    ),
                 )
             )
         for row in rows:
@@ -327,6 +404,12 @@ def calculate_history(source: AcademicSource, filters: AnalysisFilters) -> Calcu
         (
             "Uma pessoa pode constar em dois quadros no semestre. As séries "
             "por quadro não formam uma soma do total."
+        ),
+        (
+            "Os gráficos mensais recalculam pessoas distintas em cada competência. "
+            "Competência ausente permanece sem valor; competência observada sem "
+            "pessoas elegíveis tem zero. O filtro de quadro seleciona séries e "
+            "não reduz o total independente."
         ),
     ]
     if invalid:
@@ -362,6 +445,15 @@ def calculate_history(source: AcademicSource, filters: AnalysisFilters) -> Calcu
             "pessoas distintas no mês",
         ),
         ResultTable(
+            "monthly_history",
+            "Professores ativos por semestre e mês",
+            ("Período", "Competência", "Mês", "Total", *shown),
+            tuple(monthly_history),
+            "pessoas distintas no mês",
+            "Total independente das séries por quadro; uma pessoa em mais de um quadro "
+            "pode aparecer em mais de uma série. Competência sem registros fica ausente.",
+        ),
+        ResultTable(
             "history_detail",
             "Registros históricos elegíveis",
             (
@@ -384,9 +476,31 @@ def calculate_history(source: AcademicSource, filters: AnalysisFilters) -> Calcu
         [Metric("Semestres com dados", sum(bool(observed[p]) for p in periods), "semestres")],
         tables,
         notes,
-        [ChartSpec("history", "Presença docente por semestre", "Período", ("Total", *shown))],
+        [
+            ChartSpec(
+                "monthly_history",
+                "Quantidade de professores ativos ao longo do tempo",
+                "Competência",
+                ("Total",),
+            ),
+            ChartSpec(
+                "monthly_history",
+                "Professores ativos por quadro, semestre e mês",
+                "Competência",
+                tuple(shown),
+                "stacked_bar",
+            ),
+            ChartSpec("history", "Total de pessoas distintas por semestre", "Período", ("Total",)),
+            ChartSpec(
+                "history",
+                "Presenças por quadro — séries sobrepostas",
+                "Período",
+                tuple(shown),
+                "stacked_bar",
+            ),
+        ],
         status="Calculado"
-        if all(observed[p] for p in periods) and not invalid
+        if all(r[2] == r[3] for r in summary) and not invalid
         else "Parcial"
         if any(observed.values())
         else "Sem dados",
@@ -413,8 +527,10 @@ def calculate_workload(source: AcademicSource, filters: AnalysisFilters) -> Calc
         ):
             grouped[row.registration].append(row)
     compatible = bool(
-        source.policy.synthetic_units
+        "policy" in source.available
+        and source.policy.synthetic_units
         and source.policy.real_hours_unit
+        and source.policy.real_hours_unit.strip()
         and source.policy.real_hours_unit == source.policy.contracted_hours_unit
     )
     unit = source.policy.real_hours_unit or "unidade não informada"
@@ -431,6 +547,14 @@ def calculate_workload(source: AcademicSource, filters: AnalysisFilters) -> Calc
             "Detalhamento de disciplinas preserva compartilhamentos, vagas "
             "zero e ausentes; não altera o indicador oficial."
         ),
+        "Categoria vem do cadastro atual; não comprova categoria histórica.",
+        "Vagas preenchidas não são alunos únicos. Vagas zero exigem conferência; "
+        "data de matrícula e exceções não estão disponíveis nesta fonte.",
+        "Compartilhada S/N não identifica grupo: não há dedução nem rateio. "
+        "Currículo e grupo de compartilhamento não estão disponíveis.",
+        f"Unidades declaradas: Horas Reais = {source.policy.real_hours_unit or 'não informada'}; "
+        f"contratada = {source.policy.contracted_hours_unit or 'não informada'}; "
+        "alocações = unidade não informada.",
     ]
     if compatible:
         notes.append(
@@ -443,6 +567,7 @@ def calculate_workload(source: AcademicSource, filters: AnalysisFilters) -> Calc
         )
     detail, distribution = [], Counter()
     complete_hours = []
+    partial_hours = False
     for registration, rows in sorted(grouped.items()):
         hours = _sum([r.real_hours for r in rows])
         contracts = {r.contracted_hours for r in rows if r.contracted_hours is not None}
@@ -450,6 +575,7 @@ def calculate_workload(source: AcademicSource, filters: AnalysisFilters) -> Calc
         statuses = {semaphore_status(r.real_hours, r.cadre) for r in rows}
         indicator = next(iter(statuses)) if len(statuses) == 1 else "Indicadores distintos"
         missing = sum(r.real_hours is None for r in rows)
+        partial_hours |= missing > 0
         distribution[indicator] += 1
         complete_hours.append(hours)
         difference = (
@@ -582,7 +708,7 @@ def calculate_workload(source: AcademicSource, filters: AnalysisFilters) -> Calc
                 "Horas Reais informadas",
                 _sum(complete_hours),
                 unit,
-                "Parcial" if any(h is None for h in complete_hours) else "Calculado",
+                "Parcial" if partial_hours else "Calculado",
             ),
             Metric(
                 "Carga ausente",
@@ -604,11 +730,7 @@ def calculate_workload(source: AcademicSource, filters: AnalysisFilters) -> Calc
                 "bar",
             ),
         ],
-        status="Sem dados"
-        if not grouped
-        else "Parcial"
-        if any(h is None for h in complete_hours)
-        else "Calculado",
+        status="Sem dados" if not grouped else "Parcial" if partial_hours else "Calculado",
         narrative=(
             f"Semestre {filters.workload_period}: cargas oficiais e alocações "
             "são apresentadas em visões separadas."
@@ -878,12 +1000,6 @@ def calculate_students(source: AcademicSource, filters: AnalysisFilters) -> Calc
     for row in source.students:
         if row.registration is not None and row.entry_period is not None:
             entry_by_registration[row.registration].append(row.entry_period)
-    completions: dict[int, int] = {}
-    for row in current:
-        if row.registration is not None and row.status in {"FR", "TD"} and row.period is not None:
-            completions[row.registration] = min(
-                completions.get(row.registration, row.period), row.period
-            )
     have_scholarships = "scholarships" in source.available
     scholarships = {
         (r.registration, r.period) for r in source.scholarships if r.registration is not None
@@ -894,6 +1010,17 @@ def calculate_students(source: AcademicSource, filters: AnalysisFilters) -> Calc
     def count_at(period: int, course: str | None = None) -> tuple:
         hs = [r for r in history if (course is None or r.course == course)]
         cs = [r for r in current if (course is None or r.course == course)]
+        # O detalhe deve reproduzir a seleção individual do código do curso.
+        completions: dict[int, int] = {}
+        for row in cs:
+            if (
+                row.registration is not None
+                and row.status in {"FR", "TD"}
+                and row.period is not None
+            ):
+                completions[row.registration] = min(
+                    completions.get(row.registration, row.period), row.period
+                )
         observed = any(r.period == period for r in hs)
         candidates = {
             r.registration
@@ -921,13 +1048,7 @@ def calculate_students(source: AcademicSource, filters: AnalysisFilters) -> Calc
             else None
         )
         completed = (
-            len(
-                {
-                    r.registration
-                    for r in cs
-                    if r.registration is not None and completions.get(r.registration) == period
-                }
-            )
+            sum(event == period for event in completions.values())
             if have_current and (observed or any(r.period == period for r in cs))
             else None
         )
@@ -960,7 +1081,7 @@ def calculate_students(source: AcademicSource, filters: AnalysisFilters) -> Calc
                 value,
                 delta,
                 percentage,
-                "Base zero" if base == 0 else "Ausência de dado" if delta is None else "Calculado",
+                "Ausência de dado" if delta is None else "Base zero" if base == 0 else "Calculado",
             )
         )
     notes = [
@@ -975,8 +1096,13 @@ def calculate_students(source: AcademicSource, filters: AnalysisFilters) -> Calc
             "bolsistas."
         ),
         (
+            "A projeção sintética de bolsas por departamento usa pares de matrícula/departamento "
+            "do histórico sem vigência por período; não reconstrói transferências."
+        ),
+        (
             "Formados: FR/TD no cadastro e menor período por matrícula "
-            "(B-M-036); HF não foi acrescentado."
+            "(B-M-036); HF não foi acrescentado. Não é uma reconstrução completa "
+            "dos eventos históricos de formação."
         ),
         (
             "Ingressantes: ingresso no ponto do eixo e período do aluno igual "
@@ -996,6 +1122,17 @@ def calculate_students(source: AcademicSource, filters: AnalysisFilters) -> Calc
     if not have_current:
         notes.append(
             "Cadastro acadêmico indisponível; matriculados, bolsistas e formados ficam bloqueados."
+        )
+    if have_current and any(
+        r.registration is not None
+        and r.status in {"MT", "MC"}
+        and r.period in periods
+        and not entry_by_registration.get(r.registration)
+        for r in history
+    ):
+        notes.append(
+            "Ingresso desconhecido no cadastro lido: matriculados e bolsistas ficam ausentes "
+            "nos pontos e cursos com esses candidatos; ingresso desconhecido não vira zero."
         )
     missing = sum(r.registration is None for r in history)
     if missing:

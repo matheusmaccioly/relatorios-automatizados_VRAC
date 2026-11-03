@@ -32,6 +32,10 @@ class ApprovalStatus(StrEnum):
     REJECTED = "rejected"
 
 
+class SyntheticStatus(StrEnum):
+    IMPLEMENTED_OFFLINE_VERIFIED = "implemented_offline_verified"
+
+
 class DecisionArea(StrEnum):
     SOURCE = "source"
     GRANULARITY = "granularity"
@@ -104,6 +108,8 @@ class SemanticVariant:
 class AnalysisDefinition:
     id: AnalysisId
     workflow_ids: tuple[str, ...]
+    synthetic_status: SyntheticStatus
+    synthetic_mapping_reference: str
     priority: int
     question: str
     population: str
@@ -215,6 +221,7 @@ def load_catalog(path: Path | None = None) -> AnalysisCatalog:
             if workflow_ids != expected_workflows:
                 raise CatalogError("Roteiros incompatíveis com a família de análise.")
             values["workflow_ids"] = tuple(workflow_ids)
+            values["synthetic_status"] = SyntheticStatus(values["synthetic_status"])
             values["validation_status"] = ApprovalStatus(values["validation_status"])
             if type(values["priority"]) is not int or values["priority"] < 1:
                 raise CatalogError("Prioridade inválida.")
@@ -227,6 +234,7 @@ def load_catalog(path: Path | None = None) -> AnalysisCatalog:
                 "owner_role",
                 "rule_version",
                 "comparison_policy",
+                "synthetic_mapping_reference",
             ):
                 require_text(values[key])
             for key in (

@@ -16,9 +16,11 @@ não constam do inventário; não há regra documentada que defina o QP (V03).
 Nenhuma conclusão sobre suficiência de pessoal, produtividade ou contratação.
 """
 
+import hashlib
+import json
 from collections import Counter, defaultdict
 from collections.abc import Iterable, Sequence
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from enum import StrEnum
 
 NOT_INFORMED = "Não informado"
@@ -37,6 +39,7 @@ CADRE_FILTER_GAP = (
 
 class OverviewStatus(StrEnum):
     VALID = "valid"
+    PARTIAL = "partial"
     EMPTY_SOURCE = "empty_source"
     EMPTY_FILTERS = "empty_filters"
 
@@ -77,6 +80,7 @@ class FacultySource:
     real_hours: tuple[RealHoursRow, ...]
     source: str
     version: str
+    real_hours_available: bool = True
 
 
 @dataclass(frozen=True, slots=True)
@@ -112,6 +116,7 @@ class DetailRow:
     tenure_years: float | None
     dual_role: str | None
     extraordinary: str | None
+    hours_state: str = "Valor informado"
 
 
 @dataclass(frozen=True, slots=True)
@@ -127,6 +132,8 @@ class FacultyOverview:
     source: str
     version: str
     filters: OverviewFilters = field(default_factory=OverviewFilters)
+    by_department: tuple[tuple[str, int], ...] = ()
+    fingerprint: str = ""
 
     @property
     def qp_blocked_reason(self) -> str:
@@ -230,6 +237,7 @@ def _validate_selection(name: str, selected: frozenset[str] | None, allowed: Seq
 def compute_overview(source: FacultySource, filters: OverviewFilters) -> FacultyOverview:
     """Calcular o resultado sem acesso a dados; mesma entrada produz a mesma saída."""
     options = filter_options(source)
+    fingerprint = hashlib.sha256(json.dumps(asdict(source), sort_keys=True).encode()).hexdigest()
     _validate_selection("quadro", filters.cadres, options.cadres)
     _validate_selection("categoria funcional", filters.categories, options.categories)
     _validate_selection("situação", filters.statuses, options.statuses)
@@ -248,6 +256,7 @@ def compute_overview(source: FacultySource, filters: OverviewFilters) -> Faculty
             source.source,
             source.version,
             filters,
+            fingerprint=fingerprint,
         )
 
     if not source.register:
@@ -310,7 +319,12 @@ def compute_overview(source: FacultySource, filters: OverviewFilters) -> Faculty
             "matrículas funcionais, como o painel, e não pessoas distintas."
         )
 
-    hours = current_real_hours(source.real_hours)
+    hours = current_real_hours(source.real_hours) if source.real_hours_available else {}
+    if not source.real_hours_available:
+        warnings.append(
+            "Fonte de Horas Reais indisponível: somente as cargas e seus indicadores "
+            "na lista ficam indisponíveis; a composição cadastral continua calculada."
+        )
     detail = tuple(
         DetailRow(
             row.department,
@@ -326,6 +340,13 @@ def compute_overview(source: FacultySource, filters: OverviewFilters) -> Faculty
             row.tenure_years,
             row.dual_role,
             row.extraordinary,
+            "Fonte indisponível"
+            if not source.real_hours_available
+            else "Sem registro"
+            if row.registration_int not in hours
+            else "Nulo na fonte"
+            if hours[row.registration_int][0] is None
+            else "Valor informado",
         )
         for row in sorted(eligible, key=lambda r: (r.registration or "", r.name or ""))
     )
@@ -351,7 +372,7 @@ def compute_overview(source: FacultySource, filters: OverviewFilters) -> Faculty
     )
     return FacultyOverview(
         source.department,
-        OverviewStatus.VALID,
+        OverviewStatus.PARTIAL if not source.real_hours_available else OverviewStatus.VALID,
         total,
         by_cadre,
         by_category,
@@ -361,6 +382,8 @@ def compute_overview(source: FacultySource, filters: OverviewFilters) -> Faculty
         source.source,
         source.version,
         filters,
+        tuple(sorted(Counter(_label(row.department) for row in with_registration).items())),
+        fingerprint,
     )
 
 

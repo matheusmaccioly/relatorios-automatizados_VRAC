@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 from vrac.analyses.faculty_overview import FacultySource, RealHoursRow, RegisterRow
 from vrac.authorization import require_data_access
 from vrac.demo_data import DemoDataError, DemoOptions
+from vrac.department_hierarchy import resolve_departments
 from vrac.dev.postgres_runtime import DATABASE, PORT, READER, runtime_directory
 from vrac.dev.semantic_postgres import VERSION
 from vrac.settings import DemoSource, Settings
@@ -183,24 +184,59 @@ def load_faculty_departments(settings: Settings) -> tuple[str, ...]:
         return _options(connection).departments
 
 
-def load_faculty_source(settings: Settings, *, department: str) -> FacultySource:
+def load_faculty_source(
+    settings: Settings, *, department: str, departments: tuple[str, ...] | None = None
+) -> FacultySource:
     """R01: cadastro e Horas Reais do departamento no mesmo snapshot de leitura."""
     with _connection(settings) as (connection, version):
-        if department not in _options(connection).departments:
-            raise DemoDataError("Selecione um departamento disponível na demonstração.")
-        parameters = {"department": department}
-        register = tuple(
-            RegisterRow(**row) for row in _rows(connection, Query.FACULTY_REGISTER, parameters)
+        available_departments = _options(connection).departments
+        try:
+            selected = resolve_departments(available_departments, department, departments)
+        except ValueError:
+            raise DemoDataError("Selecione um departamento disponível na demonstração.") from None
+        register, hours = [], []
+        hours_available = True
+        for dept in selected:
+            parameters = {"department": dept}
+            register.extend(
+                RegisterRow(**row) for row in _rows(connection, Query.FACULTY_REGISTER, parameters)
+            )
+            try:
+                with connection.transaction():
+                    hours.extend(
+                        RealHoursRow(**row)
+                        for row in _rows(connection, Query.FACULTY_REAL_HOURS, parameters)
+                    )
+            except Exception:
+                hours_available = False
+        return FacultySource(
+            department,
+            tuple(register),
+            tuple(hours) if hours_available else (),
+            "PostgreSQL sintético",
+            version,
+            real_hours_available=hours_available,
         )
-        hours = tuple(
-            RealHoursRow(**row) for row in _rows(connection, Query.FACULTY_REAL_HOURS, parameters)
-        )
-        return FacultySource(department, register, hours, "PostgreSQL sintético", version)
 
 
-def load_academic_source(settings: Settings, *, department: str) -> "AcademicSource":
+def load_academic_source(
+    settings: Settings, *, department: str, departments: tuple[str, ...] | None = None
+) -> "AcademicSource":
+    with _connection(settings) as (connection, version):
+        return _read_academic_source(
+            connection, version, department=department, departments=departments
+        )
+
+
+def _read_academic_source(
+    connection: "Connection",
+    version: str,
+    *,
+    department: str,
+    departments: tuple[str, ...] | None = None,
+) -> "AcademicSource":
+    """Reutilizar a leitura existente dentro de um snapshot, inclusive na conferência R06."""
     from vrac.analyses.academic_data import (
-        ALL_DEPARTMENTS,
         AcademicSource,
         AllocationRow,
         AppointmentRow,
@@ -212,96 +248,110 @@ def load_academic_source(settings: Settings, *, department: str) -> "AcademicSou
         WorkloadRow,
     )
 
-    with _connection(settings) as (connection, version):
-        options = _options(connection)
-        if department not in (*options.departments, ALL_DEPARTMENTS):
-            raise DemoDataError("Selecione um departamento disponível na demonstração.")
-        register, hours = [], []
-        available, errors = set(), []
-        register_ok, hours_ok = True, True
-        for dept in options.departments if department == ALL_DEPARTMENTS else (department,):
-            parameters = {"department": dept}
-            try:
-                with connection.transaction():
-                    register.extend(
-                        RegisterRow(**r)
-                        for r in _rows(connection, Query.FACULTY_REGISTER, parameters)
-                    )
-            except Exception:
-                register_ok = False
-            try:
-                with connection.transaction():
-                    hours.extend(
-                        RealHoursRow(**r)
-                        for r in _rows(connection, Query.FACULTY_REAL_HOURS, parameters)
-                    )
-            except Exception:
-                hours_ok = False
-        if register_ok:
-            available.add("register")
-        else:
-            register = []
-            errors.append(
-                "Cadastro docente indisponível; histórico e fontes acadêmicas "
-                "continuam independentes."
-            )
-        if hours_ok:
-            available.add("real_hours")
-        else:
-            hours = []
-            errors.append("Detalhe de Horas Reais do cadastro indisponível.")
-        faculty = FacultySource(
-            department, tuple(register), tuple(hours), "PostgreSQL sintético", version
-        )
-        components = (
-            ("history", Query.HISTORY, HistoryRow),
-            ("workloads", Query.WORKLOADS, WorkloadRow),
-            ("allocations", Query.TEACHING_ALLOCATIONS, AllocationRow),
-            ("functions", Query.FUNCTIONS, FunctionRow),
-            ("appointments", Query.APPOINTMENTS, AppointmentRow),
-            ("students", Query.STUDENTS, StudentRow),
-            ("student_history", Query.STUDENT_HISTORY, StudentRow),
-            ("scholarships", Query.SCHOLARSHIPS, ScholarshipRow),
-        )
-        labels = {
-            "history": "histórico docente",
-            "workloads": "carga horária",
-            "allocations": "alocações",
-            "functions": "registros de função",
-            "appointments": "vigências administrativas",
-            "students": "cadastro acadêmico",
-            "student_history": "histórico acadêmico",
-            "scholarships": "bolsas",
-        }
-        values = {}
-        for name, query, row_type in components:
-            try:
-                # Uma fonte opcional ausente não invalida as outras leituras.
-                with connection.transaction():
-                    values[name] = tuple(
-                        row_type(**r) for r in _rows(connection, query, {"department": department})
-                    )
-                available.add(name)
-            except Exception:
-                values[name] = ()
-                errors.append(
-                    f"Fonte de {labels[name]} indisponível; somente seus resultados ficam afetados."
-                )
-        policy = SimulationPolicy()
+    options = _options(connection)
+    try:
+        selected = resolve_departments(options.departments, department, departments)
+    except ValueError:
+        raise DemoDataError("Selecione um departamento disponível na demonstração.") from None
+    register, hours = [], []
+    available, errors = set(), []
+    register_ok, hours_ok = True, True
+    for dept in selected:
+        parameters = {"department": dept}
         try:
             with connection.transaction():
-                policy_rows = _rows(connection, Query.POLICY)
-                if len(policy_rows) == 1:
-                    policy = SimulationPolicy(**policy_rows[0])
-                    available.add("policy")
+                register.extend(
+                    RegisterRow(**r) for r in _rows(connection, Query.FACULTY_REGISTER, parameters)
+                )
         except Exception:
-            errors.append("Metadados de simulação indisponíveis; unidades não foram presumidas.")
-        return AcademicSource(
-            department,
-            faculty,
-            options.periods,
-            policy=policy,
-            available=frozenset(available),
-            errors=tuple(errors),
-            **values,
+            register_ok = False
+        try:
+            with connection.transaction():
+                hours.extend(
+                    RealHoursRow(**r)
+                    for r in _rows(connection, Query.FACULTY_REAL_HOURS, parameters)
+                )
+        except Exception:
+            hours_ok = False
+    if register_ok:
+        available.add("register")
+    else:
+        register = []
+        errors.append(
+            "Cadastro docente indisponível; histórico e fontes acadêmicas continuam independentes."
         )
+    if hours_ok:
+        available.add("real_hours")
+    else:
+        hours = []
+        errors.append("Detalhe de Horas Reais do cadastro indisponível.")
+    faculty = FacultySource(
+        department,
+        tuple(register),
+        tuple(hours),
+        "PostgreSQL sintético",
+        version,
+        real_hours_available=hours_ok,
+    )
+    components = (
+        ("history", Query.HISTORY, HistoryRow),
+        ("workloads", Query.WORKLOADS, WorkloadRow),
+        ("allocations", Query.TEACHING_ALLOCATIONS, AllocationRow),
+        ("functions", Query.FUNCTIONS, FunctionRow),
+        ("appointments", Query.APPOINTMENTS, AppointmentRow),
+        ("students", Query.STUDENTS, StudentRow),
+        ("student_history", Query.STUDENT_HISTORY, StudentRow),
+        ("scholarships", Query.SCHOLARSHIPS, ScholarshipRow),
+    )
+    labels = {
+        "history": "histórico docente",
+        "workloads": "carga horária",
+        "allocations": "alocações",
+        "functions": "registros de função",
+        "appointments": "vigências administrativas",
+        "students": "cadastro acadêmico",
+        "student_history": "histórico acadêmico",
+        "scholarships": "bolsas",
+    }
+    values = {}
+    for name, query, row_type in components:
+        try:
+            # Uma fonte opcional ausente não invalida as outras leituras.
+            with connection.transaction():
+                rows = []
+                # Sem recorte adicional, manter a consulta agregada existente.
+                # Em um centro, usar somente sua lista validada de departamentos.
+                for selected_department in (department,) if departments is None else selected:
+                    rows.extend(
+                        row_type(**r)
+                        for r in _rows(connection, query, {"department": selected_department})
+                    )
+                    if len(rows) > MAX_ROWS:
+                        raise DemoDataError(
+                            "O recorte ultrapassa o limite da demonstração. Reduza os filtros."
+                        )
+                values[name] = tuple(rows)
+            available.add(name)
+        except Exception:
+            values[name] = ()
+            errors.append(
+                f"Fonte de {labels[name]} indisponível; somente seus resultados ficam afetados."
+            )
+    policy = SimulationPolicy()
+    try:
+        with connection.transaction():
+            policy_rows = _rows(connection, Query.POLICY)
+            if len(policy_rows) == 1:
+                policy = SimulationPolicy(**policy_rows[0])
+                available.add("policy")
+    except Exception:
+        errors.append("Metadados de simulação indisponíveis; unidades não foram presumidas.")
+    return AcademicSource(
+        department,
+        faculty,
+        options.periods,
+        policy=policy,
+        available=frozenset(available),
+        errors=tuple(errors),
+        **values,
+    )

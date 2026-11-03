@@ -1,276 +1,169 @@
 # Catálogo de análises e regras — Prompt 2
 
-**Implementação sintética atual (D-027, 30/10/2026):** R01–R06 disponíveis na aplicação,
-com cálculos, gráficos, tabelas, conferências e exportações. O
-[guia dos roteiros](guides/ANALISES_SINTETICAS.md) descreve regras e limites. Os estados
-de aprovação e fontes físicas do catálogo abaixo continuam históricos/institucionais;
-não bloqueiam os executores sintéticos nem declaram integração real aprovada.
-O grupo QP, unidades compatíveis e atos administrativos suplementares são simulações
-explicitamente identificadas. Nenhuma nova regra institucional foi inventada.
+Atualizado em 03/11/2026. R01–R06 estão implementados na demonstração sintética
+(D-027). O Prompt 2 completou seu mapa e alinhou os estados. O Prompt 3 acrescenta
+composição/comparação por departamento e gráficos web docentes, sem recriar os
+cálculos R04/R05 nem alterar R06; [entrega e limites](guides/PROMPT3_DOCENTES.md).
+As fórmulas documentadas são a referência vigente (D-022),
+sem nova aprovação geral. Conexão, inventário e fontes institucionais permanecem
+pendentes para a etapa final (D-028), sem bloquear desenvolvimento sintético.
 
-**Diretriz vigente em 30/10/2026 (D-022): reproduzir os cálculos dos dashboards
-existentes conforme a documentação disponível, sem nova validação das regras.**
-Matheus dispensou a revalidação analítica; as exigências históricas de aprovação
-abaixo não devem ser cobradas novamente para regras já documentadas. Lacunas ou
-contradições concretas devem ser registradas no resultado afetado, sem criar regras.
-Os estados `pending` dos contratos existentes ainda refletem a preparação anterior;
-não foram alterados nesta tarefa documental e não representam nova exigência humana.
-O dicionário físico continua não preenchido e a conectividade não foi comprovada.
-Testes técnicos e controles de segurança permanecem aplicáveis. Nenhum cálculo ou
-fase 3 foi implementado nesta atualização.
+A definição estruturada está em [config/analyses.yaml](../config/analyses.yaml),
+versão `phase2-synthetic-map-v5`. O
+[mapa lógico/sintético](operations/SYNTHETIC_SOURCE_MAP.md) detalha cada entrada,
+campo, transformação, chave, granularidade, unidade, referência temporal, relação,
+cardinalidade, nulabilidade, cobertura e evidência de consulta/contrato/teste.
+O [guia de uso](guides/ANALISES_SINTETICAS.md) descreve a demonstração para Talita.
 
-A definição estruturada fica em [config/analyses.yaml](../config/analyses.yaml).
-Campos de fonte física permanecem `null`; nomes de fontes/chaves são conceitos propostos,
-não nomes SQL confirmados. O documento interno `docs/ANALISE_MODELOS_SEMANTICOS_VRAC.md`
-foi lido a pedido de Matheus e preservado. Seus nomes semânticos, tipos declarados e
-referências foram organizados em `config/semantic_model_sources.local.yaml`: 12 tabelas,
-399 definições de colunas, qualificadas por modelo. Ambos ficam excluídos do Git e do
-contexto Docker e não são carregados pela aplicação. A documentação original restringe
-publicação; sua colocação local não constitui liberação para GitHub.
+## Três camadas e estados
 
-O catálogo empacotável contém conceitos, limites e IDs de evidência. Seu carregamento
-e os testes funcionam sem esses dois arquivos locais. Mapeamento físico, credenciais e
-dados reais seguem o [dicionário sanitizado](operations/SANITIZED_DATA_DICTIONARY.md).
+| Camada / campo | Estado e significado |
+|---|---|
+| Conceito lógico | Significado usado pelo cálculo: pessoa, vínculo, matrícula acadêmica, competência, curso, horas ou evidência administrativa |
+| Representação sintética | Projeções e aliases de consultas já usados pelo leitor; mapa vinculado por `synthetic_mapping_reference` em cada família |
+| `synthetic_status: implemented_offline_verified` | Implementado e conferido offline; **não** é declaração de leitura PostgreSQL nesta revisão |
+| Conferência PostgreSQL em 03/11 | Não executada: leitor com TLS `verify-full` não encontrou o certificado local. Driver preparado offline, sem fallback ou alteração de TLS |
+| `physical_source_reference: null` | Fonte **institucional** ainda não mapeada; não preencher com projeções da simulação |
+| `selected_semantic_variant: null` e `validation_status: pending` | Seleção/validação institucional não registradas; não descrevem disponibilidade dos cálculos sintéticos nem exigem reaprovar fórmulas documentadas |
+| Lacuna específica | Registrada abaixo com seu efeito limitado ao resultado correspondente |
 
-## Revisão da base semântica — 27/10/2026
+DDL declarado, observação da receita offline e convenção do cálculo são distinguidos
+no mapa. Nenhuma cardinalidade foi observada no servidor nesta revisão. As tabelas
+básicas geradas não têm PK/FK/UQ; uma chave única na receita não vira restrição DDL.
 
-As nove variantes abaixo são evidências do legado, não nove análises novas. Todas têm
-seleção institucional `null`; nenhum resultado real foi liberado. `SemanticVariant`
-vincula modelo, referências, fonte lógica, unidade, base temporal e limites. O loader
-recusa modelo fora do escopo, referência cruzada entre modelos, fonte desconhecida,
-unidade incompatível, variante duplicada e escolha sem aprovação completa.
+Os mapeamentos detalhados para nomes internos continuam locais e ignorados, nas
+receitas e em `config/semantic_model_sources.local.yaml`. Documentação semântica,
+roteiros e inventário de visuais internos não foram copiados para este catálogo.
+Os arquivos versionados funcionam sem esses materiais. O
+[dicionário sanitizado institucional](operations/SANITIZED_DATA_DICTIONARY.md)
+permanece modelo não preenchido.
 
-| Análise / modelo | Variantes documentadas | Consequência para a definição |
-|---|---|---|
-| Docentes / A | Pessoas no contexto (A-M-028); pessoas por unidade histórica/RLS (A-M-029/034); matrículas funcionais na última referência por matrícula (A-M-017/018); matrículas no último mês global (A-M-027) | Pessoa e vínculo têm unidades distintas; contexto e referência temporal precisam acompanhar a comparação |
-| Matrículas / B | Cadastro atual (B-M-033); situação por período com limite de ingresso (B-M-035); última situação por matrícula e coorte (B-M-049); população final de trajetória (B-M-127/128) | A situação por período é candidata para evolução histórica, sujeita a revisão; as outras populações não a substituem |
-| Horas Reais / A | Fonte dedicada no maior semestre do contexto (A-M-009/010) | Unidade da variante permanece `null` até confirmação; verificar unicidade antes de reproduzir a soma documental |
+## Seis roteiros disponíveis
 
-Pontos que alteram a base das análises:
-
-- Docentes: confirmar chave opaca de pessoa; a identificação pessoal usada pelo legado
-  não será copiada para código nem exportações. Há múltiplos lotes de folha. Departamento
-  atual, departamento histórico e unidade de RLS exigem distinção. O calendário encontrado
-  inclui julho no primeiro semestre; outra expressão histórica usa regra diferente.
-  Não transportar calendário ou desempate textual sem revisão.
-- Matrículas: todas as quatro candidatas documentais contam matrículas acadêmicas,
-  sem comprovação de pessoa única. Não herdar cobertura do calendário de bolsas nem
-  conversão de ausência para zero. Mapas de programa/transferência não aprovam equivalência
-  de curso. Prefixo de medida nova não comprova preferência institucional.
-- Carga: maior semestre selecionado não comprova semestre civil corrente ou atualização.
-  Planejamento, horas contratuais e Horas Reais permanecem separados. Os dois planejamentos
-  do modelo A são distintos; há relação muitos-para-muitos bidirecional com horários.
-  Objetos homônimos entre A e B não autorizam junção automática.
-- A inspeção não executou Power Query/M, DAX ou RLS. Relações inativas, filtros
-  bidirecionais e tabelas desconectadas usadas por medidas precisam de revisão. O modelo C
-  de projetos/financeiro permanece fora da implementação.
-
-Os contratos distinguem identificadores de matrícula funcional e acadêmica, unidades
-de pessoa e matrícula, base de contagem docente e bases temporais. A solicitação também
-pode registrar `semantic_variant_id`; a comparação de referências recusa outra variante
-ou outro recorte temporal mesmo quando os números coincidem. A presença desse ID não
-executa nem aprova uma variante. O padrão docente anterior continua sendo pessoas.
-
-## Prioridade e significado
-
-### Roteiros detalhados solicitados em 28/10/2026
-
-A especificação local `docs/ROTEIROS_ANALISES_VRAC.local.md` detalha o uso das famílias
-abaixo em seis roteiros: situação geral, geral e QP, histórico semestral, carga,
-dupla função e funções administrativas, e o gráfico geral de alunos. Os critérios
-de dupla função, gratificação e cargo administrativo permanecem distintos até
-aprovação de natureza e vigência. As quatro séries acadêmicas têm populações
-próprias; os totais docentes exigem identidade e referência temporal compatíveis.
-
-O documento e `docs/EVIDENCIAS_PAINEIS_VRAC.local.json` são internos, locais e
-excluídos de Git/Docker. A implementação complementar do Prompt 2 associa os seis
-roteiros às famílias em `config/analyses.yaml`, versão `phase2-workflows-v4`, preservando
-as nove variantes sem seleção institucional. Os contratos em
-[workflows.py](../src/vrac/analyses/workflows.py) contêm somente conceitos lógicos,
-sem objetos físicos, expressões legadas ou carregamento dos arquivos internos.
-
-| Roteiro | Contrato proposto | Fase do cálculo |
-|---|---|---|
-| R01 | Foto geral, distribuição por quadro e categoria | 3 |
-| R02 | Geral, QP confirmado, classificação pendente, demais e participação | 3 |
-| R03 | Presença semestral com departamento histórico | 3, incremento a revisar |
-| R04 | Horas Reais, contratada, comparação e indicador separados | 4b |
-| R05 | Dupla função, registro de função e confirmação administrativa separados | Encaixe pendente |
-| R06 | Matriculados, bolsistas matriculados, formados e ingressantes independentes | 4a |
-
-`WorkflowRequest` recebe pontos `AnalysisRequest` e métricas de uma lista fechada.
-Exige filtros de escopo compatíveis, referências sem sobreposição, mesma unidade,
-modo e filtros em toda a série. O período vem com datas explícitas: não há calendário
-civil presumido. R01/R02 usam uma única foto. R02 recusa filtro global de quadro para
-preservar o denominador; a seleção comparativa de QP dependerá de regra aprovada.
-Filtro de processo seletivo continua indisponível até validar propagação (V20).
-
-`plan_workflow()` expõe as dependências de cada métrica. `WORKFLOW_DECISIONS` registra
-as 24 perguntas e responsáveis, todas pendentes. V22/V23 bloqueiam execução real;
-V24 permanece critério de apresentação institucional. Nenhum plano executa cálculo.
-Os cinco registros de aceite por família continuam sendo a evidência exigida para
-passagem de fase; IDs de dependência não são uma segunda forma de liberar acesso.
-
-`WorkflowResult` contém um `MetricResult` por métrica/período, com proveniência e
-versões preservadas em `AnalysisResult`. Uma curva pode estar bloqueada e as demais
-válidas, produzindo resultado geral parcial. Toda métrica solicitada exige estado
-explícito; nenhuma ausência vira zero. Percentual conclusivo de QP exige geral
-positivo, QP compatível e classificação completa. Versões do app e do template e
-marca sintética acompanham a serialização. Não é uma exportação para planilha.
-
-Os testes novos verificam esses contratos, bloqueio real, isolamento de curvas,
-denominador QP, datas, filtros e serialização. Não executam as regras T01–T38 por
-inteiro: cálculos docentes, funções, bolsas, ingresso, conclusão e cargas continuam
-nas fases indicadas. Fixtures não aprovam regra institucional.
-
-| Ordem / identificador | Pergunta e população proposta | Granularidade e unidade | Estado |
+| Roteiro / família | Regra e unidade efetivamente implementadas | Entradas e referência | Estado / lacuna específica |
 |---|---|---|---|
-| 1 · `composicao_docente` | Docentes distintos do departamento e distribuição por vínculo; população depende de situação/vigência/afastamento aprovados | Pessoa é distinta de vínculo e registro temporal. Saída proposta por departamento/período/categoria; unidade: docentes distintos | Fonte, base temporal, classificação e referência pendentes |
-| 2 · `evolucao_matriculas` | Evolução por curso/período; definir se conta matrícula/inscrição ou aluno único e quais situações entram | Matrícula, aluno, componente, curso e programa são conceitos distintos. Unidades alternativas: matrículas ou alunos distintos; percentual derivado somente após regra aprovada | Unidade, situações, equivalências e apresentação percentual pendentes |
-| 3 · `carga_horaria` | Horas Reais oficiais e alocação detalhada dos docentes com cobertura autorizada | Medida oficial e detalhe por turma/currículo em visões separadas. Unidade semanal ou semestral deve ser confirmada por medida | Fonte oficial, unidade, cobertura e arredondamento pendentes |
+| R01 / `composicao_docente` | Total e quadro: matrículas funcionais distintas; categoria/departamento: linhas com matrícula. Horas dedicadas, semestre e estado da fonte no detalhe | Cadastro atual; Horas Reais no maior semestre por vínculo. [Mapa docentes](operations/SYNTHETIC_SOURCE_MAP.md#docentes) | Implementado/conferido offline. Horas indisponíveis afetam somente seu detalhe. Valores do filtro salvo de quadro do painel ausentes; sem reconstrução histórica pelo intervalo |
+| R02 / `composicao_docente` | Geral, grupo QP selecionado, classificação ausente, demais e participação; comparação por departamento; denominador geral preservado em cada recorte | Cadastro atual, categoria e seleção de quadros do grupo | Implementado/conferido offline. **QP configurável é convenção da simulação**; composição institucional pendente |
+| R03 / `composicao_docente` | Pessoas distintas na união das competências; lotes 3/4/7, situação A, exclusão A4, seis quadros documentados | Histórico e departamento da competência; janeiro–julho / agosto–dezembro; categoria e séries por quadro | Implementado/conferido offline. Não soma meses ou quadros sobrepostos; cobertura parcial gera aviso |
+| R04 / `carga_horaria` | Horas Reais da fonte dedicada, contratadas, distribuições e indicador literal; alocações em tabela separada | Semestre único escolhido; lotação da fonte de horas, categoria do cadastro atual. [Mapa carga](operations/SYNTHETIC_SOURCE_MAP.md#carga) | Implementado/conferido offline. **Unidades comparáveis são convenção sintética**; unidade institucional e chave de compartilhamento pendentes |
+| R05 / `composicao_docente` | Dupla função atual, linhas de função, vínculos com evidência administrativa e sobreposição de papéis separados | Cadastro, eventos mensais e suplemento de atos/vigências no intervalo. [Mapa funções](operations/SYNTHETIC_SOURCE_MAP.md#funcoes) | Implementado/conferido offline. **Atos e vigências são fictícios**; gratificação e cargo não confirmam natureza administrativa |
+| R06 / `evolucao_matriculas` | Quatro curvas de matrículas acadêmicas distintas: matriculados MT/MC; bolsistas elegíveis; formados FR/TD; ingressantes com exceção documentada de dupla diplomação | Histórico, cadastro atual e bolsas por matrícula/período. [Mapa matrículas](operations/SYNTHETIC_SOURCE_MAP.md#matriculas) | Implementado/conferido offline. Não é aluno único. Sem equivalência automática de curso nem filtro de processo seletivo |
 
-Cada entrada YAML registra pergunta, população, granularidade, unidade, fontes lógicas,
-referência física, chaves lógicas, parâmetros, filtros, fórmula descritiva, exceções,
-período, responsável, versão, comparação e status. Cinco áreas de decisão precisam
-de evidência humana: fonte, granularidade, cálculo, comparação e aceite funcional.
-Todas permanecem `pending`; teste ou edição de flag não equivale a aprovação.
+**Prompt 4a — 03/11/2026:** [conferência R06](guides/PROMPT4A_MATRICULAS.md),
+com 38 cenários/2.612 comparações offline sem divergência. Corrigido detalhe FR/TD
+por código (mesmo recorte da seleção individual) e descrição de variação quando
+atual ausente. Fonte de ingresso continua sendo o cadastro lido antes dos filtros
+acadêmicos; bolsas por departamento sem vigência e formação pelo cadastro têm
+limites explícitos. Referência SQL/leitor compartilham snapshot na rotina preparada;
+conciliação posteriormente confirmada por Matheus nesta conversa (“tudo validado
+por mim e conciliado”), encerrando a 4a sintética. Nenhuma nova execução PostgreSQL
+pelo agente ou inspeção de relatório adicional. Não é conciliação institucional.
 
-## Composição docente: primeira definição a aprovar
+A prioridade das famílias continua docentes, matrículas e carga. A implementação
+de funções não inclui valores financeiros nem decisões sobre pessoal. As variantes
+documentais abaixo não são nove análises novas ou seleção automática de regras.
 
-- **Pessoa x registro:** contar pessoas distintas depende da chave institucional de
-  pessoa e do recorte. Vínculos, disciplinas e meses podem multiplicar linhas.
-- **Foto x presença no semestre:** a foto requer data explícita; presença em qualquer
-  mês requer recorte temporal explícito. São indicadores diferentes. Somar contagens
-  mensais não produz uma contagem semestral de docentes distintos.
-- **Departamento:** selecionar o departamento do vínculo quando essa for a regra
-  aprovada; o departamento da disciplina é outra referência e não o substitui.
-- **Distribuição por vínculo:** uma pessoa pode ter mais de um vínculo/categoria.
-  Definir classificação exclusiva ou explicar sobreposição. Não somar categorias
-  como se fossem partição antes dessa decisão.
-- **Exceções:** vigências, afastamentos e situações precisam vir de fonte confiável.
-  Não tratar início/fim de cargo como contratação/desligamento.
+## Filtros efetivos
 
-Nenhuma destas propostas autoriza deduplicação arbitrária ou mudança da métrica oficial.
-
-## Matrículas e equivalências de cursos
-
-A fórmula proposta de variação absoluta é quantidade atual menos anterior. O percentual
-será `100 × diferença / anterior` somente quando a base for conhecida e não zero.
-Uma base zero produz estado **não calculável**, não percentual zero. Ausência de linha,
-erro e período incompleto exigem aviso próprio. Nenhum cálculo dessa série é executado
-nesta fase; o critério de apresentação percentual continua pendente.
-
-`EntityKey` diferencia departamento do vínculo, departamento da disciplina, departamento
-do curso, curso e programa. A identidade usa tipo e identificador, sem comparação por
-nome. Alteração de nome não cria automaticamente um curso novo, e nomes semelhantes
-não autorizam unir identificadores diferentes.
-
-O contrato `CourseEquivalence` e o [modelo documental](../config/course_equivalences.example.yaml)
-registram curso de origem/destino, início/fim de vigência, fonte e versão, status,
-responsável, data e evidência da revisão. O plano de séries mantém cursos separados
-quando faltar equivalência aprovada que cubra **todo** o período, quando houver
-sobreposição ambígua ou cadeia/ciclo não revisados. Não agrega números de matrícula.
-Mapas sintéticos nunca se aplicam em modo real.
-
-## Carga horária: medidas e pendências
-
-Horas Reais devem ser obtidas da fonte oficial aprovada. Detalhamento planejado por
-disciplina não é seu substituto. Não somar esse detalhe para corrigir o indicador,
-inferir compartilhamento ou ratear horas sem regra/identificador confiável.
-
-Horas semanais e semestrais são unidades distintas: a lista no catálogo apresenta
-possibilidades a confirmar, não uma conversão autorizada. Não presumir número de semanas.
-Atuação interdepartamental depende de cobertura; turmas sem alunos dependem de data de
-matrícula e exceções; tipificação ausente permanece ausência, sem inferir TCC pelo nome.
-Cada pendência bloqueia ou limita somente o resultado afetado, sem mascará-la como zero.
-
-## Solicitação, resultado e proveniência
-
-Os contratos em `src/vrac/analyses/contracts.py` não dependem de Streamlit ou conexão:
-
-| Contrato | Conteúdo |
+| Filtro | Aplicação |
 |---|---|
-| `AnalysisRequest` | Análise da lista fechada, período com datas e completude, filtros tipados, modo de dados, base temporal/data de foto e unidade de matrícula |
-| `MetricDatum` | Métrica, unidade, valor, situação do dado e dimensões; variação absoluta é identificada separadamente da quantidade total |
-| `SourceReference` | Fonte lógica, versão, extração e atualização próprias; não contém credenciais, servidor ou connection string |
-| `AnalysisResult` | Solicitação efetiva, UUID, criação, dados, unidades, origens, versões de catálogo/regra/consulta, avisos e situação `valido`/`parcial`/`bloqueado` |
+| Departamento | Atual em R01/R02 e eventos de função; histórico em R03; da carga no semestre em R04; do curso em R06 |
+| Intervalo inicial/final | Competências R03, eventos/vigências R05 e séries R06; não converte cadastro R01/R02 em foto histórica |
+| Semestre da carga | R04 usa uma única referência explícita; R01 conserva o máximo por vínculo de sua medida |
+| Quadro/categoria | Recorte docente; R03 preserva total e seleciona séries por quadro. QP seleciona só o grupo comparado |
+| Situação/dupla função | Disponíveis na tela própria R01 |
+| Curso | Código, sem unir por nome; totais e curvas recalculados, não soma de estoques |
+| Habilitação, turno, nível, ingresso | Populações próprias R06; limite de ingresso de matriculados vem do cadastro lido, conforme código documentado no mapa |
 
-Períodos recebem datas explícitas; não há calendário institucional presumido. Nulo,
-zero observado, ausência de registros, não calculável e falha têm estados distintos.
-Contagens são inteiros; horas/percentuais usam `Decimal`, serializado como texto para
-preservar precisão. Variação absoluta pode ser negativa; total negativo não é aceito
-pelo contrato proposto. Exceções oficiais futuras exigem revisão da definição.
+SQL fixa departamento com parâmetros vinculados; demais filtros são aplicados pelos
+cálculos sobre as entradas tipadas. Filtros/arquivos mostram origem e limitações.
+Vagas preenchidas não são alunos únicos; departamento da oferta não é lotação.
 
-Um resultado bloqueado não carrega números. `blocked_result()` não consulta fontes,
-não calcula nem usa fallback; registra extração/atualização desconhecidas como `None`,
-em vez de inventar datas. A data de criação da execução não é extração da fonte.
-Resultados reais válidos/parciais continuam recusados pelos contratos nesta fase,
-mesmo que alguém modifique flags do catálogo. Não existe adaptador de análise real.
+## Ausências e lacunas com efeito limitado
 
-## Referências e critérios de comparação
-
-O [modelo de referência](../config/reference_case.example.yaml) não contém números
-institucionais ou aprovação fabricada. `ReferenceCase` vincula expectativa ao pedido,
-versão da regra e datas/versões de cada origem, com identificação sintética explícita.
-Referências institucionais aprovadas exigem agregados autorizados e registro de revisão
-humana; uma fixture não pode receber aceite funcional humano.
-
-`compare_reference_case()` exige o mesmo recorte, regra e situação válida, além de
-origens com versão/atualização compatíveis. Mudança da data de extração, isoladamente,
-não prova mudança da origem. Atualização desconhecida ou diferente bloqueia a comparação
-automática; investigar a referência sem ajustar a origem para um relatório antigo.
-
-| Valor | Critério |
+| Situação | Comportamento existente |
 |---|---|
-| Contagem inteira | Igualdade exata; tolerâncias absoluta e relativa zero, sem parâmetro para relaxá-las |
-| Horas | Comparação bloqueada até registrar casas decimais, modo de arredondamento, responsável, data e evidência; nenhuma tolerância padrão presumida |
-| Percentual | Critério de apresentação/comparação ainda pendente; base zero nunca é valor numérico |
-| Nulo, ausência ou falha | Não comparar como zero; situação bloqueada/não comparável |
+| Zero observado | Mantido; por exemplo carga zero ou observação acadêmica com nenhum elegível |
+| Nulo de campo | Preservado, sem virar zero. Soma dedicada usa parcelas conhecidas; R04 sinaliza parcela nula e contrato conflitante no detalhe |
+| Nenhuma linha | Sem dados/lacuna; não comprova total zero nem ausência institucional de função |
+| Fonte indisponível | Leitor registra erro sanitizado e remove sua disponibilidade; resultados independentes continuam. Sem bolsas, só bolsistas é afetado |
+| Base zero | Variação percentual/razão não calculável; diferença absoluta acadêmica continua possível quando ambos os valores são conhecidos |
+| Quadro/categoria desconhecidos | Não informado; sem inferir equivalência. Classificação QP incompleta impede participação conclusiva |
+| TCC/classificação ou compartilhamento ausentes | Não inferir pelo nome, excluir horas ou ratear. Currículo e chave do grupo compartilhado não são criados |
+| Equivalência de curso ausente | Séries separadas por código; `CourseEquivalence` exige vigência, fonte e revisão antes de eventual uso. Nenhum mapa está aplicado ao R06 |
 
-O arredondamento de teste é marcado sintético e não vale para fonte real. Uma comparação
-que coincide não altera status de aprovação. Logs, datas e versões não garantem reprodução
-histórica exata se a fonte foi corrigida sem snapshot autorizado.
+Detalhes de preenchimento, deduplicação, filtros e dependências por curva estão nas
+tabelas do mapa. Horas semanais/semestrais não são convertidas por número presumido
+de semanas. Indicador literal não avalia produtividade ou necessidade de contratação.
+Mudança de cargo não é contratação/desligamento.
 
-## Casos sintéticos e conferência offline
+## Contratos e execução que o Prompt 3 pode reutilizar
 
-`synthetic_contract_cases()` produz sete casos determinísticos: registros repetidos de
-pessoa, valor nulo, zero observado, ausência de linhas, semestre parcial, denominador
-zero e fontes com datas de extração/atualização distintas. As expectativas são declarações
-de fixtures, sem implementar cálculos das análises e sem aprovação institucional.
+| Componente existente | Papel e limite |
+|---|---|
+| `RegisterRow`, `RealHoursRow`, `FacultySource` | Entradas R01, separando pessoa/vínculo e carga dedicada |
+| `AcademicSource` e linhas de `academic_data.py` | Histórico, cargas, alocações, funções, atos, cadastro/histórico acadêmico, bolsas e política; disponibilidade por fonte |
+| `load_faculty_source` / `load_academic_source` | PostgreSQL sintético somente leitura, TLS, identidade verificada, snapshot por chamada e limites; sem configuração institucional |
+| `compute_overview` / `calculate` | Executores atuais usados na tela, testáveis sem Streamlit; `FacultyOverview` / `CalculatedAnalysis` são as saídas efetivas |
+| `AnalysisRequest/Result` / `WorkflowRequest/Result` | Contratos lógicos anteriores com unidades, filtros, versões, datas, estados e serialização. Não são o adaptador de execução dos roteiros atuais |
+| `plan_workflow()` / `blocked_result()` | Planejamento/preparação preservados; `adaptador_nao_implementado` não descreve os executores sintéticos atuais |
+| `phase3_blockers(catalog, mode=DataMode.SYNTHETIC)` | Sem dependência documental institucional para Prompt 3 sintético. Padrão/`REAL` preserva bloqueios; não testa conexão nem libera acesso |
+
+Identificadores lógicos de pessoa, matrícula funcional/acadêmica, departamento do
+vínculo/da disciplina/do curso e programa continuam distintos. Períodos explícitos,
+unidades, UUID, datas e proveniência dos contratos anteriores permanecem; números
+reais válidos/parciais continuam recusados. Uma fixture não recebe aceite funcional
+humano. Nenhum estado sintético autoriza adaptador real, login ou publicação.
+
+## Evidência documental preservada
+
+As nove variantes do YAML registram leituras diferentes dos modelos A/B, sem copiar
+expressões ou nomes físicos restritos. Referência institucional continua pendente.
+
+| Família | Variantes / evidências | Distinção preservada |
+|---|---|---|
+| Docentes | Pessoas no contexto (A-M-028); unidade histórica/RLS (A-M-029/034); última referência por matrícula funcional (A-M-017/018); último mês global (A-M-027) | Pessoa, vínculo, contexto, última referência e RLS não são intercambiáveis |
+| Matrículas | Cadastro atual (B-M-033); situação por período com ingresso (B-M-035); última situação/coorte (B-M-049); população final de trajetória (B-M-127/128) | R06 usa as quatro medidas explicitadas no mapa; variantes não substituem suas populações |
+| Horas Reais | Fonte dedicada no maior semestre do contexto (A-M-009/010) | R01 máximo por vínculo; R04 semestre escolhido. Não confirma unidade, unicidade institucional ou atualização |
+
+Inspeção semântica não executou DAX, Power Query/M ou RLS nem comprovou DDL SQL.
+Equivalências, auxiliares e relações muitos-para-muitos do modelo não são herdadas
+automaticamente. Modelo C/financeiro permanece fora do escopo.
+
+Os cinco registros `decisions` por família e V01–V24 conservam o histórico da
+preparação. Os `pending` não constituem uma nova lista de aprovação analítica.
+D-022 prevalece sobre as perguntas históricas de fórmula/população já documentadas;
+D-027 autoriza os cenários sintéticos; D-028 adia a integração institucional.
+Não promover essas flags a `approved` para liberar uma demonstração.
+
+<a id="decisões-curtas-para-validação-humana"></a>
+
+## Conferências e próximos responsáveis
+
+Contagens de referência usam igualdade exata; não relaxar tolerância para fazer
+coincidir. `compare_reference_case()` exige mesmo recorte/regra/unidade e versões
+de origem compatíveis; extração diferente não comprova atualização. Horas reais
+institucionais ainda exigirão precisão/arredondamento documentados, sem conversão
+presumida. Aritmética sintética não equivale a conciliação institucional.
+
+`synthetic_contract_cases()` mantém duplicidade, nulo, zero, ausência, semestre
+parcial, base zero e datas distintas. As fixtures analíticas e seus testes já
+cobrem os cálculos, bolsas repetidas, julho, funções e cargas separadas. Datas de
+carregamento, execução e atualização de fonte são distintas; a última não está
+disponível na receita. Resultados e comandos desta revisão estão em
+[STATUS.md](STATUS.md).
 
 ```powershell
-.\scripts\bootstrap.cmd --sqlserver
 .\scripts\check.cmd
 .\.venv\Scripts\python.exe -m vrac.analyses
 ```
 
-O extra SQL Server apenas mantém disponíveis os testes opcionais da fase 1; o catálogo
-da fase 2 não precisa dele. PyYAML foi acrescentado para ler o YAML com construtores
-seguros, rejeitando chaves duplicadas e escopo desconhecido. Catálogo inválido não executa
-análise. A referência do parser é a [documentação oficial do PyYAML](https://pyyaml.org/wiki/PyYAMLDocumentation).
+O Prompt 3 reutilizou mapa, leitor R01, SQL, executores, fixtures e testes existentes,
+sem executar o Prompt 1 real nem ler PostgreSQL nesta tarefa. Recuperar o certificado
+da fixture é necessário para futura conferência viva, mantendo TLS; isso não é
+requisito institucional nem pedido de credencial. Não foi iniciada essa recuperação.
 
-## Decisões curtas para validação humana
-
-**Talita, começando por composição docente:**
-
-1. Aprovar pessoa ou matrícula funcional e referência temporal entre as variantes
-   documentadas; confirmar calendário, incluindo julho, e tratamento de empates.
-2. Definir categorias de vínculo, sobreposição, afastamentos e exclusões.
-3. Fornecer caso agregado autorizado do mesmo recorte/regra/data para contagem exata.
-4. Para os próximos módulos, escolher a população acadêmica e confirmar unidade,
-   unicidade e arredondamento das horas.
-
-**Responsável pelos dados/DBA, com Matheus:**
-
-1. Liberar dicionário sanitizado com fontes lógicas, granularidade, chaves e cardinalidades;
-   manter o mapeamento físico privado externo e confirmar a leitura autorizada.
-2. Documentar datas de atualização, cobertura, situações, unidades, nulos e exceções.
-3. Confirmar fonte oficial de Horas Reais, compartilhamentos/classificação e equivalências
-   de cursos vigentes com aprovação; não deduzir relações ausentes.
-
-Somente após registrar fonte, granularidade, fórmula, comparação e aceite funcional humano
-uma análise poderá avançar à implementação real. Matheus autorizou condicionalmente
-o Prompt 3 nesta solicitação. A condição ainda depende de identidade, população,
-referência, regra e caso de comparação docente aprovados. `phase3_blockers()` expõe
-as pendências; nenhuma fase é avançada automaticamente. Esta entrega não altera a
-tela nem aplica branding, não publica e não acessa o banco.
+Na etapa final, Matheus/DBA preencherão o mapeamento físico autorizado e conferirão
+chaves, tipos, cobertura, unidades e resultados reais; DSI/time integrarão acesso e
+autenticação. Talita avaliará uso e limites da aplicação nos incrementos solicitados.
+Não se solicita reunião, inventário real ou nova aprovação geral de fórmulas agora.

@@ -1,5 +1,7 @@
-# Catálogo lógico baseado em evidência documental; sem aprovação institucional.
-catalog_version: phase2-workflows-v4
+# D-022/D-027/D-028: implementação sintética separada da aprovação institucional.
+# physical_source_reference e selected_semantic_variant são exclusivamente institucionais.
+# Estado offline desta revisão; não declara conferência no PostgreSQL em 03/11/2026.
+catalog_version: phase2-synthetic-map-v5
 documentary_evidence:
 - id: semantic_models_documentation_2026_10_27
   reference: docs/ANALISE_MODELOS_SEMANTICOS_VRAC.md (referência interna local, excluída do Git)
@@ -13,8 +15,8 @@ documentary_evidence:
     horas.
   - Power Query/M e conexões não inspecionados; nenhuma execução DAX, consulta real, conciliação ou teste
     de RLS foi realizado.
-  - Regras implementadas nos PBIX não equivalem a aprovação institucional; todas as decisões continuam
-    pendentes.
+  - D-022 dispensa reaprovar fórmulas documentadas; decisões pending preservam o histórico institucional,
+    sem bloquear os executores sintéticos de D-027/D-028.
   - Cardinalidade, filtros bidirecionais, relações inativas e tabelas calculadas exigem revisão por indicador.
   - Mapeamento detalhado local em config/semantic_model_sources.local.yaml; não é carregado pelo aplicativo
     nem incluído no pacote.
@@ -23,10 +25,12 @@ documentary_evidence:
 analyses:
 - id: composicao_docente
   workflow_ids: [R01, R02, R03, R05]
+  synthetic_status: implemented_offline_verified
+  synthetic_mapping_reference: docs/operations/SYNTHETIC_SOURCE_MAP.md#docentes
   priority: 1
-  question: Quantos docentes distintos compõem o departamento e como se distribuem por vínculo?
-  population: Pessoas docentes e matrículas funcionais são populações distintas; variantes documentadas
-    no modelo A, ainda sem escolha institucional.
+  question: Qual a composição do cadastro docente, a presença histórica e as evidências de função?
+  population: R01/R02 contam matrículas funcionais do cadastro atual; R03 conta pessoas no histórico;
+    R05 separa dupla função, eventos e atos fictícios. Fonte institucional pendente.
   granularity: Pessoa, matrícula funcional, competência e lote de folha; unicidade da composição completa
     precisa ser confirmada.
   units:
@@ -56,11 +60,12 @@ analyses:
   - variante_semantica_aprovada
   filters:
   - Escopo departamental autorizado
-  - Vigência, situação e afastamentos a aprovar
-  formula: 'Não há uma única contagem intercambiável: as variantes documentadas contam pessoas no contexto
-    ou matrículas funcionais na última referência por vínculo ou no último mês global. Definir chave de
-    pessoa opaca, situação, lotes, afastamentos e categorias antes do cálculo. Não somar meses nem categorias
-    sobrepostas.'
+  - R01 cadastro atual com quadro, categoria, situação e dupla função; R02 categoria e grupo QP simulado
+  - R03 lotação histórica, situação A, lotes 3/4/7, exclusão A4 e seis quadros documentados
+  formula: 'R01 total e quadro por matrícula funcional distinta, categoria por linhas; R02 geral e grupo
+    configurável sem reduzir denominador; R03 pessoas distintas na união das competências do semestre;
+    R05 evidências separadas e sobreposição de vigências. Não somar meses ou quadros sobrepostos.
+    As variantes legadas continuam separadas da seleção institucional pendente.'
   exceptions:
   - Não deduplicar por nome nem eliminar vínculos arbitrariamente.
   - Afastamentos e movimentações dependem de vigência e situação oficiais.
@@ -75,8 +80,8 @@ analyses:
   - Histórico de carga tem regra de mês distinta; código e comentário divergem. Validar domínio antes
     de transportar calendário.
   - Departamento atual do vínculo, histórico da folha e unidade calculada de RLS não são recortes equivalentes.
-  period_definition: Datas e completude explícitas; calendário e base temporal dependem da fonte e de
-    Talita.
+  period_definition: R01/R02 cadastro atual; R03 janeiro a julho e agosto a dezembro; R05 cadastro atual
+    e eventos/vigências no intervalo. Referência institucional pendente, sem reaprovar calendário documentado.
   owner_role: Talita e responsável pela fonte docente
   rule_version: faculty-draft-v3
   comparison_policy: 'Contagens inteiras devem coincidir: tolerância absoluta e relativa zero, no mesmo
@@ -179,6 +184,8 @@ analyses:
     - Não comparar com última data por matrícula como se fossem o mesmo indicador.
 - id: evolucao_matriculas
   workflow_ids: [R06]
+  synthetic_status: implemented_offline_verified
+  synthetic_mapping_reference: docs/operations/SYNTHETIC_SOURCE_MAP.md#matriculas
   priority: 2
   question: Como evolui a quantidade de matrículas ou de alunos distintos por curso e período?
   population: Matrículas acadêmicas distintas, separando cadastro atual, situação por período, última
@@ -214,13 +221,13 @@ analyses:
   - unidade_de_contagem
   - variante_semantica_aprovada
   filters:
-  - Situações e datas de matrícula a aprovar
+  - Departamento do curso, código de curso, habilitação, turno, nível e forma de ingresso
   - Cobertura e completude de cada período
-  formula: Para evolução histórica, a candidata documental é a contagem distinta de matrícula por situação
-    no período, com restrição de ingresso. Cadastro atual, última situação por matrícula e população final
-    de trajetória permanecem alternativas separadas. A seleção depende de aprovação. Variação absoluta
-    = atual menos anterior; percentual somente com base conhecida e não zero. Ausência não vira zero;
-    equivalência de programa não autoriza fusão de cursos.
+  formula: 'R06 reproduz B-M-035 (MT/MC no histórico com limite de ingresso do cadastro), B-M-038
+    (bolsa existente no mesmo período entre matriculados), B-M-036 (FR/TD do cadastro no menor período
+    por matrícula) e B-M-070 (ingresso no ponto com período igual ou Dupla Diplomacao). Matrículas
+    distintas, não pessoas únicas. Variação de matriculados = atual menos anterior; percentual só com
+    base conhecida não zero. Ausência não vira zero; sem equivalência automática de cursos.'
   exceptions:
   - Não confundir registros de matrícula com alunos únicos.
   - Semelhança de nomes não comprova equivalência entre cursos nem programa/curso.
@@ -237,8 +244,8 @@ analyses:
     o recorte utilizado.
   owner_role: Talita e responsável pelas matrículas/cursos
   rule_version: enrollment-draft-v3
-  comparison_policy: Contagens exatas; apresentação percentual depende de regra aprovada. Base zero nunca
-    recebe percentual numérico.
+  comparison_policy: Contagens exatas no mesmo recorte; base zero nunca recebe percentual numérico.
+    Precisão de apresentação da fonte institucional permanece lacuna específica, sem reaprovar fórmula.
   validation_status: pending
   decisions:
   - id: enrollment_source
@@ -333,6 +340,8 @@ analyses:
     - Validar conjuntos, exceções, empates e mapas de programa; não copiar exceções individuais mascaradas.
 - id: carga_horaria
   workflow_ids: [R04]
+  synthetic_status: implemented_offline_verified
+  synthetic_mapping_reference: docs/operations/SYNTHETIC_SOURCE_MAP.md#carga
   priority: 3
   question: Quais são as Horas Reais oficiais e como se apresenta a alocação detalhada por disciplina?
   population: 'Pendente: docentes selecionados pelo vínculo e cobertura de atuação autorizada, inclusive
@@ -363,11 +372,11 @@ analyses:
   - unidade_de_horas_confirmada
   filters:
   - Separar departamento do vínculo e da disciplina
-  - Data de matrícula e exceções de turmas vazias a aprovar
-  formula: A medida documental soma o campo de Horas Reais da fonte dedicada no maior semestre do contexto
-    selecionado. Isso não comprova unicidade por docente/semestre, unidade semanal/semestral nem semestre
-    civil corrente. Antes de implementar, confirmar granularidade, duplicidade e fonte física oficial.
-    Manter horas contratuais e planejamento separados; não substituir o indicador por soma de disciplinas.
+  - R04 semestre único escolhido, quadro e categoria; alocações dos vínculos elegíveis preservam vagas zero/nulas
+  formula: 'R04 soma valores conhecidos de Horas Reais da fonte dedicada por vínculo no semestre escolhido;
+    contratada requer um único valor conhecido distinto. R01 conserva máximo semestre por vínculo.
+    Diferença e razão somente com unidades compatíveis explicitamente simuladas; razão sem base zero.
+    Planejamento permanece separado e nunca substitui Horas Reais. Unicidade/unidade institucionais pendentes.'
   exceptions:
   - Atuação interdepartamental depende de cobertura e autorização confirmadas.
   - Compartilhamento sem identificador/regra fica pendente, sem dedução ou rateio.

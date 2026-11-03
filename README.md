@@ -7,6 +7,12 @@ programadas e exportações CSV/PNG/ZIP. Não há dependência de LLM ou Power B
 O modo institucional permanece bloqueado; SQL Server foi confirmado por Matheus,
 mas conexão e inventário institucionais não foram executados pelo agente.
 
+**Escopo vigente em 03/11/2026 (D-028):** usar a base sintética existente durante
+todo o desenvolvimento e preparação. Conexão, diagnóstico, inventário e
+integração/conferência institucionais ficam somente para a etapa final do projeto
+e deploy; não são dependência dos incrementos sintéticos. Sequência no
+[plano](docs/PLAN.md).
+
 Para usar todos os roteiros, abrir a aba **Análises por período**, escolher o
 departamento, **Carregar ou atualizar dados** e **Calcular análises selecionadas**.
 O [guia das análises sintéticas](docs/guides/ANALISES_SINTETICAS.md) explica filtros,

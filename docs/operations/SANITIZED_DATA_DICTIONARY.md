@@ -1,6 +1,15 @@
 # Modelo de dicionário sanitizado — entrega da fase 1
 
-Atualizado em 27/10/2026. **MODELO NÃO PREENCHIDO; fontes, conexão, inventário e regras NÃO VALIDADOS.** Os termos abaixo são nomes lógicos propostos, sem correspondência física confirmada. Não são tabelas, colunas ou chaves existentes na PUC-Rio.
+**D-028 — 03/11/2026:** preenchimento com evidência institucional reservado à etapa
+final do projeto e deploy. O Prompt 2 pode completar mapa lógico/sintético sem
+este inventário real; dados da fixture não devem preencher confirmações de fontes
+institucionais. Nenhum retorno real é solicitado agora.
+
+O [mapa sintético R01–R06](SYNTHETIC_SOURCE_MAP.md) foi completado no Prompt 2 em
+03/11 por código, receitas e conferências offline. Ele registra projeções neutras
+separadamente e não preenche nenhuma confirmação institucional deste modelo.
+
+Atualizado em 03/11/2026. **MODELO NÃO PREENCHIDO; fontes físicas, conexão e inventário NÃO VALIDADOS.** SQL Server já confirmado por Matheus; fórmulas documentadas seguem a D-022, sem nova validação analítica. Os termos abaixo são nomes lógicos propostos, sem correspondência física confirmada. Não são tabelas, colunas ou chaves existentes na PUC-Rio.
 
 Matheus deve preencher e revisar este material antes de liberar sua leitura pelo agente. Manter `dbconfig.toml`, o inventário bruto e o mapa lógico → físico em diretório privado externo. Cada execução gera sua subpasta UUID privada, com `diagnose.json` ou `inventory.json`; consultar os arquivos localmente sem copiá-los para este modelo. Não colar servidor, banco/schema/objeto/coluna física, identidade, senha, connection string, registros individuais ou exemplos identificáveis. Se algum nome físico for indispensável a uma tarefa posterior, obter autorização específica antes de fornecê-lo; este modelo não concede essa autorização.
 
@@ -11,7 +20,7 @@ Matheus deve preencher e revisar este material antes de liberar sua leitura pelo
 | Versão/data desta entrega sanitizada | Pendente |
 | Responsável pela revisão | Pendente; usar função ou identificação cuja divulgação seja autorizada |
 | Autorização de divulgação ao desenvolvimento com agente | Pendente; referência sanitizada e escopo permitido |
-| SGBD confirmado | Pendente; SQL Server continua hipótese até confirmação |
+| SGBD confirmado | SQL Server, confirmado por Matheus em 28/10/2026; conexão ainda não validada |
 | Diagnóstico executado por Matheus | Não executado nesta sessão; registrar data, resultado sanitizado e limitações |
 | Inventário executado e cobertura | Não executado nesta sessão; registrar alcance, truncamentos e itens desconhecidos sem nomes físicos |
 | UUID das execuções e evidência sanitizada | Pendente; UUID pode vincular o registro, sem revelar caminhos dos relatórios privados |
@@ -70,8 +79,8 @@ Em especial, esclarecer docente → vínculos → meses, vínculo → departamen
 
 ## Primeira entrega necessária para a fase 2
 
-Priorizar composição docente: fonte lógica, pessoa versus registro/vínculo, população, granularidade temporal, chave de deduplicação aprovada, filtros e categorias de vínculo, exclusões, unidade, atualização e limitações. Talita e o responsável pela fonte devem aprovar um caso de referência do mesmo recorte e data, com apenas valores agregados cuja divulgação tenha sido autorizada.
+Priorizar composição docente: identificar na fonte a pessoa versus registro/vínculo, população, granularidade temporal, chave de deduplicação, filtros e categorias de vínculo, exclusões, unidade, atualização e limitações. Reproduzir as regras já documentadas conforme D-022, sem exigir novo caso de referência ou revalidação de fórmulas. Registrar somente lacunas técnicas concretas do mapeamento e seu efeito sobre o resultado afetado.
 
-Para matrículas e carga, manter pendentes as definições ainda não aprovadas. Não somar contagens mensais de docentes, substituir Horas Reais pela soma de disciplinas, deduzir TCC pelo nome, equiparar cursos ou inferir contratação por datas de cargo. Regras e tolerâncias serão formalizadas na fase 2; este dicionário não as implementa.
+Para matrículas e carga, manter desconhecidos os campos/fontes ainda não identificados. Não somar contagens mensais de docentes, substituir Horas Reais pela soma de disciplinas, deduzir TCC pelo nome, equiparar cursos ou inferir contratação por datas de cargo. Este dicionário prepara o material técnico; não implementa análises nem inicia o Prompt 2.
 
 Antes de entregar ao agente, Matheus deve confirmar que o conteúdo é necessário à tarefa, está sanitizado, tem divulgação autorizada e distingue fatos, hipóteses e lacunas. As instruções operacionais estão em [DATABASE_DISCOVERY.md](DATABASE_DISCOVERY.md).

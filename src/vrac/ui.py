@@ -3,17 +3,16 @@
 import hashlib
 import json
 import math
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from datetime import UTC, datetime
 
 import pandas as pd
 import streamlit as st
-from matplotlib import pyplot as plt
 
-from vrac.academic_ui import workbench
-from vrac.analyses.export import DETAIL_COLUMNS, detail_csv, summary_csv
+from vrac.academic_ui import _render_result, workbench
+from vrac.analyses.academic import AnalysisFilters, AnalysisKind, calculate
+from vrac.analyses.export import detail_csv, summary_csv
 from vrac.analyses.faculty_overview import (
-    QP_BLOCK_REASON,
     UNIT_LABEL,
     FacultyOverview,
     OverviewFilters,
@@ -24,14 +23,22 @@ from vrac.analyses.faculty_overview import (
 )
 from vrac.authorization import authorize_data_access
 from vrac.branding import Branding, load_branding
-from vrac.charts import horizontal_bars
 from vrac.demo_data import (
     DemoDataError,
+    DemoOptions,
+    faculty_history_periods,
+    load_academic_source,
     load_demo_options,
-    load_faculty_departments,
+    load_department_hierarchy,
     load_faculty_source,
     load_selected_demo,
 )
+from vrac.faculty_presentation import (
+    render_composition,
+    render_faculty_details,
+    render_faculty_metric,
+)
+from vrac.organisation_ui import organisation_filters
 from vrac.settings import ConfigurationError, Settings, load_settings
 
 MISSING_LABEL = "ausente"
@@ -111,6 +118,15 @@ def _footer() -> None:
     )
 
 
+def _clear_all_results() -> None:
+    from vrac.academic_ui import _clear
+
+    for key in ("demo_data", "demo_filters"):
+        st.session_state.pop(key, None)
+    _clear_overview()
+    _clear(source=True)
+
+
 def main() -> None:
     branding = load_branding()
     st.set_page_config(page_title="VRAC | Demonstração", layout="wide")
@@ -124,11 +140,17 @@ def _content(branding: Branding) -> None:
     try:
         settings = load_settings()
     except ConfigurationError as error:
+        _clear_all_results()
         st.error(str(error))
         st.stop()
 
+    origin_key = (settings.data_mode, settings.demo_source)
+    if st.session_state.get("ui_origin_key") != origin_key:
+        _clear_all_results()
+        st.session_state["ui_origin_key"] = origin_key
     access = authorize_data_access(settings)
     if not access.allowed:
+        _clear_all_results()
         st.error(access.reason)
         st.stop()
 
@@ -136,17 +158,16 @@ def _content(branding: Branding) -> None:
     try:
         options = load_demo_options(settings)
     except DemoDataError as error:
-        st.session_state.pop("demo_data", None)
-        st.session_state.pop("demo_filters", None)
+        _clear_all_results()
         st.error(str(error))
         st.stop()
     st.caption(f"Origem dos dados: {options.source} · somente demonstração local")
 
     overview_tab, analyses_tab, records_tab = st.tabs(
-        ["Situação geral do departamento", "Análises por período", "Registros de demonstração"]
+        ["Análise docente", "Análises por período", "Registros de demonstração"]
     )
     with overview_tab:
-        _faculty_overview(settings, branding)
+        _faculty_overview(settings, branding, options)
     with analyses_tab:
         workbench(settings, branding, options)
     with records_tab:
@@ -258,7 +279,13 @@ def _records(settings: Settings, options) -> None:
             )
 
 
-OVERVIEW_STATE = ("overview_result", "overview_key")
+OVERVIEW_STATE = (
+    "overview_result",
+    "overview_key",
+    "overview_generated",
+    "overview_history",
+    "overview_history_error",
+)
 
 
 def _clear_overview() -> None:
@@ -267,27 +294,29 @@ def _clear_overview() -> None:
 
 
 def _selection(label: str, values: tuple[str, ...], key: str) -> frozenset[str] | None:
+    if key in st.session_state:
+        st.session_state[key] = [v for v in st.session_state[key] if v in values]
     chosen = st.multiselect(label, values, key=key, placeholder="Todos")
     return frozenset(chosen) if chosen else None
 
 
-def _faculty_overview(settings: Settings, branding: Branding) -> None:
+def _faculty_overview(settings: Settings, branding: Branding, demo_options: DemoOptions) -> None:
     with st.container(key="vrac-overview-filters"):
-        st.subheader("Situação geral do departamento")
+        st.subheader("Análise docente")
         st.info(
             "Reproduz a página Análise Geral do painel de professores sobre o cadastro "
             f"atual. A unidade de contagem é {UNIT_LABEL}, como no painel. A análise "
             "descreve a composição; não avalia suficiência de pessoal nem produtividade."
         )
         try:
-            departments = load_faculty_departments(settings)
+            hierarchy = load_department_hierarchy(settings)
         except DemoDataError as error:
             _clear_overview()
             st.error(str(error))
             return
-        department = st.selectbox("Departamento", departments, key="overview_department")
+        scope = organisation_filters(hierarchy, prefix="overview")
         try:
-            source = load_faculty_source(settings, department=department)
+            source = load_faculty_source(settings, **scope.source_arguments)
         except DemoDataError as error:
             _clear_overview()
             st.error(str(error))
@@ -305,29 +334,88 @@ def _faculty_overview(settings: Settings, branding: Branding) -> None:
         with columns[3]:
             dual_roles = _selection("Dupla função", options.dual_roles, "overview_dual_roles")
         filters = OverviewFilters(cadres, categories, statuses, dual_roles)
+        start, end = st.columns(2)
+        periods = faculty_history_periods(settings, demo_options)
+        with start:
+            first_period = st.selectbox(
+                "Semestre inicial do histórico", periods, key="overview_first"
+            )
+        with end:
+            last_period = st.selectbox(
+                "Semestre final do histórico", periods, index=len(periods) - 1, key="overview_last"
+            )
+        st.caption(
+            "Composição: cadastro atual. Histórico: pessoas ativas em cada competência, "
+            "com quadro e categoria próprios do mês. Situação e dupla função acima "
+            "recortam somente o cadastro atual. O semestre docente segue janeiro–julho "
+            "e agosto–dezembro, conforme a regra documentada."
+        )
         digest = hashlib.sha256(json.dumps(asdict(source), sort_keys=True).encode()).hexdigest()
-        key = (settings.demo_source, department, filters, digest)
+        key = (settings.demo_source, scope, filters, digest, first_period, last_period)
         if st.session_state.get("overview_key") != key:
             _clear_overview()
         run = st.button("Calcular resultados", type="primary", key="overview_run")
 
     if run:
-        st.session_state["overview_result"] = compute_overview(source, filters)
-        st.session_state["overview_key"] = key
+        _clear_overview()
+        try:
+            with st.spinner("Calculando a composição docente..."):
+                st.session_state["overview_result"] = compute_overview(source, filters)
+                st.session_state["overview_key"] = key
+                st.session_state["overview_generated"] = datetime.now(UTC)
+        except ValueError as error:
+            _clear_overview()
+            st.error(str(error))
+            return
+        try:
+            history_source = load_academic_source(settings, **scope.source_arguments)
+            # Filtros com referência ao cadastro não são aplicados a uma fonte histórica.
+            history_filters = AnalysisFilters(
+                first_period,
+                last_period,
+                last_period,
+                cadres=tuple(sorted(cadres or ())),
+                categories=tuple(sorted(categories or ())),
+            )
+            st.session_state["overview_history"] = calculate(
+                AnalysisKind.HISTORY, history_source, history_filters
+            )
+        except (DemoDataError, ValueError) as error:
+            st.session_state["overview_history_error"] = str(error)
     overview: FacultyOverview | None = st.session_state.get("overview_result")
     if overview is None:
         st.caption("Escolha o departamento e os filtros e calcule os resultados.")
         return
-    _overview_results(overview, branding)
+    st.caption(f"Centro: {scope.center} · Departamentos efetivos: {', '.join(scope.departments)}")
+    generated_at = st.session_state["overview_generated"]
+    _overview_results(overview, branding, generated_at, center=scope.center)
+    if overview_history := st.session_state.get("overview_history"):
+        _render_result(
+            replace(
+                overview_history,
+                metrics=(),
+                charts=tuple(
+                    chart for chart in overview_history.charts if chart.table == "monthly_history"
+                ),
+            ),
+            branding,
+            generated_at,
+            prefix="overview",
+        )
+    if history_error := st.session_state.get("overview_history_error"):
+        st.warning(f"Histórico indisponível: {history_error}")
 
 
-def _overview_results(overview: FacultyOverview, branding: Branding) -> None:
+def _overview_results(
+    overview: FacultyOverview, branding: Branding, generated_at: datetime, *, center: str
+) -> None:
     with st.container(key="vrac-overview-results"):
         st.subheader("Resultados calculados")
         st.table(
             pd.DataFrame(
                 [
                     {
+                        "Centro": center,
                         "Departamento": overview.department,
                         "Referência": "Cadastro atual",
                         "Unidade": UNIT_LABEL,
@@ -337,60 +425,26 @@ def _overview_results(overview: FacultyOverview, branding: Branding) -> None:
                 ]
             )
         )
-        st.caption(f"Dados fictícios · versão {overview.version}")
-        if overview.status != OverviewStatus.VALID:
+        st.caption(
+            f"Dados fictícios · versão {overview.version} · snapshot {overview.fingerprint[:12]} · "
+            f"extração/cálculo {generated_at:%d/%m/%Y %H:%M:%S} UTC · "
+            "atualização institucional: não disponível"
+        )
+        if overview.status not in {OverviewStatus.VALID, OverviewStatus.PARTIAL}:
             st.info(overview.narrative)
             return
+        if overview.status == OverviewStatus.PARTIAL:
+            st.warning("Parcial — composição calculada; fonte de Horas Reais indisponível.")
 
-        st.metric(
-            "Quantidade de docentes",
-            overview.total,
-            help=f"Contagem de {UNIT_LABEL} no cadastro atual, como o cartão do painel.",
-        )
+        render_faculty_metric(overview)
         st.markdown(overview.narrative)
-        with st.expander(f"Avisos e limitações · {len(overview.warnings)}", expanded=True):
+        with st.expander(f"Avisos e limitações · {len(overview.warnings)}", expanded=False):
             for text in overview.warnings:
                 st.warning(text)
 
-        chart_columns = st.columns(2, gap="large")
-        breakdowns = (
-            ("Por quadro", "Quadro", overview.by_cadre),
-            ("Por categoria funcional", "Categoria funcional", overview.by_category),
-        )
-        for column, (title, label, items) in zip(chart_columns, breakdowns, strict=True):
-            with column:
-                figure = horizontal_bars(
-                    items, title=title, unit=UNIT_LABEL.capitalize(), branding=branding
-                )
-                st.pyplot(figure, width="stretch")
-                plt.close(figure)
-                st.table(pd.DataFrame(items, columns=[label, "Matrículas"]))
-        st.caption(
-            "Por quadro conta matrículas distintas; por categoria conta linhas do cadastro "
-            "com matrícula, como os visuais do painel. Barras não são somadas entre si."
-        )
+        render_composition(overview, branding, prefix="overview")
+        render_faculty_details(overview)
 
-        st.subheader("Geral e QP")
-        st.table(
-            pd.DataFrame(
-                [
-                    {"Resultado": "Geral", "Valor": str(overview.total), "Situação": "Calculado"},
-                    {"Resultado": "QP", "Valor": "—", "Situação": "Bloqueado"},
-                    {"Resultado": "Demais", "Valor": "—", "Situação": "Bloqueado"},
-                    {"Resultado": "Participação do QP", "Valor": "—", "Situação": "Bloqueado"},
-                ]
-            )
-        )
-        st.info(QP_BLOCK_REASON)
-
-        with st.expander("Lista de conferência (dados fictícios)"):
-            _show_records([asdict(row) for row in overview.detail], dict(DETAIL_COLUMNS))
-            st.caption(
-                "Horas Reais: soma do semestre mais recente de cada matrícula na fonte "
-                "própria, sem substituir por carga contratada ou horas de disciplinas."
-            )
-
-        generated_at = datetime.now(UTC)
         stem = f"vrac-r01-{overview.department}-{generated_at:%Y%m%d-%H%M%S}"
         download_columns = st.columns(2)
         with download_columns[0]:

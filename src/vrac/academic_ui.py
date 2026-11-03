@@ -1,6 +1,6 @@
 """Tela fechada dos roteiros acadêmicos calculados na demonstração local."""
 
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from datetime import UTC, datetime
 
 import pandas as pd
@@ -14,15 +14,27 @@ from vrac.analyses.academic import (
     CalculatedAnalysis,
     calculate,
 )
-from vrac.analyses.academic_data import ALL_DEPARTMENTS, AcademicSource
+from vrac.analyses.academic_data import AcademicSource
 from vrac.analyses.academic_export import report_zip, summary_table, table_csv
 from vrac.analyses.academic_quality import inspect_source
 from vrac.analyses.export import detail_csv, summary_csv
-from vrac.analyses.faculty_overview import OverviewFilters, compute_overview
+from vrac.analyses.faculty_overview import OverviewFilters, compute_overview, filter_options
 from vrac.branding import Branding
-from vrac.charts import academic_chart, figure_png, horizontal_bars
-from vrac.demo_data import DemoDataError, DemoOptions, load_academic_source
+from vrac.charts import academic_chart, figure_png
+from vrac.demo_data import (
+    DemoDataError,
+    DemoOptions,
+    load_academic_source,
+    load_department_hierarchy,
+)
+from vrac.faculty_presentation import (
+    render_composition,
+    render_faculty_details,
+    render_faculty_metric,
+)
+from vrac.organisation_ui import organisation_filters
 from vrac.settings import Settings
+from vrac.web_charts import interactive_chart
 
 ALL_ANALYSES = "Todos os roteiros (R01–R06)"
 
@@ -75,10 +87,13 @@ def _filters(source: AcademicSource) -> AnalysisFilters:
             index=len(periods) - 1,
             key="suite_workload_period",
         )
+    from vrac.analyses.faculty_overview import NOT_INFORMED
+
     cadres = {
-        r.cadre for r in (*source.faculty.register, *source.history, *source.workloads) if r.cadre
+        r.cadre or NOT_INFORMED
+        for r in (*source.faculty.register, *source.history, *source.workloads)
     }
-    categories = {r.category for r in (*source.faculty.register, *source.history) if r.category}
+    categories = {r.category or NOT_INFORMED for r in (*source.faculty.register, *source.history)}
     with st.expander("Filtros docentes e grupo de comparação", expanded=False):
         staff_cadres = _pick("Quadros docentes", cadres, "suite_cadres")
         staff_categories = _pick("Categorias funcionais", categories, "suite_categories")
@@ -102,6 +117,7 @@ def _filters(source: AcademicSource) -> AnalysisFilters:
             "Seus quadros ficam registrados nos filtros e nas exportações. Na R03, o filtro "
             "de quadros controla as séries exibidas e preserva o total; "
             "na R04/R05 filtra a população."
+            " Na R02, Quadros docentes não recorta o geral: use o grupo QP para a comparação."
         )
     with st.expander("Filtros acadêmicos", expanded=False):
         student_rows = (*source.students, *source.student_history)
@@ -140,7 +156,7 @@ def _filters(source: AcademicSource) -> AnalysisFilters:
 
 
 def _render_result(
-    result: CalculatedAnalysis, branding: Branding, generated_at: datetime
+    result: CalculatedAnalysis, branding: Branding, generated_at: datetime, *, prefix: str = "suite"
 ) -> dict[str, bytes]:
     st.subheader(result.title)
     st.caption(f"{result.kind} · Situação: {result.status} · Origem: {result.source}")
@@ -168,7 +184,28 @@ def _render_result(
             continue
         figure = academic_chart(result, specification, branding)
         png = figure_png(figure)
-        st.pyplot(figure, width="stretch")
+        if result.kind == AnalysisKind.STUDENTS:
+            st.pyplot(figure, width="stretch")
+        else:
+            with st.container(border=True):
+                st.markdown(f"**{specification.title}**")
+                st.altair_chart(
+                    interactive_chart(result, specification, branding),
+                    width="stretch",
+                    theme=None,
+                    key=f"{prefix}_{result.kind}_chart_{index}",
+                )
+                st.caption(
+                    "Passe o cursor para valor, referência e unidade. Clique na legenda para "
+                    "destacar séries (Shift permite várias); clique novamente para limpar. "
+                    "O destaque não altera filtros, totais, tabelas ou downloads."
+                )
+                if specification.kind == "stacked_bar":
+                    st.warning(
+                        "As barras empilham presenças por quadro, com possível sobreposição. "
+                        "A altura da pilha não é o total de pessoas distintas; consulte o "
+                        "gráfico do total e a tabela da mesma competência ou semestre."
+                    )
         plt.close(figure)
         filename = f"{result.kind}/grafico-{index + 1}.png"
         images[filename] = png
@@ -177,7 +214,7 @@ def _render_result(
             png,
             file_name=f"vrac-{result.kind}-grafico-{index + 1}.png",
             mime="image/png",
-            key=f"suite_{result.kind}_png_{index}",
+            key=f"{prefix}_{result.kind}_png_{index}",
         )
     for table in (summary_table(result), *result.tables):
         with st.expander(
@@ -189,7 +226,7 @@ def _render_result(
                 table_csv(result, table, generated_at),
                 file_name=f"vrac-{result.kind}-{table.key}.csv",
                 mime="text/csv",
-                key=f"suite_{result.kind}_{table.key}_csv",
+                key=f"{prefix}_{result.kind}_{table.key}_csv",
             )
     return images
 
@@ -202,49 +239,53 @@ def _render_overview(
         return {
             "R01/indisponivel.txt": b"DEMONSTRACAO: cadastro docente indisponivel; sem resultado."
         }
-    result = compute_overview(
-        source.faculty,
-        OverviewFilters(
-            frozenset(filters.cadres) if filters.cadres else None,
-            frozenset(filters.categories) if filters.categories else None,
-        ),
+    requested = OverviewFilters(
+        frozenset(filters.cadres) if filters.cadres else None,
+        frozenset(filters.categories) if filters.categories else None,
     )
+    # O formulário compartilhado inclui domínios históricos: valores sem cadastro
+    # atual correspondem a nenhuma linha da R01, sem bloquear outros roteiros.
+    options = filter_options(source.faculty)
+    effective = OverviewFilters(
+        requested.cadres & set(options.cadres) if requested.cadres is not None else None,
+        requested.categories & set(options.categories)
+        if requested.categories is not None
+        else None,
+    )
+    result = replace(compute_overview(source.faculty, effective), filters=requested)
+    if requested != effective:
+        st.info(
+            "R01: seleções sem correspondência no cadastro atual não acrescentam vínculos. "
+            "O histórico mantém seu domínio e sua referência próprios."
+        )
     st.subheader("R01 · Situação geral do departamento")
+    if result.status == "partial":
+        st.warning("Parcial — composição calculada; fonte de Horas Reais indisponível.")
+    st.caption(
+        "Referência: cadastro atual; categoria e departamento contam linhas com matrícula; "
+        "total e quadro contam matrículas funcionais distintas. Horas Reais: "
+        "maior semestre por vínculo. Atualização da fonte: não disponível."
+    )
     st.write(result.narrative)
     if result.total is not None:
-        st.metric("Matrículas funcionais distintas no cadastro", result.total)
+        render_faculty_metric(result)
     for note in result.warnings:
         st.caption(note)
     files = {
         "R01/resumo.csv": summary_csv(result, generated_at),
         "R01/lista-conferencia.csv": detail_csv(result, generated_at),
     }
-    if result.by_cadre:
-        figure = horizontal_bars(
-            result.by_cadre,
-            title="Composição por quadro",
-            unit="Matrículas funcionais distintas",
-            branding=branding,
-        )
-        figure.text(
-            0.01,
-            0.01,
-            "DEMONSTRAÇÃO — DADOS SINTÉTICOS",
-            fontsize=7,
-            family=branding.tokens["typography"]["body_family"],
-        )
-        figure.tight_layout(rect=(0, 0.06, 1, 1))
-        png = figure_png(figure)
-        files["R01/grafico-quadro.png"] = png
-        st.pyplot(figure, width="stretch")
-        plt.close(figure)
-        st.download_button(
-            "Baixar gráfico de composição (PNG)",
-            png,
-            file_name="vrac-R01-composicao.png",
-            mime="image/png",
-            key="suite_r01_png",
-        )
+    files.update(render_composition(result, branding, prefix="suite_r01"))
+    render_faculty_details(result)
+    for name, data in tuple(files.items()):
+        if name.endswith(".csv"):
+            st.download_button(
+                "Baixar " + name.removeprefix("R01/"),
+                data,
+                file_name="vrac-" + name.replace("/", "-"),
+                mime="text/csv",
+                key="suite_" + name,
+            )
     st.caption(
         "A referência da R01 é o cadastro atual. A R02 trata separadamente o grupo QP simulado."
     )
@@ -257,11 +298,22 @@ def workbench(settings: Settings, branding: Branding, options: DemoOptions) -> N
         "Carregue a base sintética e calcule um roteiro ou os seis em conjunto. "
         "Todos os resultados e arquivos permanecem identificados como demonstração."
     )
-    names = {f"{key} · {value}": key for key, value in TITLES.items()}
+    names = {
+        "R01 · Situação geral do departamento": "R01",
+        **{f"{key} · {value}": key for key, value in TITLES.items()},
+    }
     selected = st.selectbox("Análise", (ALL_ANALYSES, *names), key="suite_analysis")
-    departments = tuple(dict.fromkeys((*options.departments, "SINT-VAZIO", ALL_DEPARTMENTS)))
-    department = st.selectbox("Departamento das análises", departments, key="suite_department")
-    source_key = (settings.demo_source, department)
+    try:
+        hierarchy = load_department_hierarchy(settings)
+    except DemoDataError as error:
+        _clear(source=True)
+        st.error(str(error))
+        return
+    scope = organisation_filters(
+        hierarchy, prefix="suite", department_label="Departamento das análises"
+    )
+    department = scope.department
+    source_key = (settings.demo_source, scope)
     if st.session_state.get("suite_source_key") != source_key:
         _clear(source=True)
         st.session_state["suite_source_key"] = source_key
@@ -270,7 +322,7 @@ def workbench(settings: Settings, branding: Branding, options: DemoOptions) -> N
         try:
             with st.spinner("Lendo as fontes sintéticas..."):
                 st.session_state["suite_source"] = load_academic_source(
-                    settings, department=department
+                    settings, **scope.source_arguments
                 )
                 st.session_state["suite_loaded_at"] = datetime.now(UTC)
         except (DemoDataError, ValueError) as error:
@@ -316,7 +368,11 @@ def workbench(settings: Settings, branding: Branding, options: DemoOptions) -> N
     if st.button("Calcular análises selecionadas", type="primary", key="suite_run"):
         try:
             with st.spinner("Calculando os roteiros..."):
-                kinds = tuple(AnalysisKind) if selected == ALL_ANALYSES else (names[selected],)
+                kinds = (
+                    tuple(AnalysisKind)
+                    if selected == ALL_ANALYSES
+                    else (() if names[selected] == "R01" else (names[selected],))
+                )
                 results = tuple(calculate(kind, source, filters) for kind in kinds)
                 st.session_state["suite_results"] = results
                 st.session_state["suite_result_key"] = key
@@ -331,7 +387,9 @@ def workbench(settings: Settings, branding: Branding, options: DemoOptions) -> N
     generated_at = st.session_state["suite_generated"]
     st.subheader("Resultados calculados")
     descriptions = {
+        "Centro": scope.center,
         "Departamento": department,
+        "Departamentos efetivos": ", ".join(scope.departments),
         "Origem": source.faculty.source,
         "Referência inicial": filters.first_period,
         "Referência final": filters.last_period,
@@ -348,10 +406,11 @@ def workbench(settings: Settings, branding: Branding, options: DemoOptions) -> N
     st.table(pd.DataFrame([{"Filtro": key, "Valor": value} for key, value in descriptions.items()]))
     st.caption(
         f"Versão dos dados: {source.faculty.version} · snapshot {source.fingerprint[:12]} · "
-        f"cálculo {generated_at:%d/%m/%Y %H:%M:%S} UTC"
+        f"extração {loaded_at:%d/%m/%Y %H:%M:%S} UTC · "
+        f"cálculo {generated_at:%d/%m/%Y %H:%M:%S} UTC · atualização da fonte: não disponível"
     )
-    all_selected = selected == ALL_ANALYSES
-    labels = (["R01 · Situação geral"] if all_selected else []) + [
+    show_overview = selected == ALL_ANALYSES or names.get(selected) == "R01"
+    labels = (["R01 · Situação geral"] if show_overview else []) + [
         f"{r.kind} · {r.title}" for r in results
     ]
     tabs = st.tabs(labels)
@@ -362,10 +421,10 @@ def workbench(settings: Settings, branding: Branding, options: DemoOptions) -> N
     files["conferencias-programadas.csv"] = quality.to_csv(
         index=False, sep=";", na_rep="ausente"
     ).encode("utf-8-sig")
-    if all_selected:
+    if show_overview:
         with tabs[0]:
             files.update(_render_overview(source, filters, branding, generated_at))
-    for tab, result in zip(tabs[1:] if all_selected else tabs, results, strict=True):
+    for tab, result in zip(tabs[1:] if show_overview else tabs, results, strict=True):
         with tab:
             images.update(_render_result(result, branding, generated_at))
     st.download_button(

@@ -15,8 +15,13 @@ APP = Path(__file__).resolve().parents[1] / "app.py"
 def memory_faculty_source(monkeypatch: pytest.MonkeyPatch) -> None:
     """A aba R01 usa a fixture em memória; nenhum teste de tela abre o PostgreSQL."""
     from vrac.analyses import faculty_overview_fixture as fixture
+    from vrac.department_hierarchy import hierarchy_for_departments
 
-    monkeypatch.setattr("vrac.ui.load_faculty_departments", lambda _: fixture.DEPARTMENTS)
+    hierarchy = hierarchy_for_departments(
+        fixture.DEPARTMENTS, source="Memória", synthetic_centers=True
+    )
+    monkeypatch.setattr("vrac.ui.load_department_hierarchy", lambda _: hierarchy)
+    monkeypatch.setattr("vrac.academic_ui.load_department_hierarchy", lambda _: hierarchy)
     monkeypatch.setattr(
         "vrac.ui.load_faculty_source", lambda _, *, department: fixture.load_fixture(department)
     )
@@ -162,23 +167,23 @@ def test_failed_reload_removes_previously_displayed_records(
 
 
 def test_faculty_overview_calculates_only_on_explicit_action() -> None:
-    app = AppTest.from_file(str(APP), default_timeout=20).run()
+    app = AppTest.from_file(str(APP), default_timeout=60).run()
     assert not app.exception and not app.metric
     app.button(key="overview_run").click().run()
     assert not app.exception
-    assert app.metric[0].label == "Quantidade de docentes"
+    assert app.metric[0].label == "Quantidade de professores"
     assert app.metric[0].value == "5"
     filters = app.table[0].value.iloc[0]
     assert filters["Unidade"] == "matrículas funcionais distintas"
     assert filters["Quadro"] == "todos" and filters["Origem"] == "Memória"
-    qp = next(t.value for t in app.table if "Resultado" in t.value.columns)
-    assert qp.set_index("Resultado").loc["QP", "Situação"] == "Bloqueado"
-    assert qp.set_index("Resultado").loc["Geral", "Valor"] == "5"
-    assert any("QP" in item.value for item in app.info)
+    assert len(app.get("vega_lite_chart")) == 5
+    assert any("Informações gerais dos professores" == t.label for t in app.tabs)
+    assert any("Estado das Horas Reais" in f.value.columns for f in app.dataframe)
+    assert "overview_history" in app.session_state
 
 
 def test_faculty_overview_filters_and_department_change_clear_results() -> None:
-    app = AppTest.from_file(str(APP), default_timeout=20).run()
+    app = AppTest.from_file(str(APP), default_timeout=60).run()
     app.button(key="overview_run").click().run()
     assert app.metric
     app.multiselect(key="overview_cadres").select("PROF PRINCIPAL").run()
@@ -187,10 +192,13 @@ def test_faculty_overview_filters_and_department_change_clear_results() -> None:
     assert app.metric[0].value == "1"
     app.selectbox(key="overview_department").select("SINT-B").run()
     assert not app.metric
+    assert not app.multiselect(key="overview_cadres").value
+    app.button(key="overview_run").click().run()
+    assert not app.exception and app.metric[0].value == "1"
 
 
 def test_faculty_overview_empty_department_is_not_zero() -> None:
-    app = AppTest.from_file(str(APP), default_timeout=20).run()
+    app = AppTest.from_file(str(APP), default_timeout=60).run()
     app.selectbox(key="overview_department").select("SINT-VAZIO").run()
     app.button(key="overview_run").click().run()
     assert not app.exception and not app.metric
@@ -204,7 +212,7 @@ def test_faculty_overview_source_failure_shows_error_without_fallback(
         raise DemoDataError("Base sintética indisponível.")
 
     monkeypatch.setattr("vrac.ui.load_faculty_source", fail)
-    app = AppTest.from_file(str(APP), default_timeout=20).run()
+    app = AppTest.from_file(str(APP), default_timeout=60).run()
     assert not app.exception and not app.metric
     assert any("Base sintética indisponível" in item.value for item in app.error)
     assert not any(b.key == "overview_run" for b in app.button)

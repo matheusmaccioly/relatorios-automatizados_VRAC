@@ -89,6 +89,15 @@ def test_six_workflows_are_linked_to_the_three_existing_families() -> None:
     assert get_workflow(WorkflowId.FUNCTIONS).phase == "encaixe_pendente"
 
 
+def test_institutional_pending_records_do_not_block_synthetic_prompt3() -> None:
+    catalog = load_catalog()
+    assert phase3_blockers(catalog, mode=DataMode.SYNTHETIC) == ()
+    assert "mapeamento_fisico_docente" in phase3_blockers(catalog, mode=DataMode.REAL)
+    assert phase3_blockers(catalog) == phase3_blockers(catalog, mode=DataMode.REAL)
+    with pytest.raises(ContractError):
+        phase3_blockers(catalog, mode="synthetic")
+
+
 @pytest.mark.parametrize("identifier", list(WorkflowId))
 @pytest.mark.parametrize("mode", list(DataMode))
 def test_proposed_metrics_never_silently_become_executable(identifier, mode) -> None:

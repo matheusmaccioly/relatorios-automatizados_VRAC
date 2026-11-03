@@ -1,5 +1,118 @@
 # Plano de desenvolvimento
 
+## Prompt 4b · carga horária — 03/11/2026
+
+Parcela offline conferida; execução PostgreSQL sintético e confirmação humana
+pendentes. [Conciliação, limites e execução](guides/PROMPT4B_CARGA.md). A 4a
+permanece concluída por aceite de Matheus. Sem início do Prompt 5 ou publicação.
+
+## Prompt 4a · conferência de matrículas — 03/11/2026
+
+**Concluída no escopo sintético por aceite de Matheus**, que confirmou nesta
+conversa: “tudo validado por mim e conciliado”. Próximo incremento: **4b, carga
+horária**, a executar em solicitação própria. Esta atualização registra o aceite;
+não inicia a 4b nem publica a aplicação.
+
+Execução técnica anterior pelo agente:
+
+Executado somente o incremento de matrículas na parcela offline. R06 existente
+reutilizada; corrigidos detalhe de formados por código e situação da variação
+com atual ausente. [Registro, conciliação e comandos](guides/PROMPT4A_MATRICULAS.md).
+38 cenários/2.612 comparações na fixture contra SQL independente em SQLite, sem
+divergência. Testes offline não comprovam leitura efetiva de PostgreSQL.
+
+Preparada conferência manual com SQL fixo parametrizado, total e curso, mesmas
+fontes/filtros/transação REPEATABLE READ e identificação do snapshot. Conciliação
+posteriormente confirmada por Matheus; o agente não executou essa rotina nem
+inspecionou relatório adicional. Sem recarga, recriação ou alteração de
+TLS. Talita revisa uso; DSI/DBA ficam para a etapa institucional final (D-028).
+4b e outros prompts não iniciados neste incremento; sem publicação automática.
+
+## Complemento docente solicitado pelas capturas — 03/11/2026
+
+Implementado o ajuste da interface docente no escopo sintético autorizado: aba
+Análise docente com composição R01, dois gráficos mensais R03 e listas geral/CH;
+departamento e quadro em barras verticais amarelas dos tokens, categoria horizontal
+e rótulos de valores. Os filtros Centro > Departamento nas duas entradas restringem
+Todos os departamentos ao centro e invalidam resultados/arquivos após mudança.
+Centros da memória são fictícios; o mapeamento PostgreSQL continua pendente e usa
+Centro não informado. Não houve conexão a banco neste complemento.
+
+Regras/unidades preservadas, incluindo pessoas distintas por mês, zero somente em
+competência observada sem elegíveis, ausência sem valor e semestres janeiro–julho/
+agosto–dezembro. Consultar [STATUS](STATUS.md) para o resultado das verificações
+finais. A revisão no navegador foi bloqueada pela ferramenta por não conseguir
+verificar a URL no Windows. Matheus/Talita revisam uso e filtros; Matheus/responsável institucional revisam a identidade, ainda sem
+homologação. [Arquivos, comandos e limites](guides/PROMPT3_DOCENTES.md). Nenhuma
+outra fase iniciada nem publicação realizada; o conteúdo seguinte é histórico.
+
+## Prompt 3 docente — incremento de 03/11/2026
+
+Implementadas as lacunas concretas R01–R03 no adaptador sintético existente:
+composição por departamento, comparação geral/QP, histórico com total independente
+e estado Parcial por cobertura; apresentação Altair reutiliza tabelas R01–R05 e
+mantém PNG/CSV/ZIP. R06 e fórmulas de carga/funções preservados. Sem leitura de
+PostgreSQL/SQL Server nesta tarefa. [Matriz e evidências](guides/PROMPT3_DOCENTES.md).
+Revisão visual/interações dos gráficos no navegador ainda não comprovadas por
+bloqueio da automação Windows. Próximo trabalho depende de solicitação; não foram
+iniciados os Prompts 4–7 nem integração/autenticação/publicação.
+
+## Sequência vigente — base sintética até a etapa final — 03/11/2026
+
+Por orientação explícita de Matheus (D-028), usar o PostgreSQL sintético existente
+em todo o desenvolvimento e preparação. Conexão, diagnóstico, inventário,
+mapeamento físico e conferência institucionais ficam somente para a etapa final
+do projeto e deploy. O roteiro do Prompt 1 está preparado, mas sua execução real
+foi adiada; não constitui dependência para desenvolver os Prompts 2–5.
+
+| Momento | Trabalho restante | Origem/evidência |
+|---|---|---|
+| Desenvolvimento | Prompt 2 concluído no escopo sintético por código/fixture e testes offline; conferência PostgreSQL não executada por certificado ausente. Prompts 3–4: conferir fluxos docentes, matrículas e carga; Prompt 5 e feedback: finalizar verificações, exportações e uso | [Mapa R01–R06](operations/SYNTHETIC_SOURCE_MAP.md), catálogo e leitores existentes; próximos prompts somente quando solicitados |
+| Preparação da entrega | Prompt 7: versão, dependências e guia | Versão identificada como sintética; ambiente de deploy já existente |
+| Etapa final e deploy | Prompt 1 real pelo operador; depois completar mapa físico/leitura institucional, conferir resultados e realizar deploy no procedimento existente | Execução humana autorizada, retorno sanitizado e verificações institucionais efetivamente registradas |
+| Após deploy | Conferir fluxo entregue e registrar pendências | Origem/versão realmente utilizadas, sem presumir equivalência com a fixture |
+
+No Todoist, as 11 tarefas foram mantidas: diagnóstico/inventário real transferido
+de 03/11 para 12/11 na seção final, após a preparação da versão e antes do deploy.
+As demais datas de trabalho permanecem. Prompt 2 deixa de depender do Prompt 1
+institucional; nenhuma tarefa foi concluída por essa mudança de sequência.
+Meta pessoal e reserva permanecem, sem garantia de que a integração final não
+revele lacunas. Autenticação e assuntos relacionados continuam com o time.
+Esta diretriz prevalece sobre dependências institucionais antecipadas nos registros
+anteriores. Não inicia implementação de outro prompt nem autoriza conexão/deploy.
+
+## Execução operacional por prompts — 02/11/2026
+
+Por orientação de Matheus, o controle das próximas ações está em
+[11 tarefas no Todoist](https://app.todoist.com/app/project/6hvgC82GJR7Fgc9R),
+com link para o trecho correspondente do
+[guia de prompts](references/Guia_Desenvolvimento_VRAC_Codex.md), ponto de partida,
+trabalho restante e resultado esperado. Este plano substitui a organização inicial
+de 25 tarefas com reuniões e encaminhamentos institucionais detalhados.
+
+- Prompt 2: completar o mapa lógico e o catálogo na base sintética; execução real
+  do Prompt 1 adiada para a etapa final conforme D-028.
+- Prompt 3 e incrementos 4a/4b: concluir os fluxos e conferências sintéticos de
+  docentes, matrículas e carga, preservando os cálculos já implementados.
+- Prompt 5: completar modos das verificações, conferir exportações e concluir
+  feedback; prompt de feedback: ajustes concretos e revisão técnica final.
+- Prompt 7: preparar versão/guia; na etapa final executar o Prompt 1 real,
+  completar a integração/conferência institucional, realizar o deploy em uma
+  tarefa geral e conferir o fluxo entregue no ambiente já disponível.
+
+Prompt 0 já concluído. **Prompt 6, autenticação e assuntos relacionados são do
+time de desenvolvimento**, sem tarefas de implementação correspondentes para
+Matheus. Usar a integração entregue pelo time quando disponível; não criar novas
+etapas de provisionamento ou reuniões obrigatórias por incremento. Questões
+externas serão encaminhadas por Matheus ao longo do trabalho, registrando somente
+o efeito concreto sobre a execução. Isso não declara controles de acesso testados
+nem permite uso real sem esses controles.
+
+Datas de trabalho: 03–13/11/2026; meta pessoal de entrega em 13/11, com 14–15/11
+como reserva e sem deadline institucional. O planejamento não executa prompts,
+não avança fases nem autoriza publicação automaticamente. Diretrizes atuais de
+Matheus e D-022/D-027 prevalecem sobre trechos históricos dos prompts.
+
 ## Entrega atual — todos os roteiros sintéticos, 30/10/2026
 
 D-027 registra a autorização de Matheus para implementar todos os roteiros já
@@ -60,13 +173,29 @@ Antes do encerramento, registrar comandos de instalação, execução e validaç
 
 ## Fase 1 — preparação técnica e execução pelo operador
 
+**D-028 — 03/11/2026:** ferramentas preparadas; execução institucional adiada para
+a etapa final e deploy. Não exigir a configuração/saída real para os incrementos
+sintéticos. O parágrafo seguinte registra detalhes técnicos para esse momento futuro.
+
 As ferramentas manuais de configuração, conexão, diagnóstico e inventário estão implementadas. Consultas fixas usam parâmetros vinculados, limites por schema e timeouts. Em 28/10/2026, Matheus confirmou SQL Server, servidor KAPPA e banco PUC_OLAP, informou usuário criado e declarou autorizados os schemas necessários à aplicação. Porta TCP e lista nominal dos schemas ainda não estão disponíveis; autenticação, driver e permissões efetivas também precisam ser registrados. Saídas privadas ficam fora do workspace e mensagens de erro são sanitizadas.
 
-O [roteiro de descoberta](operations/DATABASE_DISCOVERY.md) contém comandos, revisão de privilégios e interpretação das limitações. O [dicionário sanitizado](operations/SANITIZED_DATA_DICTIONARY.md) define o material autorizado esperado antes da fase 2. Consultas de qualidade/cardinalidade são apenas templates e não podem ser executadas pela CLI.
+O [roteiro de descoberta](operations/DATABASE_DISCOVERY.md) contém comandos, revisão de privilégios e interpretação das limitações. O [dicionário sanitizado](operations/SANITIZED_DATA_DICTIONARY.md) define o material autorizado para o mapeamento institucional na etapa final, sem dependência para o Prompt 2 sintético. Consultas de qualidade/cardinalidade institucionais são apenas templates e não podem ser executadas pela CLI.
 
 **Conexão e inventário institucionais: NÃO VALIDADOS.** A preparação de código não satisfaz o critério humano de passagem da fase 1. O operador deve executar os comandos em ambiente autorizado, o DBA confirmar escopos e privilégios de leitura e Matheus liberar somente material sanitizado. Nenhum resultado real foi inventado.
 
 ## Fase 2 — catálogo e contratos lógicos
+
+**Prompt 2 atual — 03/11/2026:** mapa lógico/sintético concluído para R01–R06,
+com campos, tipos, chaves, deduplicação, relações, unidades, temporalidade e evidências
+em [SYNTHETIC_SOURCE_MAP.md](operations/SYNTHETIC_SOURCE_MAP.md). Catálogo
+`phase2-synthetic-map-v5` distingue implementação conferida offline de fonte
+institucional pendente. Leitura PostgreSQL não conferida nesta revisão: certificado
+local ausente; sem fallback ou mudança de TLS. Prompt 3 poderá reutilizar R01,
+leitores/consultas, fixtures e testes, sem depender de inventário real ou reaprovação
+das fórmulas documentadas. Não iniciado nesta tarefa. A API `phase3_blockers` separa
+modo sintético de modo real, cujo bloqueio permanece. Os parágrafos seguintes são
+**histórico da preparação de 28/10**, substituídos por D-022/D-027/D-028 quando houver
+conflito com o escopo atual; não são condições adicionais para o Prompt 3 sintético.
 
 Complemento implementado em 28/10: contratos dos seis roteiros, validação de filtros
 e pontos temporais, dependências por métrica e resultados com estados independentes.
@@ -108,8 +237,8 @@ integração validada nem iniciar implementação real ou a fase 3 automaticamen
 
 | Fase e estado | Próximo incremento executável | Evidência necessária para avançar | Validação |
 |---|---|---|---|
-| 1 — ferramentas preparadas; validação institucional pendente | SQL Server e destino informados por Matheus; obter porta, lista nominal dos schemas, autenticação e driver, então executar diagnóstico fora da sessão do agente | Matheus registra conexão no ambiente autorizado; DBA confirma conta de leitura e objetos permitidos; material sanitizado aprovado fica disponível | Matheus + DBA; DSI para rede/TLS |
-| 2 — contratos preparados; validação humana pendente | Catálogo e contratos sintéticos entregues; obter dicionário sanitizado e validar primeiro a composição docente | Definição, fonte, recorte temporal, chaves e exemplo de referência aprovados; pendências bloqueiam apenas o resultado afetado | Talita + responsável pelas fontes/DBA + Matheus |
+| 1 — ferramentas preparadas; institucional somente na etapa final | Executar roteiro real pelo operador naquele momento; não é tarefa imediata | Conexão, escopo, privilégios e retorno sanitizado efetivamente registrados | Matheus + DBA; DSI/time para acesso/TLS |
+| 2 — mapa lógico/sintético concluído; institucional pendente | Reutilizar mapa, contratos e leitores no próximo prompt solicitado; futura conferência PG depende de restaurar certificado sintético | Testes offline e observação da receita registrados; nenhuma origem real confirmada, sem nova aprovação geral de fórmulas | Matheus no desenvolvimento; DBA/DSI somente na integração final |
 | 3 — implementada em demonstração sintética (D-027) | R01, comparação QP configurável e presença semestral disponíveis; avançar a integração somente com fontes físicas autorizadas | Testes offline e conferências na fixture; composição institucional de QP permanece lacuna específica | Matheus + Talita para uso; DBA/DSI para origem real |
 | 4a — implementada em demonstração sintética (D-027) | Quatro séries acadêmicas, filtros por curso, ausências, variações e exportações; nenhuma equivalência automática | Comparação com SQL independente na fixture; ingresso futuro, bolsas repetidas e base zero cobertos | Matheus + Talita para uso; fonte institucional antes do modo real |
 | 4b — implementada em demonstração sintética (D-027) | Horas Reais, contratada, indicador literal e alocações separados; comparação apenas em unidades sintéticas declaradas | Conferência com fonte dedicada; zeros/nulos e semáforo testados; sem rateio ou substituição por disciplinas | Matheus + Talita para uso; unidade institucional permanece específica |
@@ -145,8 +274,8 @@ Cada análise deve ser testável sem Streamlit. A suíte padrão permanece offli
 |---|---|---|
 | Confirmar repositório privado autorizado e política de compartilhamento com o agente | Matheus + responsável institucional | Antes de compartilhar material interno |
 | SGBD, autenticação, rede, TLS, fontes e privilégios de leitura | Matheus + DBA/DSI | Fase 1 |
-| Definição de composição docente e caso de referência sanitizado | Talita + responsável pelas fontes | Fase 2 |
-| Semântica de matrículas, equivalências de cursos e regras de carga | Talita + responsável pelas fontes | Antes de cada incremento da fase 4 |
+| Mapeamento e conferência de composição docente real; reproduzir regras documentadas | Matheus + responsável pelas fontes/DBA | Etapa final, sem reaprovação geral de fórmulas ou dependência para o sintético |
+| Equivalências vigentes, unidade de carga e lacunas concretas da fonte real | Matheus + responsável pelas fontes/DBA | Somente resultado afetado na integração final; simulações explícitas disponíveis |
 | Servidor, identidade institucional, autorização e conta técnica | DSI + DBA | Solicitar desde a fase 0; concluir antes do acesso real autônomo |
 | Limiar das verificações, retenção e uso de SQLite operacional | Talita + DSI + Matheus | Fase 5, conforme decisão |
 | Canal de suporte, operador e autorização de publicação | DSI + responsável pelo piloto | Fases 6 e 7 |

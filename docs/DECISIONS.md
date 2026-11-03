@@ -4,6 +4,65 @@ Registro iniciado em 26/10/2026. “Adotada para a fundação” descreve uma de
 
 ## Decisões
 
+**Aceite do Prompt 4a — 03/11/2026:** Matheus declarou nesta conversa “tudo validado
+por mim e conciliado”. Encerrar a 4a no escopo sintético com essa confirmação
+humana e manter a 4b (carga horária) como próximo incremento, sem iniciá-la nesta
+atualização. A declaração não é nova execução PostgreSQL pelo agente, evidência
+de uma saída específica da rotina, homologação institucional ou aceite de Talita.
+Preservar testes offline e limitações registrados; sem nova aprovação geral das
+fórmulas ou antecipação da integração institucional.
+
+**Registro técnico do Prompt 4a — 03/11/2026:** aplicado o escopo solicitado de
+matrículas, sob D-022/D-027/D-028. Nenhuma nova regra analítica aprovada ou exigida.
+Correções limitadas ao detalhe FR/TD no recorte do código do curso e à descrição
+da variação com atual ausente. Conferência offline separada de leitura PostgreSQL,
+que fica para execução explícita pelo desenvolvedor. Referência independente e
+leitor existente devem compartilhar transação/snapshot; não usar números antigos
+da documentação como prova da base. Bolsas por departamento continuam sem vigência
+temporal e Centro permanece não informado sem relação explícita. Sem carga/recriação
+de banco, relaxamento de TLS, avanço para 4b ou publicação.
+[Evidências e limitações](guides/PROMPT4A_MATRICULAS.md).
+
+**D-030 — interface docente solicitada por Matheus, 03/11/2026:** reproduzir os
+tipos de gráficos e os detalhes das seis capturas na aba Análise docente, com
+filtros dependentes Centro > Departamento. As capturas orientam a apresentação;
+nomes e números não viram dados de demonstração. R01 mantém suas unidades e
+Horas Reais da fonte dedicada; R03 acrescenta contagens distintas mensais,
+sem somar meses ou quadros para obter totais. A opção Todos os departamentos
+respeita o centro escolhido e os arquivos identificam o escopo efetivo.
+
+O contrato público PostgreSQL sintético não fornece relação de centros; exibir
+Centro não informado até o mapeamento estar disponível. Centros da fixture em
+memória são simulações explícitas para conferir a cascata, sem vínculo presumido
+com centros institucionais. Somente essa lacuna de filtro permanece limitada.
+Identidade usa os tokens locais já escolhidos; revisão institucional permanece
+pendente. Sem conexão a banco, alteração de fórmulas de carga ou publicação.
+[Arquivos, execução e limites](guides/PROMPT3_DOCENTES.md).
+
+**D-029 — Prompt 3, 03/11/2026:** apresentação web docente com Altair 6.3,
+dependência direta já existente no lock via Streamlit. Mesmas tabelas calculadas
+alimentam hover, destaque local de séries/barras e tabelas equivalentes; seleção
+visual não altera população, denominadores, totais ou exportações. Matplotlib
+permanece nos PNGs. Tokens/fontes locais, sem frontend ou serviço adicional.
+R03 mostra total distinto separado das pilhas de presenças por quadro, cuja
+sobreposição é explicitada. Escopo analítico R01–R03, reaproveitando R04/R05;
+R06 preservado. Sem conexão PostgreSQL/institucional nesta tarefa. Revisão visual
+dos gráficos no navegador não concluída por bloqueio da ferramenta de automação;
+nenhuma homologação presumida. [Evidências e roteiro](guides/PROMPT3_DOCENTES.md).
+
+**D-028 — orientação explícita de Matheus em 03/11/2026:** usar o PostgreSQL
+sintético existente durante o desenvolvimento e preparação da versão. Conexão,
+diagnóstico, inventário e integração/conferência institucionais somente na etapa
+final do projeto e deploy. O Prompt 1 real fica adiado; não bloqueia mapa
+lógico/sintético do Prompt 2 nem análises, verificações e feedback dos Prompts 3–5.
+Preservar ferramentas e testes offline já preparados, sem declarar execução ou
+conclusão institucional. No final, completar o mapa físico/leitor e conferir
+resultados no ambiente autorizado antes do uso real. Operador executa comandos
+reais fora da sessão do agente; manter TLS, validação de certificado, escopo e
+somente leitura. Autenticação e assuntos relacionados permanecem com o time de
+desenvolvimento. A mudança reorganiza o trabalho, sem autorizar conexão ou deploy
+agora, revalidar fórmulas documentadas ou converter evidência sintética em real.
+
 | ID | Estado | Decisão e motivo | Consequência |
 |---|---|---|---|
 | D-001 | Definida no guia | Aplicação interna sem LLM, chatbot, agentes ou geração dinâmica de SQL/Python | Não há dependência de inferência na operação; Codex apoia somente o desenvolvimento |
@@ -87,5 +146,6 @@ Use por impossibilidade de verificar a URL; nenhuma automação de navegador pos
 | Q-010 | Quem opera, atualiza, restaura e presta suporte ao piloto? | DSI + responsável pelo piloto | Operação não pode ser declarada pronta |
 | Q-011 | O repositório remoto é privado e autorizado? Quais materiais podem ser compartilhados no desenvolvimento com agente? | Matheus + responsável institucional | Manter apenas código e dados sintéticos; não presumir isolamento pela execução local |
 | Q-012 | Quais manual, logos, paleta, fontes, ícones, templates e variantes são oficiais para o sistema? Quem valida a aplicação visual? | Matheus + responsável institucional pela identidade visual | Materiais e aplicação visual pendentes; não declarar conformidade institucional |
+| Q-013 | Qual relação explícita entre Centro e Departamento deve ser exposta pela origem sintética e, na etapa final, pela origem institucional? | Matheus + responsável pela fonte; DBA na integração final | PostgreSQL mostra Centro não informado; a cascata em memória usa centros declaradamente fictícios. Nenhuma relação institucional é presumida |
 
 Ao resolver uma questão, registrar data, decisão, responsável pela validação e evidência sanitizada. Não substituir pendência por suposição nem registrar aprovação inexistente.

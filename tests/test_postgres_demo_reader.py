@@ -1,5 +1,6 @@
 """Leitor sintético simulado: parâmetros, autorização e falhas sem conexão de rede."""
 
+from contextlib import nullcontext
 from dataclasses import asdict
 from typing import Any
 
@@ -68,6 +69,9 @@ class Connection:
 
     def cursor(self) -> Cursor:
         return Cursor(self)
+
+    def transaction(self):
+        return nullcontext()
 
 
 @pytest.fixture

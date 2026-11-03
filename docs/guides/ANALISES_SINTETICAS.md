@@ -1,5 +1,12 @@
 # Usar as análises acadêmicas da demonstração
 
+Atualização docente do Prompt 3 — 03/11/2026: composição completa R01,
+comparação departamental R02 e histórico R03 têm gráficos web interativos,
+mantendo tabelas e arquivos. [Roteiro curto, unidades e evidências](PROMPT3_DOCENTES.md).
+Hover/destaque e responsividade dos gráficos no navegador ainda precisam de
+conferência manual; a automação Windows foi bloqueada por política de URLs.
+Não houve consulta PostgreSQL ou institucional nesta atualização.
+
 Atualizado em 30/10/2026. Os seis roteiros documentados estão disponíveis com
 dados inteiramente fictícios. A aplicação funciona com regras programadas, sem
 LLM ou geração dinâmica de consultas. Nenhum resultado tem validade institucional.
@@ -44,8 +51,8 @@ Os filtros efetivos acompanham os arquivos exportados.
 
 | Roteiro | Resultados e regra principal |
 |---|---|
-| R01 — situação geral | Matrículas funcionais distintas no cadastro, distribuição por quadro, linhas por categoria e lista de conferência, conforme os visuais do painel |
-| R02 — geral e QP | Geral, grupo selecionado, classificação ausente, demais e participação. O grupo QP é uma simulação configurável, pois a composição institucional não consta dos materiais |
+| R01 — situação geral | Matrículas funcionais distintas no cadastro e quadro; linhas com matrícula por categoria/departamento e lista de conferência, conforme os visuais do painel |
+| R02 — geral e QP | Geral, grupo selecionado, classificação ausente, demais e participação, também por departamento. O grupo QP é uma simulação configurável, pois a composição institucional não consta dos materiais |
 | R03 — histórico docente | Pessoas distintas na união das competências do semestre; séries por quadro, detalhe mensal e cobertura. Não soma meses para contar pessoas |
 | R04 — carga horária | Horas Reais da fonte dedicada, carga contratada, distribuições, indicador literal do painel e alocações em tabela separada. Diferença/razão somente com unidades compatíveis declaradas na simulação |
 | R05 — funções | Dupla função cadastral, registros de função, vínculos com evidência administrativa e sobreposição de vigências. Essas evidências não são equivalentes |
@@ -62,6 +69,15 @@ O ingresso futuro é excluído da população de matriculados. Bolsas repetidas 
 multiplicam bolsistas. O evento de formado vem do cadastro e de seu menor período
 FR/TD; HF não foi acrescentado. Ingressantes preservam a exceção documentada de
 dupla diplomação. Nenhuma renomeação de curso foi transformada em equivalência.
+
+Na R06, o detalhe de formados aplica FR/TD e o menor período no recorte de seu
+código de curso, como a seleção individual; o total é recalculado, sem somar cursos.
+O cadastro não representa todos os eventos históricos de formação. A projeção
+sintética de bolsas por departamento usa pares matrícula/departamento do histórico
+sem vigência por período; não reconstrói transferências. A conferência do
+[Prompt 4a](PROMPT4A_MATRICULAS.md) distingue resultados offline, rotina PostgreSQL
+não executada pelo agente e confirmação posterior de validação/conciliação por
+Matheus, que encerrou a 4a no escopo sintético.
 
 ## Ler ausências e simulações
 

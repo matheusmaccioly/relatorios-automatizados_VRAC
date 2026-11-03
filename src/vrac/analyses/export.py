@@ -52,8 +52,10 @@ def _header(overview: FacultyOverview, generated_at: datetime) -> list[list[obje
         ["Identificação", "Departamento", overview.department],
         ["Identificação", "Referência", "Cadastro atual"],
         ["Identificação", "Unidade", UNIT_LABEL],
+        ["Identificação", "Unidade por categoria e departamento", "linhas com matrícula"],
         ["Identificação", "Origem", overview.source],
         ["Identificação", "Versão dos dados", overview.version],
+        ["Identificação", "Snapshot", overview.fingerprint],
         ["Identificação", "Gerado em (UTC)", generated_at.strftime("%d/%m/%Y %H:%M:%S")],
     ]
     rows += [["Filtro", name, value] for name, value in describe_filters(overview.filters)]
@@ -63,12 +65,13 @@ def _header(overview: FacultyOverview, generated_at: datetime) -> list[list[obje
 
 def summary_csv(overview: FacultyOverview, generated_at: datetime) -> bytes:
     rows = _header(overview, generated_at)
-    if overview.status != OverviewStatus.VALID:
+    if overview.status not in {OverviewStatus.VALID, OverviewStatus.PARTIAL}:
         rows.append(["Resultado", "Situação", overview.narrative])
         return _write(rows)
     rows.append(["Resultado", "Total", overview.total])
     rows += [["Por quadro", label, count] for label, count in overview.by_cadre]
     rows += [["Por categoria funcional", label, count] for label, count in overview.by_category]
+    rows += [["Por departamento", label, count] for label, count in overview.by_department]
     rows += [
         ["Geral e QP", "Geral", overview.total],
         ["Geral e QP", "QP, demais e participação", "bloqueado — " + QP_BLOCK_REASON],
@@ -91,6 +94,7 @@ DETAIL_COLUMNS = (
     ("tenure_years", "Tempo de casa (anos)"),
     ("dual_role", "Dupla função"),
     ("extraordinary", "Vínculo extraordinário"),
+    ("hours_state", "Estado das Horas Reais"),
 )
 
 
