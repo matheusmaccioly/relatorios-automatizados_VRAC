@@ -66,7 +66,7 @@ set "VRAC_PYTHON_VERSION="
 set /p VRAC_PYTHON_VERSION=<".python-version"
 "%VRAC_UV%" python install "%VRAC_PYTHON_VERSION%"
 if errorlevel 1 exit /b 1
-"%VRAC_UV%" sync --locked --extra supabase %VRAC_SYNC_EXTRA%
+"%VRAC_UV%" sync --locked %VRAC_SYNC_EXTRA%
 if errorlevel 1 exit /b 1
 echo Ambiente preparado. Execute scripts\check.cmd e scripts\run-demo.cmd.
 exit /b 0

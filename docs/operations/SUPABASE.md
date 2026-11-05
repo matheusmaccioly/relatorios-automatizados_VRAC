@@ -35,7 +35,8 @@ Não houve mudança de fórmula, deduplicação ou agregação para transferir d
 .\scripts\run-demo.cmd
 ```
 
-O bootstrap instala o extra Supabase com SDK `2.34.0`, fixado em `uv.lock`.
+O SDK Supabase `2.34.0` é dependência principal, fixado em `uv.lock`: o Streamlit
+Community Cloud instala pelo lock, sem extras.
 O extra PostgreSQL é útil para manutenção/conferência da origem; a aplicação
 com Supabase não exige PostgreSQL local nem senha de banco. O launcher usa
 `127.0.0.1:8501`. Nesta entrega há uma instância local em

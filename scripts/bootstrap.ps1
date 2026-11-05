@@ -62,7 +62,7 @@ try {
     }
     & $VracUv python install $pythonVersion
     if ($LASTEXITCODE -ne 0) { throw 'Falha ao preparar o Python local.' }
-    $vracSyncArguments = @('sync', '--locked', '--extra', 'supabase')
+    $vracSyncArguments = @('sync', '--locked')
     if ($SqlServer) { $vracSyncArguments += @('--extra', 'sqlserver') }
     if ($Postgres) { $vracSyncArguments += @('--extra', 'postgres') }
     & $VracUv @vracSyncArguments

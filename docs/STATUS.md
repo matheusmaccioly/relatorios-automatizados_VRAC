@@ -1,5 +1,17 @@
 # Estado da entrega
 
+## Correção do deploy no Streamlit Community Cloud — 05/11/2026
+
+Matheus publicou no Streamlit Community Cloud e relatou app sem login, com dados
+diferentes do Supabase. Causas: sem variáveis, a origem padrão é `memory`; e o Cloud
+instala pelo `uv.lock`, onde `supabase` era extra opcional. O SDK virou dependência
+principal. As três variáveis `VRAC_*` são configuradas em Secrets no painel do Cloud.
+
+Simulação em ambiente limpo instalado pelo lock, sem extras e sem acesso ao Cloud:
+sem variáveis, 9 filtros e nenhum login; `production` + `supabase`, formulário de
+login; `production` + `memory`, bloqueado com erro. Login e cálculo no Cloud ainda
+não verificados. Decisão registrada em D-036.
+
 ## Envio do código ao GitHub — 05/11/2026
 
 A pedido de Matheus, o trabalho pendente foi enviado à branch

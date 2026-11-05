@@ -4,6 +4,13 @@ Registro iniciado em 26/10/2026. “Adotada para a fundação” descreve uma de
 
 ## Decisões
 
+**D-036 — hospedagem no Streamlit Community Cloud, Matheus, 05/11/2026:** Matheus publicou
+a demonstração sintética no Streamlit Community Cloud, em vez da Vercel avaliada antes.
+Secrets do painel definem somente `VRAC_ENVIRONMENT=production`, `VRAC_DATA_MODE=synthetic`
+e `VRAC_DEMO_SOURCE=supabase`, valores públicos; `production` impede a origem `memory`.
+O SDK Supabase passa a ser dependência principal, pois o Cloud instala pelo `uv.lock`.
+Não autoriza dados institucionais nem declara homologação. A Q-011 continua aberta.
+
 **D-035 — migração e autenticação Supabase, Matheus, 05/11/2026:** Matheus solicitou
 migrar dados, schemas e aplicação e configurar Supabase Auth. Autorizado transferir
 a base sintética existente ao projeto indicado, preservando o monólito Streamlit e

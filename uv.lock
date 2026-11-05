@@ -1166,6 +1166,7 @@ dependencies = [
     { name = "pandas" },
     { name = "pyyaml" },
     { name = "streamlit" },
+    { name = "supabase" },
 ]
 
 [package.optional-dependencies]
@@ -1175,9 +1176,6 @@ postgres = [
 sqlserver = [
     { name = "pyodbc" },
     { name = "sqlalchemy" },
-]
-supabase = [
-    { name = "supabase" },
 ]
 
 [package.dev-dependencies]
@@ -1196,9 +1194,9 @@ requires-dist = [
     { name = "pyyaml", specifier = ">=6.0.3,<7" },
     { name = "sqlalchemy", marker = "extra == 'sqlserver'", specifier = ">=2.0,<3" },
     { name = "streamlit", specifier = ">=1.66.1,<2" },
-    { name = "supabase", marker = "extra == 'supabase'", specifier = "==2.34.0" },
+    { name = "supabase", specifier = "==2.34.0" },
 ]
-provides-extras = ["sqlserver", "postgres", "supabase"]
+provides-extras = ["sqlserver", "postgres"]
 
 [package.metadata.requires-dev]
 dev = [
