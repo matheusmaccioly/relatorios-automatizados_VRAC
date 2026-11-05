@@ -14,16 +14,22 @@ LLM ou geração dinâmica de consultas. Nenhum resultado tem validade instituci
 ## Abrir e calcular
 
 1. Abrir <http://127.0.0.1:8501> e conferir o aviso de demonstração e a origem
-   **PostgreSQL sintético**.
-2. A aba **Situação geral do departamento** mantém a consulta ao cadastro atual.
+   escolhida: **PostgreSQL sintético** ou **Memória** na opção offline.
+2. A aba **Análise docente** mantém a consulta ao cadastro atual e o histórico.
    Escolher o departamento, os filtros docentes e **Calcular resultados**.
-3. Para executar todos os roteiros, abrir **Análises por período**. Manter
-   **Todos os roteiros (R01–R06)** ou escolher um roteiro individual da R02 à R06.
-4. Escolher um departamento ou **Todos os departamentos** e clicar em
-   **Carregar ou atualizar dados**.
-5. Escolher os filtros e clicar em **Calcular análises selecionadas**.
+3. Para executar todos os roteiros, usar **Ver todas as análises** na tela Início ou
+   abrir **Análises por período**. Um cartão da tela Início abre o roteiro escolhido.
+4. Escolher um departamento ou **Todos os departamentos**. Pelos cartões a base já vem
+   carregada; ao entrar direto pela aba, clicar em **Carregar dados**. Depois disso,
+   trocar a unidade recarrega a base, e **Atualizar dados** lê uma nova versão.
+5. Escolher os filtros, que mudam conforme a análise, e clicar em
+   **Calcular análises selecionadas**.
 6. Conferir a tabela de filtros, os resultados por aba, os avisos e as tabelas
    equivalentes aos gráficos. Usar os botões de CSV, PNG ou pacote ZIP.
+7. Para comentar uma execução, abrir **Registrar feedback desta execução**.
+   Não inserir nomes, matrículas, resultados ou outros dados pessoais/acadêmicos.
+   O registro permanece na sessão; o CSV é um download manual temporário, sem
+   envio automático ou backlog compartilhado. Revise o texto antes de encaminhá-lo.
 
 Alterar um filtro remove os resultados anteriores. **Atualizar dados** consulta
 novamente a base; as análises usam o snapshot identificado na tela. Se a origem

@@ -1,7 +1,9 @@
 """Gráficos Matplotlib com cores e fontes dos tokens de branding."""
 
 import io
-from collections.abc import Sequence
+import json
+import threading
+from collections.abc import Callable, Mapping, Sequence
 from typing import TYPE_CHECKING
 
 import matplotlib
@@ -12,9 +14,11 @@ from matplotlib import font_manager  # noqa: E402
 from matplotlib import pyplot as plt  # noqa: E402
 from matplotlib.figure import Figure  # noqa: E402
 
+from vrac.analyses.academic import chart_unit  # noqa: E402
 from vrac.branding import Branding  # noqa: E402
 
 _REGISTERED: set[str] = set()
+_DRAWING = threading.Lock()
 
 if TYPE_CHECKING:
     from vrac.analyses.academic import CalculatedAnalysis, ChartSpec
@@ -48,11 +52,11 @@ def horizontal_bars(
     axis.set_xlabel(unit, fontsize=8, color=colors["black"], family=family)
     axis.xaxis.get_major_locator().set_params(integer=True)
     axis.set_xlim(0, max(values) * 1.15 if values and max(values) > 0 else 1)
-    axis.grid(axis="x", color=colors["gray"], linewidth=0.5, alpha=0.4)
+    axis.grid(axis="x", color=colors["line"], linewidth=0.6)
     axis.set_axisbelow(True)
     for side in ("top", "right", "left"):
         axis.spines[side].set_visible(False)
-    axis.spines["bottom"].set_color(colors["gray"])
+    axis.spines["bottom"].set_color(colors["line"])
     axis.tick_params(colors=colors["black"], labelsize=9, length=0)
     for label in (*axis.get_xticklabels(), *axis.get_yticklabels()):
         label.set_family(family)
@@ -67,39 +71,43 @@ def distribution_bars(
     unit: str,
     branding: Branding,
     orientation: str = "horizontal",
-    color: str = "yellow",
+    color: str = "blue",
+    keep_order: bool = False,
 ) -> Figure:
     """Distribuições docentes: direção e cor declaradas também nas exportações."""
     if orientation not in {"horizontal", "vertical"}:
         raise ValueError("Orientação de gráfico inválida.")
     colors = branding.tokens["colors"]
     family = _register_fonts(branding)
-    labels = [label for label, _ in items]
-    values = [value for _, value in items]
+    # Mesma ordem da tela: maiores valores primeiro, empates na ordem recebida.
+    ordered = list(items) if keep_order else sorted(items, key=lambda item: -item[1])
+    labels = [label for label, _ in ordered]
+    values = [value for _, value in ordered]
     figure, axis = plt.subplots(
-        figsize=(8, max(3.2, len(items) * 0.35) if orientation == "horizontal" else 3.5), dpi=150
+        figsize=(8, max(2.4, len(items) * 0.42 + 1) if orientation == "horizontal" else 3.5),
+        dpi=150,
     )
     figure.patch.set_facecolor(colors["white"])
     axis.set_facecolor(colors["white"])
     if orientation == "vertical":
-        bars = axis.bar(labels, values, width=0.55, color=colors[color])
+        bars = axis.bar(labels, values, width=0.4, color=colors[color])
         axis.set_ylim(0, max(values, default=0) * 1.22 or 1)
         axis.set_ylabel(unit, family=family, fontsize=8)
         grid_axis = "y"
         axis.yaxis.get_major_locator().set_params(integer=True)
     else:
-        bars = axis.barh(labels[::-1], values[::-1], height=0.55, color=colors[color])
+        bars = axis.barh(labels[::-1], values[::-1], height=0.42, color=colors[color])
         axis.set_xlim(0, max(values, default=0) * 1.2 or 1)
         axis.set_xlabel(unit, family=family, fontsize=8)
         grid_axis = "x"
         axis.xaxis.get_major_locator().set_params(integer=True)
     axis.bar_label(bars, padding=5, fontsize=9, color=colors["black"], family=family)
-    axis.set_title(title, family=family, color=colors["black"], fontsize=11, pad=15)
-    axis.grid(axis=grid_axis, color=colors["gray"], linewidth=0.5, alpha=0.3)
+    axis.set_title(title, loc="left", family=family, color=colors["black"], fontsize=11, pad=15)
+    axis.grid(axis=grid_axis, color=colors["line"], linewidth=0.6)
     axis.set_axisbelow(True)
     for side in ("top", "right", "left"):
         axis.spines[side].set_visible(False)
-    axis.spines["bottom"].set_color(colors["gray"])
+    axis.spines["bottom"].set_color(colors["line"])
     axis.tick_params(labelsize=9, length=0)
     for label in (*axis.get_xticklabels(), *axis.get_yticklabels()):
         label.set_family(family)
@@ -122,9 +130,7 @@ def academic_chart(
     )
     figure.patch.set_facecolor(colors["white"])
     axis.set_facecolor(colors["white"])
-    palette = [colors[name] for name in ("blue", "cyan", "yellow", "gray", "black")]
-    if monthly and specification.kind == "line":
-        palette = [colors["yellow"]]
+    palette = list(branding.series)
     markers = ("o", "s", "^", "D", "v")
     bottom = [0.0] * len(labels)
     for index, name in enumerate(specification.series):
@@ -142,6 +148,8 @@ def academic_chart(
                 bottom=bottom if specification.kind == "stacked_bar" else None,
                 color=palette[index % len(palette)],
                 width=width,
+                edgecolor=colors["white"],
+                linewidth=0.6,
                 label=name if len(specification.series) > 1 else None,
             )
             if monthly:
@@ -160,8 +168,8 @@ def academic_chart(
                 values,
                 color=palette[index % len(palette)],
                 marker=markers[index % len(markers)],
-                linewidth=1.8,
-                markersize=4,
+                linewidth=2,
+                markersize=4.5,
                 linestyle="-" if index < len(palette) else "--",
                 label=name,
             )
@@ -194,7 +202,7 @@ def academic_chart(
                 fontsize=8,
             )
             if positions[0] > 0:
-                axis.axvline(positions[0] - 0.5, color=colors["gray"], linewidth=0.5)
+                axis.axvline(positions[0] - 0.5, color=colors["line"], linewidth=0.6)
         axis.margins(y=0.2)
     axis.set_xticks(
         range(len(labels)),
@@ -206,18 +214,22 @@ def academic_chart(
         specification.title, loc="left", fontsize=12, family=family, color=colors["black"]
     )
     axis.set_ylabel(
-        "Presenças por quadro" if monthly and specification.kind == "stacked_bar" else table.unit,
+        "Presenças por quadro"
+        if monthly and specification.kind == "stacked_bar"
+        else chart_unit(result, specification),
         family=family,
         fontsize=9,
     )
-    axis.grid(axis="y", color=colors["gray"], alpha=0.3, linewidth=0.5)
+    axis.grid(axis="y", color=colors["line"], linewidth=0.6)
     axis.set_axisbelow(True)
     axis.yaxis.get_major_locator().set_params(integer=True)
     if monthly:
         axis.set_ylim(bottom=0)
         axis.yaxis.get_major_locator().set_params(integer=True, min_n_ticks=1)
-    for side in ("top", "right"):
+    for side in ("top", "right", "left"):
         axis.spines[side].set_visible(False)
+    axis.spines["bottom"].set_color(colors["line"])
+    axis.tick_params(length=0)
     if axis.get_legend_handles_labels()[0]:
         legend = axis.legend(frameon=False, fontsize=8, loc="best")
         for label in legend.get_texts():
@@ -238,13 +250,26 @@ def academic_chart(
     return figure
 
 
-def figure_png(figure: Figure) -> bytes:
+def render_png(build: Callable[[], Figure], context: Mapping[str, str] | None = None) -> bytes:
+    """Desenha e fecha a figura; downloads rodam fora do script e o pyplot é global."""
+    with _DRAWING:
+        figure = build()
+        try:
+            return figure_png(figure, context)
+        finally:
+            plt.close(figure)
+
+
+def figure_png(figure: Figure, context: Mapping[str, str] | None = None) -> bytes:
     stream = io.BytesIO()
     figure.savefig(
         stream,
         format="png",
         dpi=150,
         facecolor=figure.get_facecolor(),
-        metadata={"Description": "DEMONSTRAÇÃO — DADOS TOTALMENTE SINTÉTICOS"},
+        metadata={
+            "Description": "DEMONSTRAÇÃO — DADOS TOTALMENTE SINTÉTICOS",
+            "Contexto": json.dumps(dict(context or {}), ensure_ascii=False),
+        },
     )
     return stream.getvalue()

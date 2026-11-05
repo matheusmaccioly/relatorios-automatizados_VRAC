@@ -1,5 +1,21 @@
 # Arquitetura inicial
 
+**Atualização de 05/11/2026 — D-035:** monólito Python/Streamlit preservado; Supabase
+passa a fornecer banco e autenticação para a demonstração sintética. O schema
+original foi preservado em `vrac_sintetico`, sem acesso por `anon`/`authenticated`.
+`vrac_app` contém projeções tipadas, metadados e liberações por UUID/departamento.
+Duas funções `SECURITY INVOKER`, `vrac_options` e `vrac_snapshot`, são a lista
+fechada de leituras da aplicação. Filtros são vinculados via parâmetros RPC; o
+snapshot inteiro é calculado em uma transação. RLS permite somente SELECT no
+recorte autorizado. Um único helper `SECURITY DEFINER`, sem argumentos e com
+`search_path` vazio, consulta somente a existência da sessão do próprio usuário
+em `auth.sessions`; não acessa linhas acadêmicas. Senhas e tokens não são gravados.
+Clientes/JWTs e resultados são exclusivos de cada sessão Streamlit; Auth e escopo
+são revalidados a cada rerun. Exportações Supabase são entregues como links de
+dados no navegador autenticado, sem endpoints públicos de mídia ou armazenamento
+no servidor. Sem backend separado, Edge Functions ou migração das fórmulas.
+O Supabase não hospeda o processo Streamlit. [Operação e limites](operations/SUPABASE.md).
+
 Atualização de 30/10/2026 (D-027): o monólito agora executa os seis roteiros na base
 sintética. `academic_data.py` define as entradas tipadas, `academic.py` calcula R02–R06,
 `faculty_overview.py` mantém R01 e `academic_quality.py` contém dez conferências
@@ -50,7 +66,7 @@ tipografia e marcas sem presumir valores institucionais.
 tema nativo Streamlit e copia seis pesos tipográficos sem alteração para a pasta
 pública `static/branding/`, restrita a esses recursos. Os originais ficam em assets.
 O logo mantém proporção e respiro. Fontes são servidas pelo próprio app, sem CDN.
-O wheel inclui tokens e logo usados pelo módulo; a interface via checkout usa a
+O wheel inclui tokens, logo e as seis fontes originais usadas nos gráficos; a interface via checkout usa a
 configuração gerada e as fontes web da raiz. Não há nova exportação nesta entrega.
 Proposta de hierarquia tipográfica, regras visuais ausentes e divergências RGB/hex
 permanecem documentadas. Conformidade exige revisão por Matheus e responsável

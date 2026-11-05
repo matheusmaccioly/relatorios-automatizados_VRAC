@@ -36,7 +36,9 @@ def organisation_filters(
         st.session_state[center_key] = ALL_CENTERS
     first, second = st.columns(2)
     with first:
-        center = st.selectbox("Centro", centers, key=center_key)
+        center = st.selectbox(
+            "Centro", centers, key=center_key, help="Restringe a lista de departamentos."
+        )
     available = hierarchy.departments_for(center)
     departments = (*available, ALL_DEPARTMENTS)
     if st.session_state.get(department_key, departments[0]) not in departments:

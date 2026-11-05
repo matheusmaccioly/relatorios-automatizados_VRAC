@@ -29,6 +29,10 @@ class DemoOptions:
 
 def load_demo_options(settings: Settings) -> DemoOptions:
     require_data_access(settings)
+    if settings.demo_source == DemoSource.SUPABASE:
+        from vrac.db.supabase_reader import load_options
+
+        return load_options(settings)
     if settings.demo_source == DemoSource.POSTGRES:
         from vrac.db.synthetic_postgres import load_options
 
@@ -39,7 +43,7 @@ def load_demo_options(settings: Settings) -> DemoOptions:
 def faculty_history_periods(settings: Settings, options: DemoOptions) -> tuple[str, ...]:
     """O histórico usa suas competências, sem ficar limitado à fixture de registros brutos."""
     require_data_access(settings)
-    if settings.demo_source == DemoSource.POSTGRES:
+    if settings.demo_source in (DemoSource.POSTGRES, DemoSource.SUPABASE):
         return options.periods
     from vrac.analyses.academic_fixture import PERIODS as history_periods
 
@@ -48,6 +52,10 @@ def faculty_history_periods(settings: Settings, options: DemoOptions) -> tuple[s
 
 def load_selected_demo(settings: Settings, *, department: str, period: str) -> SyntheticDataset:
     require_data_access(settings)
+    if settings.demo_source == DemoSource.SUPABASE:
+        from vrac.db.supabase_reader import load_selected
+
+        return load_selected(settings, department=department, period=period)
     if settings.demo_source == DemoSource.POSTGRES:
         from vrac.db.synthetic_postgres import load_selected
 
@@ -57,6 +65,10 @@ def load_selected_demo(settings: Settings, *, department: str, period: str) -> S
 
 def load_faculty_departments(settings: Settings) -> tuple[str, ...]:
     require_data_access(settings)
+    if settings.demo_source == DemoSource.SUPABASE:
+        from vrac.db.supabase_reader import load_faculty_departments as load
+
+        return load(settings)
     if settings.demo_source == DemoSource.POSTGRES:
         from vrac.db.synthetic_postgres import load_faculty_departments as load
 
@@ -69,7 +81,9 @@ def load_department_hierarchy(settings: Settings) -> DepartmentHierarchy:
     departments = load_faculty_departments(settings)
     return hierarchy_for_departments(
         departments,
-        source="PostgreSQL sintético" if settings.demo_source == DemoSource.POSTGRES else "Memória",
+        source={DemoSource.POSTGRES: "PostgreSQL sintético", DemoSource.SUPABASE: "Supabase"}.get(
+            settings.demo_source, "Memória"
+        ),
         synthetic_centers=settings.demo_source == DemoSource.MEMORY,
     )
 
@@ -92,6 +106,10 @@ def load_faculty_source(
 ) -> FacultySource:
     """Origem explícita da R01; falha na base nunca recorre aos dados em memória."""
     require_data_access(settings)
+    if settings.demo_source == DemoSource.SUPABASE:
+        from vrac.db.supabase_reader import load_faculty_source as load
+
+        return load(settings, department=department, departments=departments)
     if settings.demo_source == DemoSource.POSTGRES:
         from vrac.db.synthetic_postgres import load_faculty_source as load
 
@@ -125,6 +143,10 @@ def load_academic_source(
 ) -> AcademicSource:
     """Carregar todos os roteiros na origem escolhida; nunca alternar fontes por falha."""
     require_data_access(settings)
+    if settings.demo_source == DemoSource.SUPABASE:
+        from vrac.db.supabase_reader import load_academic_source as load
+
+        return load(settings, department=department, departments=departments)
     if settings.demo_source == DemoSource.POSTGRES:
         from vrac.db.synthetic_postgres import load_academic_source as load
 

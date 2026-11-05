@@ -1,5 +1,61 @@
 # Plano de desenvolvimento
 
+## Migração sintética e autenticação Supabase — 05/11/2026
+
+Solicitação expressa de Matheus (D-035): dados e schema sintéticos migrados e
+conciliados no Supabase, leitor integrado ao monólito Streamlit, login obrigatório
+e autorização por departamento aplicados. Matheus confirmou login e cálculo.
+Conferências e limites em [STATUS](STATUS.md) e [guia operacional](operations/SUPABASE.md).
+A parcela de autenticação Supabase do Prompt 6 foi implementada no escopo sintético;
+isso não conclui integração/autorização institucional, homologação ou publicação.
+O processo Python continua no ambiente de hospedagem existente, sem reescrita de
+frontend e sem deploy nesta tarefa. A base é um snapshot: não há replicação automática.
+
+## Tabelas visuais e gráficos primeiro — 05/11/2026
+
+Ajuste de apresentação sobre R01–R06, sem mudança de fase (D-033): indicador de carga com
+símbolos, tabelas recolhidas sob os gráficos, quatro gráficos novos e rótulo não clicável de
+Análise financeira, que não entra no escopo. Evidências no [STATUS](STATUS.md). Aceite de uso
+e revisão visual seguem pendentes. Sem avanço de fase ou deploy.
+
+## Aproximação ao design system da PUC-Rio — 04/11/2026
+
+Incremento de apresentação sobre R01–R06, sem mudança de fase: tokens do site e do
+portal (D-032), tela Início, filtros relevantes por análise, gráficos e exportações sob
+demanda. Limites e evidências no [STATUS](STATUS.md);
+[roteiro para Talita](guides/INTERFACE_E_GRAFICOS.md). Aceite de uso e revisão por
+Matheus/responsável institucional seguem pendentes. Sem avanço de fase ou deploy.
+
+## Revisão solicitada da interface e gráficos — 04/11/2026
+
+Incremento de apresentação e usabilidade sobre R01–R06 existentes: referências
+visuais do portal/site público, tema com tokens locais preservados, navegação em
+etapas, refinamento/limpeza de filtros e gráficos interativos com unidades e
+adaptação de largura. Nenhuma fórmula ou etapa de integração alterada. Testes e
+limites no [STATUS](STATUS.md); [roteiro para Talita](guides/INTERFACE_E_GRAFICOS.md).
+Aceite de uso e revisão por Matheus/responsável institucional seguem pendentes;
+browser QA não comprovada por timeout das ferramentas. Sem avanço de fase/deploy.
+
+## Prompt de feedback · revisão final sintética — 04/11/2026
+
+Revisados os registros dos Prompts 3, 4a, 4b e 5 e os seis roteiros existentes.
+Corrigidos estados de fonte indisponível na R05 e unidade do gráfico PNG R02;
+orientações de uso e feedback foram atualizadas. A classificação, critérios e
+limites estão na [revisão final](guides/REVISAO_FINAL_FEEDBACK.md); resultados de
+verificação em [STATUS](STATUS.md). A preparação sintética não comprova acesso ou
+resultados institucionais. Feedback operacional, conciliação 4b em PostgreSQL,
+revisão de Talita e identidade visual continuam pendentes conforme impacto descrito.
+
+## Prompt 5 · exportações e feedback — 04/11/2026
+
+Conferência e ajustes locais dos formatos existentes, incluindo R01 no manifesto;
+registro de feedback na sessão
+com download manual CSV. Persistência, retenção e destino do backlog aguardam a
+decisão do time (Q-008), confirmada como ainda não definida por Matheus. Avaliação
+humana e conferência na origem PostgreSQL sintética permanecem pendentes; não é
+necessário conectar à origem institucional para este incremento.
+[Detalhes](guides/PROMPT5_VERIFICACOES.md).
+
 ## Prompt 4b · carga horária — 03/11/2026
 
 Parcela offline conferida; execução PostgreSQL sintético e confirmação humana
@@ -242,7 +298,7 @@ integração validada nem iniciar implementação real ou a fase 3 automaticamen
 | 3 — implementada em demonstração sintética (D-027) | R01, comparação QP configurável e presença semestral disponíveis; avançar a integração somente com fontes físicas autorizadas | Testes offline e conferências na fixture; composição institucional de QP permanece lacuna específica | Matheus + Talita para uso; DBA/DSI para origem real |
 | 4a — implementada em demonstração sintética (D-027) | Quatro séries acadêmicas, filtros por curso, ausências, variações e exportações; nenhuma equivalência automática | Comparação com SQL independente na fixture; ingresso futuro, bolsas repetidas e base zero cobertos | Matheus + Talita para uso; fonte institucional antes do modo real |
 | 4b — implementada em demonstração sintética (D-027) | Horas Reais, contratada, indicador literal e alocações separados; comparação apenas em unidades sintéticas declaradas | Conferência com fonte dedicada; zeros/nulos e semáforo testados; sem rateio ou substituição por disciplinas | Matheus + Talita para uso; unidade institucional permanece específica |
-| 5 — implementação local parcial (D-027) | Dez conferências sobre snapshot e E01 experimental com modos e autorização simulada; CSV/PNG/ZIP existentes; XLSX/SVG e feedback pendentes | Testes offline e fluxo simulado; [limites e conferência PostgreSQL pendente](guides/PROMPT5_VERIFICACOES.md); não há autorização institucional | Matheus + Talita para uso; DSI para eventual retenção/armazenamento |
+| 5 — implementação local parcial (D-027) | Dez conferências sobre snapshot e E01 experimental; CSV/PNG/ZIP e feedback temporário em sessão disponíveis; armazenamento e backlog ainda indefinidos | Testes offline e fluxo simulado; [limites e conferência PostgreSQL pendente](guides/PROMPT5_VERIFICACOES.md); não há autorização institucional | Matheus e time para solução operacional; Talita para uso; DSI/DBA na etapa institucional |
 | 6 — não iniciada | Integrar login aprovado, aplicar autorização antes de consultar/recuperar/exportar e testar isolamento de sessão | Homologação de autenticação, escopos, conta técnica, HTTPS, cache e retenção; aceite de segurança e funcional registrado | DSI + DBA + Talita + Matheus |
 | 7 — não iniciada | Preparar serviço interno, configuração de operação, suporte, atualização, retorno de versão e guia de uso | Responsável autoriza publicação; operador confirma implantação; Talita conclui casos acordados; suporte e recuperação definidos | DSI/operador + Talita + Matheus |
 

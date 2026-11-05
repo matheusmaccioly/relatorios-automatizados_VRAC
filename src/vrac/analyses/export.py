@@ -40,7 +40,9 @@ def _write(rows: list[list[object]]) -> bytes:
     return buffer.getvalue().encode("utf-8-sig")
 
 
-def _header(overview: FacultyOverview, generated_at: datetime) -> list[list[object]]:
+def _header(
+    overview: FacultyOverview, generated_at: datetime, context: dict[str, str] | None = None
+) -> list[list[object]]:
     rows: list[list[object]] = [
         ["Seção", "Item", "Valor"],
         [
@@ -59,12 +61,15 @@ def _header(overview: FacultyOverview, generated_at: datetime) -> list[list[obje
         ["Identificação", "Gerado em (UTC)", generated_at.strftime("%d/%m/%Y %H:%M:%S")],
     ]
     rows += [["Filtro", name, value] for name, value in describe_filters(overview.filters)]
+    rows += [["Contexto", name, value] for name, value in (context or {}).items()]
     rows += [["Aviso", str(index), text] for index, text in enumerate(overview.warnings, 1)]
     return rows
 
 
-def summary_csv(overview: FacultyOverview, generated_at: datetime) -> bytes:
-    rows = _header(overview, generated_at)
+def summary_csv(
+    overview: FacultyOverview, generated_at: datetime, context: dict[str, str] | None = None
+) -> bytes:
+    rows = _header(overview, generated_at, context)
     if overview.status not in {OverviewStatus.VALID, OverviewStatus.PARTIAL}:
         rows.append(["Resultado", "Situação", overview.narrative])
         return _write(rows)
@@ -98,8 +103,10 @@ DETAIL_COLUMNS = (
 )
 
 
-def detail_csv(overview: FacultyOverview, generated_at: datetime) -> bytes:
-    rows = _header(overview, generated_at)
+def detail_csv(
+    overview: FacultyOverview, generated_at: datetime, context: dict[str, str] | None = None
+) -> bytes:
+    rows = _header(overview, generated_at, context)
     rows.append([])
     rows.append([label for _, label in DETAIL_COLUMNS])
     rows += [[getattr(item, key) for key, _ in DETAIL_COLUMNS] for item in overview.detail]

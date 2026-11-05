@@ -67,7 +67,7 @@ def test_r06_center_department_and_refresh_failure_remove_old_downloads(monkeypa
     assert_calculated(app)
     app.selectbox(key="suite_center").select("Centro sintético 2").run()
     assert_invalidated(app)
-    assert "suite_source" not in app.session_state
+    assert app.session_state["suite_source"].department.startswith("Centro sintético 2")
     app.selectbox(key="suite_department").select(ALL_DEPARTMENTS).run()
     app.button(key="suite_load").click().run()
     assert_calculated(app)
@@ -85,3 +85,15 @@ def test_r06_center_department_and_refresh_failure_remove_old_downloads(monkeypa
     app.button(key="suite_load").click().run()
     assert_invalidated(app)
     assert app.error and "suite_source" not in app.session_state
+
+
+def test_r06_uses_interactive_charts_and_retains_png_downloads():
+    app = loaded_r06()
+    initial_images = len(app.get("imgs"))
+    assert_calculated(app)
+    result = app.session_state["suite_results"][0]
+    assert len(app.get("vega_lite_chart")) == len(result.charts)
+    assert len(app.get("imgs")) == initial_images
+    assert sum(
+        button.label == "Baixar gráfico (PNG)" for button in app.get("download_button")
+    ) == len(result.charts)

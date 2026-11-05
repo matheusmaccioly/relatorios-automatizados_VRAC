@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from vrac.settings import DataMode, Environment, Settings
+from vrac.settings import DataMode, DemoSource, Environment, Settings
 
 
 class AccessDenied(PermissionError):
@@ -24,6 +24,14 @@ def authorize_data_access(settings: Settings) -> AccessDecision:
                 "ainda não foram configuradas e validadas."
             ),
         )
+    if settings.demo_source == DemoSource.SUPABASE:
+        from vrac.supabase_auth import current_session
+
+        try:
+            current_session()
+        except AccessDenied:
+            return AccessDecision(False, "Entre com uma conta autorizada para consultar os dados.")
+        return AccessDecision(True, "Acesso autenticado; departamentos limitados pelo banco.")
     if settings.environment not in (Environment.DEVELOPMENT, Environment.TEST):
         return AccessDecision(allowed=False, reason="Demonstração restrita ao ambiente local.")
     return AccessDecision(

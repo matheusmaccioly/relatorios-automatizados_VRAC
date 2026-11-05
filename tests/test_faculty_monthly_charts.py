@@ -78,7 +78,7 @@ def test_monthly_web_records_preserve_table_values_and_use_local_data(index):
     assert [row["Semestre"] for row in semester_labels] == ["2026.1", "2026.2"]
     if spec.kind == "line":
         assert main["mark"]["invalid"] == "break-paths-show-domains"
-        assert main["encoding"]["color"]["scale"]["range"] == [branding.tokens["colors"]["yellow"]]
+        assert main["encoding"]["color"]["scale"]["range"] == [branding.series[0]]
         assert serialized["layer"][1]["encoding"]["text"]["field"] == "Valor"
     else:
         assert main["mark"]["type"] == "bar"
@@ -101,7 +101,7 @@ def test_monthly_png_line_keeps_gaps_values_and_semester_month_labels():
             math.isnan(actual) if value is None else actual == value
             for actual, value in zip(values, expected, strict=True)
         )
-        assert axis.lines[0].get_color() == branding.tokens["colors"]["yellow"]
+        assert axis.lines[0].get_color() == branding.series[0]
         moves = sum(code == Path.MOVETO for _, code in axis.lines[0].get_path().iter_segments())
         assert moves == 3
         assert [tick.get_text() for tick in axis.get_xticklabels()] == [

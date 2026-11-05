@@ -34,6 +34,10 @@ secrets.toml
 !/pyproject.toml
 !/.streamlit/config.toml
 !/config/analyses.yaml
+!/config/supabase.public.toml
+!/supabase/config.toml
+/supabase/.temp/
+/supabase/.branches/
 !/assets/branding/tokens.toml
 database.toml
 dbconfig.toml
@@ -94,3 +98,13 @@ Desktop.ini
 /scripts/synthetic-postgres.local.py
 /scripts/connect-synthetic-app.local.py
 /scripts/prepare-academic-analyses.local.py
+sql/query-professores-0alunos.sql
+sql/query-turma-professores-0alunos.sql
+UsersmatheusacciolyDocumentsGitHubrelatorios-automatizados_VRAC.cachepytest-docentes-final-20261103-b/test_bundle_records_provenance0/dictionary.md
+UsersmatheusacciolyDocumentsGitHubrelatorios-automatizados_VRAC.cachepytest-docentes-final-20261103-b/test_bundle_records_provenance0/bundle/01-seed.sql
+UsersmatheusacciolyDocumentsGitHubrelatorios-automatizados_VRAC.cachepytest-docentes-final-20261103-b/test_bundle_records_provenance0/bundle/manifest.json
+UsersmatheusacciolyDocumentsGitHubrelatorios-automatizados_VRAC.cachepytest-docentes-final-20261103-b/test_dictionary_preserves_name0/dictionary.md
+UsersmatheusacciolyDocumentsGitHubrelatorios-automatizados_VRAC.cachepytest-docentes-final-20261103-b/test_runtime_rejects_tampered_0/dictionary.md
+UsersmatheusacciolyDocumentsGitHubrelatorios-automatizados_VRAC.cachepytest-docentes-final-20261103-b/test_runtime_rejects_tampered_0/bundle/01-seed.sql
+UsersmatheusacciolyDocumentsGitHubrelatorios-automatizados_VRAC.cachepytest-docentes-final-20261103-b/test_runtime_rejects_tampered_0/bundle/02-check.sql
+UsersmatheusacciolyDocumentsGitHubrelatorios-automatizados_VRAC.cachepytest-docentes-final-20261103-b/test_runtime_rejects_tampered_0/bundle/manifest.json

@@ -26,7 +26,21 @@ FILTER_LABELS = {
 }
 
 
-def table_csv(result: CalculatedAnalysis, table: ResultTable, generated_at: datetime) -> bytes:
+def result_context(result: CalculatedAnalysis, context: Mapping[str, str] | None) -> dict[str, str]:
+    return dict(context or {}) | {
+        "Origem": result.source,
+        "Versão dos dados": result.version,
+        "Snapshot": result.fingerprint,
+        "Versão do cálculo": result.calculation_version,
+    }
+
+
+def table_csv(
+    result: CalculatedAnalysis,
+    table: ResultTable,
+    generated_at: datetime,
+    context: Mapping[str, str] | None = None,
+) -> bytes:
     stream = io.StringIO()
     writer = csv.writer(stream, delimiter=";", lineterminator="\r\n")
     metadata = [
@@ -47,6 +61,10 @@ def table_csv(result: CalculatedAnalysis, table: ResultTable, generated_at: date
         for key, value in asdict(result.filters).items()
     ]
     metadata += [("Aviso", value) for value in result.notes]
+    if context is not None:
+        metadata += [
+            (f"Contexto: {key}", value) for key, value in result_context(result, context).items()
+        ]
     if table.note:
         metadata.append(("Limitação da tabela", table.note))
     for row in (*metadata, (), table.columns, *table.rows):
@@ -69,6 +87,8 @@ def report_zip(
     generated_at: datetime,
     images: Mapping[str, bytes] | None = None,
     additional_files: Mapping[str, bytes] | None = None,
+    context: Mapping[str, str] | None = None,
+    additional_analyses: Sequence[Mapping[str, str]] = (),
 ) -> bytes:
     """Pacote fechado das análises solicitadas, sem persistir registros no servidor."""
     stream = io.BytesIO()
@@ -85,7 +105,9 @@ def report_zip(
             "synthetic": True,
             "validity": "DEMONSTRAÇÃO SEM VALIDADE INSTITUCIONAL",
             "generated_at_utc": generated_at.isoformat(),
+            "context": dict(context or {}),
             "analyses": [asdict(r) for r in results],
+            "additional_analyses": [dict(item) for item in additional_analyses],
         }
         write("manifesto.json", json.dumps(manifest, ensure_ascii=False, indent=2).encode("utf-8"))
         write(
@@ -102,7 +124,10 @@ def report_zip(
         )
         for result in results:
             for table in (summary_table(result), *result.tables):
-                write(f"{result.kind}/{table.key}.csv", table_csv(result, table, generated_at))
+                write(
+                    f"{result.kind}/{table.key}.csv",
+                    table_csv(result, table, generated_at, context),
+                )
         for name, data in (images or {}).items():
             write(name, data)
         for name, data in (additional_files or {}).items():

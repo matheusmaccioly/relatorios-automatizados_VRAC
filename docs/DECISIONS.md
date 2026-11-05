@@ -4,6 +4,74 @@ Registro iniciado em 26/10/2026. “Adotada para a fundação” descreve uma de
 
 ## Decisões
 
+**D-035 — migração e autenticação Supabase, Matheus, 05/11/2026:** Matheus solicitou
+migrar dados, schemas e aplicação e configurar Supabase Auth. Autorizado transferir
+a base sintética existente ao projeto indicado, preservando o monólito Streamlit e
+as fórmulas. O schema original permanece sem acesso pelas contas da aplicação;
+projeções tipadas R01–R06 são lidas por duas RPCs fixas sob RLS por departamento.
+Supabase Auth verifica a identidade, uma lista administrativa define o escopo e uma
+verificação restrita de `auth.sessions` invalida leituras após revogação. Cadastro
+público desativado; aplicação usa apenas chave publicável e JWT individual.
+Uma conta criada por Matheus foi liberada para os quatro departamentos sintéticos;
+ele confirmou: “Entrei e consegui calcular”. A solicitação substitui a atribuição
+anterior de autenticação exclusivamente ao time neste incremento. Não autoriza
+transferir fontes institucionais, publicar a aplicação ou declarar homologação.
+[Operação, testes e limitações](operations/SUPABASE.md).
+
+**D-034 — conferência fora do menu, Matheus, 05/11/2026:** a pedido de Matheus, Conferir dados
+sintéticos deixa de ser aba e passa a bloco recolhido no fim de todas as telas, acima do
+rodapé. Conteúdo, filtros e regras da tela não mudam.
+
+**D-033 — tabelas visuais, gráficos primeiro e item financeiro, Matheus, 05/11/2026:**
+Matheus pediu tabelas mais visuais, conversão de tabelas em gráficos e uma aba não clicável
+de Análise financeira com "em breve", deixando a ponderação ao agente. Decidido:
+(1) o indicador de carga recebe símbolo e fundo somente na tela; CSV, ZIP, PNG e o texto da
+regra não mudam. (2) Nenhum estado usa vermelho: o indicador não avalia produtividade, e
+abaixo ou acima do esperado não é erro. A direção é dada pelo símbolo, o estado pelo texto;
+fundo só com tokens existentes, e "Dentro do esperado" fica sem destaque. Essas associações
+de cor são proposta, pois cores semânticas seguem pendentes (Q-012). (3) Tabela que alimenta
+gráfico fica recolhida no cartão dele, em **Ver tabela do gráfico**, com o mesmo CSV;
+tabela sem gráfico fica em **Outras tabelas e arquivos**, e sem nenhum gráfico ela abre
+expandida. (4) Barras com valor nulo continuam no eixo com o texto "ausente"; antes a
+categoria desaparecia. (5) **Análise financeira é só um rótulo do menu:** não é aba, não
+abre conteúdo, não recebe foco e não consulta dados. Isso não amplia o escopo: análises
+financeiras seguem fora da PoC, e implementá-las exige decisão explícita própria.
+(6) Cabeçalho das tabelas em preto com texto branco, para separar título e dados.
+
+**D-032 — referência do design system, Matheus, 04/11/2026:** Matheus informou que o
+[site público](https://www.puc-rio.br/) e `portal_solucoes_puc.html` são o que há de
+mais próximo do design system da PUC-Rio e pediu que o front-end siga essas normas.
+Na interface e nas exportações, isso **substitui a D-021 e o trecho da D-031** que
+mantinham a paleta anterior: amarelo passa a `#FFB52F`, com `#E08C07`, `#BF6000`,
+`#7817B1`, `#00A2AC`, `#BE002D`, `#1F1F1F`, `#CDCAC1` e `#F5F5F0` do
+[CSS público](https://www.puc-rio.br/styles/index_puc_tapume.css), além de `#333333`,
+`#EBEBE4` e `#FFF1D2` do portal. Azul `#0081AD` e ciano `#00B7DD` seguem a prancha. A
+marca passa à variante oficial horizontal monocromática, sobre o fundo da página, como
+no site e no portal. Para gráficos, a ordem fixa é `#0081AD`, `#E08C07`, `#7817B1`,
+`#00A2AC`, `#BF6000`, aprovada no validador de paleta (luminosidade, croma, daltonismo e
+vizinhas); `#E08C07` fica abaixo de 3:1 sobre branco, por isso legenda e tabela são
+obrigatórias. Vermelho fica reservado a erros.
+
+Site e portal continuam sendo referências, não um manual aprovado: a prancha EMoD segue
+como fonte das assinaturas e a divergência entre ela e o site é conhecida. A troca não
+é homologação; Q-012 segue aberta. Reverter exige apenas editar `tokens.toml` e rodar
+`scripts/sync-branding.py`. Nenhuma fórmula, SQL ou fonte de dados foi alterada.
+
+**D-031 — revisão de interface solicitada por Matheus, 04/11/2026:** aproximar a
+apresentação de `portal_solucoes_puc.html` e do site público da PUC-Rio, melhorar
+filtros/caminhos e gráficos responsivos/interativos na aplicação Streamlit existente.
+As referências orientam composição e uso; não são instruções executáveis nem
+evidência de um design system integralmente aprovado. Preservar cores e arquivos
+autorizados. Títulos/corpo em Rethink Sans, Literata na identificação editorial,
+ações pretas e acentos amarelos são proposta local desta revisão.
+
+A paleta do portal/site difere dos tokens e não os substitui. Fontes são locais;
+não incorporar scripts/CDNs do HTML. Manter contratos analíticos, SQL, fontes e
+exports existentes. A R06 passa à apresentação Altair, como os demais gráficos,
+com PNG preservado. Nenhum novo serviço, conexão a banco ou publicação.
+Matheus e o responsável institucional revisam a identidade; Talita revisa o uso.
+[Entrega, execução e limites](guides/INTERFACE_E_GRAFICOS.md).
+
 **Aceite do Prompt 4a — 03/11/2026:** Matheus declarou nesta conversa “tudo validado
 por mim e conciliado”. Encerrar a 4a no escopo sintético com essa confirmação
 humana e manter a 4b (carga horária) como próximo incremento, sem iniciá-la nesta

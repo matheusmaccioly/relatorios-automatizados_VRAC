@@ -4,6 +4,11 @@ Aplicação interna para apoiar Talita nas análises de docentes, matrículas e 
 horária. **Os seis roteiros documentados estão disponíveis em demonstração local
 exclusivamente sintética**, com PostgreSQL, filtros, tabelas, gráficos, conferências
 programadas e exportações CSV/PNG/ZIP. Não há dependência de LLM ou Power BI.
+
+**05/11/2026 — Supabase (D-035):** a base sintética foi migrada e o comando
+`run-demo.cmd` agora usa Supabase Auth e leitura autorizada por departamento.
+Matheus confirmou login e cálculo. A aplicação continua em Streamlit, no ambiente
+de execução Python; não foi publicada. [Migração, acesso e limites](docs/operations/SUPABASE.md).
 O modo institucional permanece bloqueado; SQL Server foi confirmado por Matheus,
 mas conexão e inventário institucionais não foram executados pelo agente.
 
@@ -13,8 +18,10 @@ integração/conferência institucionais ficam somente para a etapa final do pro
 e deploy; não são dependência dos incrementos sintéticos. Sequência no
 [plano](docs/PLAN.md).
 
-Para usar todos os roteiros, abrir a aba **Análises por período**, escolher o
-departamento, **Carregar ou atualizar dados** e **Calcular análises selecionadas**.
+A tela **Início** apresenta as análises por pergunta: cada cartão abre a análise com
+a base carregada. Para usar todos os roteiros, escolher **Ver todas as análises** e
+**Calcular análises selecionadas**; ao entrar direto em **Análises por período**, use
+**Carregar dados** antes.
 O [guia das análises sintéticas](docs/guides/ANALISES_SINTETICAS.md) explica filtros,
 regras, simulações explícitas e arquivos exportados.
 
@@ -74,18 +81,24 @@ institucional impedir downloads ou comandos batch, solicitar a forma aprovada pe
 
 A demonstração fica em <http://127.0.0.1:8501>; `Ctrl+C` encerra o processo.
 O [roteiro da prévia](docs/guides/PREVIEW.md) orienta a conferência da tela e explica o que mudou no Prompt 1.
-O comando de demonstração usa o PostgreSQL sintético local. Sua preparação está no
+O comando de demonstração usa o Supabase e exige uma conta criada pelo responsável,
+com departamentos liberados. O bootstrap inclui o SDK Supabase com versão fixada.
+Não há cadastro público, chave administrativa nem senha de banco na aplicação.
+
+Para usar a origem PostgreSQL local anterior, sua preparação está no
 [guia da base sintética](docs/operations/SYNTHETIC_POSTGRES.md), incluindo as projeções
 de leitura da aplicação. Com a base já preparada, iniciá-la antes da tela:
 
 ```powershell
 .\.venv\Scripts\python.exe -m vrac.dev.postgres_runtime start
-.\scripts\run-demo.cmd
+.\scripts\run-demo.cmd --postgres
 ```
 
 Use `SINT-A / 2026.2` para os exemplos e `SINT-VAZIO` para o caso sem registros.
-Trocar um filtro remove a prévia anterior até clicar novamente em **Mostrar dados de demonstração**.
-Não existem cálculos institucionais, exportações ou login simulado nesta fase.
+Trocar um filtro remove os resultados anteriores até novo cálculo. Os seis roteiros
+e suas exportações usam dados sintéticos e não validam cálculos institucionais.
+A autenticação Supabase protege a origem sintética hospedada; não é homologação
+da autenticação institucional.
 Para usar explicitamente os exemplos originais sem PostgreSQL, executar
 `.\scripts\run-demo.cmd --memory`. Essa opção permite conferir a tela em uma
 instalação sem os materiais locais do modelo; falhas do banco nunca a ativam.

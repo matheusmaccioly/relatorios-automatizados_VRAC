@@ -1,26 +1,32 @@
 """Apresentação compartilhada da composição e dos detalhes docentes da R01."""
 
-from collections.abc import Sequence
+from collections.abc import Callable, Mapping, Sequence
 from typing import Literal
 
 import pandas as pd
 import streamlit as st
-from matplotlib import pyplot as plt
+from matplotlib.figure import Figure
 
 from vrac.analyses.export import DETAIL_COLUMNS
 from vrac.analyses.faculty_overview import UNIT_LABEL, FacultyOverview
 from vrac.branding import Branding
-from vrac.charts import distribution_bars, figure_png
+from vrac.charts import distribution_bars, render_png
+from vrac.indicators import indicator_distribution, indicator_label
+from vrac.ui_kit import card_title, data_table, download_button, show_chart, single_value
 from vrac.web_charts import interactive_bars
 
+QUANTITY_COLUMNS = (
+    "Horas Reais (semestre atual)",
+    "CH contratada",
+    "Tempo de casa (anos)",
+)
 
-def render_faculty_metric(overview: FacultyOverview) -> None:
-    with st.container(horizontal_alignment="center"):
+
+def render_faculty_metric(overview: FacultyOverview, *, prefix: str) -> None:
+    with st.container(key=f"vrac-kpi-{prefix}"):
         st.metric(
             "Quantidade de professores",
             overview.total,
-            border=True,
-            width=340,
             help=f"Contagem de {UNIT_LABEL} no cadastro atual, como o cartão do painel.",
         )
 
@@ -44,67 +50,80 @@ def _composition_chart(
     branding: Branding,
     prefix: str,
     context: str,
-) -> bytes | None:
+    export_context: Mapping[str, str] | None = None,
+    indicator: bool = False,
+) -> Callable[[], bytes] | None:
+    # O indicador segue a ordem de leitura, com símbolos só na tela: o PNG usa o texto.
+    shown = [(indicator_label(key), value) for key, value in items] if indicator else items
     with st.container(border=True):
-        st.markdown(f"**{title}**")
+        card_title(title, f"Unidade: {unit}")
         if not items:
             st.info("Sem registros para esta distribuição no recorte selecionado.")
             return None
-        st.altair_chart(
-            interactive_bars(
+        if len(items) == 1:
+            single_value(shown[0][1], shown[0][0])
+        else:
+            show_chart(
+                f"{prefix}-{name}",
+                export_context,
+                lambda: interactive_bars(
+                    shown,
+                    label=label,
+                    unit=unit,
+                    branding=branding,
+                    orientation=orientation,
+                    keep_order=indicator,
+                ),
+                key=f"{prefix}_chart_{name}",
+            )
+
+        def figure() -> Figure:
+            drawn = distribution_bars(
                 items,
-                label=label,
+                title=title,
                 unit=unit,
                 branding=branding,
                 orientation=orientation,
-                color="yellow",
-            ),
-            width="stretch",
-            theme=None,
-            key=f"{prefix}_chart_{name}",
-        )
-        st.caption(f"Unidade: {unit}.")
-        figure = distribution_bars(
-            items,
-            title=title,
-            unit=unit,
-            branding=branding,
-            orientation=orientation,
-            color="yellow",
-        )
-        try:
-            figure.text(
+                keep_order=indicator,
+            )
+            drawn.text(
                 0.01,
                 0.01,
                 f"DEMONSTRAÇÃO — DADOS SINTÉTICOS | {context}",
                 fontsize=7,
                 family=branding.tokens["typography"]["body_family"],
             )
-            figure.tight_layout(rect=(0, 0.06, 1, 1))
-            png = figure_png(figure)
-        finally:
-            plt.close(figure)
-        with st.expander("Tabela e exportação do gráfico"):
-            st.dataframe(
-                pd.DataFrame(items, columns=[label, "Quantidade"]),
-                hide_index=True,
-                width="stretch",
-            )
-            st.download_button(
+            drawn.tight_layout(rect=(0, 0.06, 1, 1))
+            return drawn
+
+        def png() -> bytes:
+            return render_png(figure, export_context)
+
+        with st.expander("Ver tabela do gráfico"):
+            data_table(pd.DataFrame(shown, columns=[label, "Quantidade"]), numeric=["Quantidade"])
+            download_button(
                 "Baixar gráfico (PNG)",
                 png,
                 file_name=f"vrac-R01-{name}.png",
                 mime="image/png",
                 key=f"{prefix}_png_{name}",
+                on_click="ignore",
             )
         return png
 
 
 def render_composition(
-    overview: FacultyOverview, branding: Branding, *, prefix: str
-) -> dict[str, bytes]:
-    """Distribuições com as contagens calculadas; sem recompor totais pelas barras."""
-    files: dict[str, bytes] = {}
+    overview: FacultyOverview,
+    branding: Branding,
+    *,
+    prefix: str,
+    export_context: Mapping[str, str] | None = None,
+) -> dict[str, Callable[[], bytes]]:
+    """Distribuições com as contagens calculadas; sem recompor totais pelas barras.
+
+    Devolve geradores de PNG: o arquivo só é desenhado quando alguém o baixa.
+    """
+    files: dict[str, Callable[[], bytes]] = {}
     charts = (
         (
             "departamento",
@@ -112,7 +131,7 @@ def render_composition(
             "Departamento",
             overview.by_department,
             "linhas com matrícula",
-            "vertical",
+            "horizontal",
         ),
         (
             "quadro",
@@ -120,7 +139,7 @@ def render_composition(
             "Quadro",
             overview.by_cadre,
             UNIT_LABEL,
-            "vertical",
+            "horizontal",
         ),
         (
             "categoria",
@@ -130,11 +149,24 @@ def render_composition(
             "linhas com matrícula",
             "horizontal",
         ),
+        (
+            "indicador",
+            "Indicador de carga dos professores",
+            "Indicador de carga",
+            indicator_distribution(row.indicator for row in overview.detail),
+            "linhas do cadastro",
+            "horizontal",
+        ),
     )
-    columns = st.columns(2)
-    for index, (name, title, label, items, unit, orientation) in enumerate(charts):
-        target = columns[index] if index < 2 else st.container()
-        with target:
+    # Valor único primeiro; várias categorias lado a lado, e a última ocupa a linha se sobrar.
+    slots = {chart[0]: st.container() for chart in charts if len(chart[3]) <= 1}
+    grid = [chart for chart in charts if len(chart[3]) > 1]
+    for start in range(0, len(grid), 2):
+        pair = grid[start : start + 2]
+        targets = st.columns(2, gap="medium") if len(pair) == 2 else [st.container()]
+        slots.update({chart[0]: target for chart, target in zip(pair, targets, strict=True)})
+    for name, title, label, items, unit, orientation in charts:
+        with slots[name]:
             png = _composition_chart(
                 items,
                 name=name,
@@ -145,15 +177,23 @@ def render_composition(
                 branding=branding,
                 prefix=prefix,
                 context=f"{overview.department} | Cadastro atual | {overview.fingerprint[:12]}",
+                indicator=name == "indicador",
+                export_context=dict(export_context or {})
+                | {
+                    "Análise": "R01",
+                    "Gráfico": title,
+                    "Unidade": unit,
+                    "Avisos": " | ".join(overview.warnings),
+                },
             )
         if png is not None:
             files[f"R01/grafico-{name}.png"] = png
     st.caption(
+        "Passe o cursor para ver os valores; clique numa barra para destacar e clique duas "
+        "vezes para limpar. O destaque não altera filtros, resultados ou arquivos. "
         "Por quadro conta matrículas funcionais distintas; por categoria e departamento "
-        "conta linhas do cadastro com matrícula, como os visuais do painel. "
-        "As barras não devem ser somadas para reconstruir o total. "
-        "Clique numa barra para destacar; clique duas vezes para limpar. "
-        "O destaque não altera filtros, resultados ou arquivos."
+        "conta linhas do cadastro com matrícula. Não some as barras para reconstruir o total. "
+        "O indicador de carga reproduz a regra do painel e não avalia produtividade."
     )
     return files
 
@@ -202,7 +242,7 @@ def render_faculty_details(overview: FacultyOverview) -> None:
         if general.empty:
             st.info("Sem registros docentes para o recorte selecionado.")
         else:
-            st.dataframe(general, hide_index=True, width="stretch")
+            data_table(general)
         st.caption(
             "Dados fictícios do cadastro atual, ordenados por nome. "
             "Cada linha é um registro do cadastro; não representa necessariamente uma pessoa única."
@@ -212,7 +252,7 @@ def render_faculty_details(overview: FacultyOverview) -> None:
         if workload.empty:
             st.info("Sem registros docentes para o recorte selecionado.")
         else:
-            st.dataframe(workload, hide_index=True, width="stretch")
+            data_table(workload, numeric=QUANTITY_COLUMNS)
         st.caption(
             "Dados fictícios. Horas Reais: soma da fonte dedicada no maior semestre "
             "de cada matrícula, indicado na tabela; não são reconstruídas pelas disciplinas. "
