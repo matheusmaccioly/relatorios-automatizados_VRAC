@@ -3,7 +3,8 @@
 ## Envio do código ao GitHub — 05/11/2026
 
 A pedido de Matheus, o trabalho pendente foi enviado à branch
-`entrega/supabase-interface-20261105` do repositório remoto, sem merge em `main`.
+`entrega/supabase-interface-20261105` do repositório remoto e integrado à `main`
+pelo PR #1, mergeado por Matheus.
 Isso guarda o código no GitHub; **não publica a aplicação**. O processo Streamlit
 continua sem hospedagem, e o deploy no ambiente existente segue como tarefa própria.
 
