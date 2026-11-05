@@ -9,29 +9,49 @@ reviewed_by = ""
 reviewed_on = ""
 
 [colors]
+# Azul e ciano: prancha EMoD 23-10-18. Azul também é a primeira série dos gráficos.
 blue = "#0081AD"
 cyan = "#00B7DD"
 # Neutros presentes nas assinaturas monocromáticas e no fundo do material.
 black = "#000000"
 white = "#FFFFFF"
-# Amarelo/cinza: RGB e hex divergem no PDF. Matheus escolheu o hex impresso em
-# 30/10/2026 (D-021); revisão institucional pendente.
-yellow = "#F1BA2A"
-gray = "#869597"
-# Fundo da página escolhido por Matheus em 30/10/2026 (D-024); não consta da
-# prancha oficial. Blocos de conteúdo e a assinatura permanecem sobre branco.
+# D-032: Matheus indicou o site público e o portal como referência mais próxima do
+# design system. Valores abaixo vêm de https://www.puc-rio.br/styles/index_puc_tapume.css
+# (famílias amarelo1/2/3, roxo2, turquesa2, vermelho2 e offwhite); substitui o amarelo
+# da D-021 na interface e nas exportações. Revisão institucional pendente (Q-012).
+yellow = "#FFB52F"
+yellow_deep = "#E08C07"
+yellow_dark = "#BF6000"
+purple = "#7817B1"
+turquoise = "#00A2AC"
+red = "#BE002D"
+ink = "#1F1F1F"
+line = "#CDCAC1"
 background = "#F5F5F0"
+# Valores do portal fornecido por Matheus, sem correspondente no CSS público.
+ink_soft = "#333333"
+surface_hover = "#EBEBE4"
+yellow_soft = "#FFF1D2"
+# Cinza hex impresso da prancha (D-021); usado somente no tema do Streamlit.
+gray = "#869597"
+
+[charts]
+# Ordem fixa de séries, atribuída pela entidade e nunca pelo ranking. Verificada com
+# validador de paleta: luminosidade, croma, daltonismo e distância entre vizinhas.
+# #E08C07 fica abaixo de 3:1 sobre branco; por isso legenda e tabela são obrigatórias.
+series = ["#0081AD", "#E08C07", "#7817B1", "#00A2AC", "#BF6000"]
 
 [typography]
 body_family = "Rethink Sans"
-heading_family = "Literata"
+heading_family = "Rethink Sans"
+editorial_family = "Literata"
 application_status = "proposed_pending_review"
 
 [marks]
-primary_logo = "logos/RGB/PNG/_puc_rio-H_cor_abr_rgb_23-10-18.png"
+primary_logo = "logos/RGB/PNG/_puc_rio-H_mono_abr_rgb_23-10-18.png"
 logo_alt = "PUC-Rio"
 # Sem recorte ou nova composição. Largura de layout, não tamanho mínimo oficial.
-display_width = 200
+display_width = 132
 
 [[fonts]]
 family = "Rethink Sans"

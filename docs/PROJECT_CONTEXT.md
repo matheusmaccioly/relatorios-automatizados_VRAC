@@ -1,5 +1,53 @@
 # Contexto do projeto VRAC
 
+**Supabase — 05/11/2026 (D-035):** a pedido de Matheus, schema e dados do PostgreSQL
+sintético foram migrados ao projeto Supabase indicado: 16 tabelas/3.926 registros
+conciliados por contagem e hash, além de 3.176 linhas de projeções de leitura.
+Streamlit passa a consumir RPCs fixas com JWT do usuário, RLS por departamento
+e validação de sessão. Uma conta criada por Matheus recebeu quatro departamentos;
+ele confirmou login e cálculo na aplicação. Cadastro público desativado.
+[Operação e limites](operations/SUPABASE.md). Isso substitui a origem padrão local
+e a divisão anterior de responsabilidade de autenticação apenas neste incremento
+expressamente solicitado. Fontes institucionais e publicação continuam pendentes.
+
+**Tabelas visuais — 05/11/2026 (D-033):** indicador de carga com símbolos, tabelas recolhidas
+sob os gráficos, gráficos novos em R01, R02, R04 e R06 e rótulo não clicável de Análise
+financeira, que segue fora do escopo. Fórmulas e fontes não mudaram. Sem homologação visual.
+
+**Design system e navegação — 04/11/2026 (D-032):** site público e portal passam a ser
+a referência visual, com paleta, marca monocromática, tela Início por perguntas, filtros
+por análise e gráficos revisados, conferidos em navegador real. Sem mudança de fórmulas,
+acesso a banco ou publicação; homologação visual e aceite de uso pendentes.
+[Entrega e roteiro de revisão](guides/INTERFACE_E_GRAFICOS.md).
+
+**Interface e gráficos — 04/11/2026 (revisão anterior, substituída pela D-032 quanto à paleta):** revisão solicitada a partir do portal HTML
+e do site público da PUC-Rio. Hierarquia editorial, filtros em etapas, limpeza de
+recortes e gráficos Altair (inclusive R06) usam recursos locais e os tokens
+autorizados. Paletas divergentes das referências não foram adotadas. Sem mudanças
+de fórmulas, acesso a banco, homologação ou publicação. Revisão visual automatizada
+bloqueada por timeout das ferramentas; aceite institucional e de uso pendentes.
+[Entrega e roteiro de revisão](guides/INTERFACE_E_GRAFICOS.md).
+
+**Prompt de feedback, revisão final sintética — 04/11/2026:** R05 distingue
+indisponibilidade de vigências de ausência de evidência; PNG da R02 identifica
+unidade das séries desenhadas. Guias de uso e classificação foram atualizados.
+O registro de feedback segue temporário; não há aprovação operacional ou visual
+inferida. [Revisão e pendências](guides/REVISAO_FINAL_FEEDBACK.md).
+
+**Prompt 5, conferência de 04/11/2026:** manifesto do pacote agora identifica R01
+quando seus arquivos estão presentes; arquivos e feedback foram novamente conferidos
+offline, com dados sintéticos em memória. A sessão e o CSV de feedback são
+temporários; persistência, retenção, proteção, backup e integração ao backlog ainda
+dependem de decisão do time. PostgreSQL sintético e fontes institucionais não foram
+consultados nesta conferência. [Evidências e limites](guides/PROMPT5_VERIFICACOES.md).
+
+**Prompt 5, exportações e feedback — 04/11/2026:** CSV/PNG/ZIP receberam
+contexto de execução e conferência sintética offline; formulário oferece quatro
+categorias e CSV temporário vinculado à execução. Matheus informou que o mecanismo
+de armazenamento ainda não foi definido: não há persistência nem backlog
+compartilhado. [Detalhes e limites](guides/PROMPT5_VERIFICACOES.md). Resultados
+sintéticos não validam fontes institucionais.
+
 **Prompt 5, incremento de modos:** conferências existentes preservadas e E01
 experimental com autorização sintética por sessão. PostgreSQL sintético, feedback,
 XLSX/SVG e aceite humano permanecem pendentes conforme

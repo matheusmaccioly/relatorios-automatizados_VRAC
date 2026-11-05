@@ -8,6 +8,7 @@ from datetime import UTC, date, datetime
 from zipfile import ZipFile
 
 import pytest
+from matplotlib import pyplot as plt
 
 from vrac.analyses.academic import AnalysisFilters, AnalysisKind, calculate
 from vrac.analyses.academic_data import ALL_DEPARTMENTS, HistoryRow
@@ -16,6 +17,7 @@ from vrac.analyses.academic_fixture import load_fixture
 from vrac.analyses.export import summary_csv
 from vrac.analyses.faculty_overview import OverviewFilters, OverviewStatus, compute_overview
 from vrac.branding import load_branding
+from vrac.charts import academic_chart
 from vrac.web_charts import chart_records, interactive_bars, interactive_chart
 
 FILTERS = AnalysisFilters("2026.1", "2026.1", "2026.1", qp_cadres=("PROF PRINCIPAL",))
@@ -158,3 +160,17 @@ def test_single_series_chart_preserves_zero_and_uses_click_highlighting():
     assert spec["data"]["values"][0]["Valor"] == 0
     assert spec["params"][0]["select"]["clear"] == "dblclick"
     assert "transform" not in spec
+
+
+def test_qp_department_chart_uses_count_unit_in_png_and_web():
+    result = calculate(AnalysisKind.QP, comparison_source(), FILTERS)
+    spec = next(chart for chart in result.charts if chart.table == "departments")
+    assert "%" in table(result, "departments").unit
+    assert {row["Unidade"] for row in chart_records(result, spec)} == {
+        "matrículas funcionais distintas"
+    }
+    figure = academic_chart(result, spec, load_branding())
+    try:
+        assert figure.axes[0].get_ylabel() == "matrículas funcionais distintas"
+    finally:
+        plt.close(figure)

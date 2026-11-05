@@ -9,20 +9,45 @@ set "MPLCONFIGDIR=%VRAC_PROJECT_ROOT%\.cache\matplotlib"
 set "STREAMLIT_BROWSER_GATHER_USAGE_STATS=false"
 set "VRAC_ENVIRONMENT=development"
 set "VRAC_DATA_MODE=synthetic"
-set "VRAC_DEMO_SOURCE=postgres"
+set "VRAC_DEMO_SOURCE=supabase"
 if "%~1"=="--memory" (
     set "VRAC_DEMO_SOURCE=memory"
+) else if "%~1"=="--postgres" (
+    set "VRAC_DEMO_SOURCE=postgres"
+) else if "%~1"=="--supabase" (
+    set "VRAC_DEMO_SOURCE=supabase"
 ) else if not "%~1"=="" (
-    echo Argumento invalido. Use run-demo.cmd ou run-demo.cmd --memory.
+    echo Argumento invalido. Use run-demo.cmd [--supabase ou --memory ou --postgres [porta]].
     exit /b 1
 )
-if not "%~2"=="" exit /b 1
+set "VRAC_PORT=8501"
+if not "%~2"=="" set "VRAC_PORT=%~2"
+if not "%~3"=="" (
+    echo Argumento invalido. Use run-demo.cmd [--supabase ou --memory ou --postgres [porta]].
+    exit /b 1
+)
+for /f "delims=0123456789" %%A in ("%VRAC_PORT%") do (
+    echo Porta invalida. Use um numero entre 1024 e 65535.
+    exit /b 1
+)
+if "%VRAC_PORT:~0,1%"=="0" (
+    echo Porta invalida. Use um numero entre 1024 e 65535.
+    exit /b 1
+)
+if %VRAC_PORT% LSS 1024 (
+    echo Porta invalida. Use um numero entre 1024 e 65535.
+    exit /b 1
+)
+if %VRAC_PORT% GTR 65535 (
+    echo Porta invalida. Use um numero entre 1024 e 65535.
+    exit /b 1
+)
 
 if not exist "%VRAC_PYTHON%" (
     echo Ambiente ausente. Siga a instalacao descrita no README.md.
     exit /b 1
 )
 echo DEMONSTRACAO: somente dados sinteticos em acesso local.
-"%VRAC_PYTHON%" -m streamlit run app.py --server.address 127.0.0.1 --server.port 8501 --server.headless true --server.fileWatcherType none --browser.gatherUsageStats false
+"%VRAC_PYTHON%" -m streamlit run app.py --server.address 127.0.0.1 --server.port %VRAC_PORT% --server.headless true --server.fileWatcherType none --browser.gatherUsageStats false
 if errorlevel 1 exit /b 1
 exit /b 0

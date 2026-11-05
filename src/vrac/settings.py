@@ -24,6 +24,7 @@ class DataMode(StrEnum):
 class DemoSource(StrEnum):
     MEMORY = "memory"
     POSTGRES = "postgres"
+    SUPABASE = "supabase"
 
 
 @dataclass(frozen=True)
@@ -39,7 +40,11 @@ class Settings:
             or not isinstance(self.demo_source, DemoSource)
         ):
             raise ConfigurationError("Ambiente ou modo de dados inválido.")
-        if self.environment == Environment.PRODUCTION and self.data_mode == DataMode.SYNTHETIC:
+        if (
+            self.environment == Environment.PRODUCTION
+            and self.data_mode == DataMode.SYNTHETIC
+            and self.demo_source != DemoSource.SUPABASE
+        ):
             raise ConfigurationError(
                 "A demonstração sintética só está disponível em ambiente local."
             )

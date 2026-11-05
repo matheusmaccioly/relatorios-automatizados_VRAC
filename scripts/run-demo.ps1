@@ -2,8 +2,8 @@
 param(
     [ValidateRange(1024, 65535)]
     [int]$Port = 8501,
-    [ValidateSet('postgres', 'memory')]
-    [string]$Source = 'postgres'
+    [ValidateSet('supabase', 'postgres', 'memory')]
+    [string]$Source = 'supabase'
 )
 
 $ErrorActionPreference = 'Stop'

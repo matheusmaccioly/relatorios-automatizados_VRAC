@@ -9,6 +9,7 @@ from itertools import combinations
 
 from vrac.analyses.academic_data import AcademicSource, StudentRow
 from vrac.analyses.faculty_overview import NOT_INFORMED, semaphore_status
+from vrac.indicators import indicator_rank
 
 type Scalar = str | int | float | bool | None
 HISTORICAL_CADRES = frozenset(
@@ -94,6 +95,16 @@ class CalculatedAnalysis:
     calculation_version: str = "academic-r02-r06-v1"
 
 
+PARTICIPATION = "Participação (%)"
+
+
+def chart_unit(result: CalculatedAnalysis, specification: ChartSpec) -> str:
+    """Unidade das séries desenhadas, que podem ser subconjunto da tabela."""
+    if result.kind == AnalysisKind.QP and specification.table == "departments":
+        return "%" if PARTICIPATION in specification.series else "matrículas funcionais distintas"
+    return next(table.unit for table in result.tables if table.key == specification.table)
+
+
 def period_code(value: str) -> int:
     if not re.fullmatch(r"[0-9]{4}\.[12]", value) or int(value[:4]) < 1900:
         raise ValueError("Período inválido. Use ano e semestre disponíveis.")
@@ -162,6 +173,8 @@ def _result(
         if kind == AnalysisKind.STUDENTS
         else "academic-carga-v2"
         if kind == AnalysisKind.WORKLOAD
+        else "academic-funcoes-v2"
+        if kind == AnalysisKind.FUNCTIONS
         else "academic-r02-r06-v1",
     )
 
@@ -270,7 +283,7 @@ def calculate_qp(source: AcademicSource, filters: AnalysisFilters) -> Calculated
             "Grupo QP simulado",
             "Classificação ausente",
             "Demais",
-            "Participação (%)",
+            PARTICIPATION,
         ),
         tuple(departments),
         "matrículas funcionais distintas; participação em %",
@@ -297,6 +310,20 @@ def calculate_qp(source: AcademicSource, filters: AnalysisFilters) -> Calculated
                 "Departamento",
                 ("Geral", "Grupo QP simulado"),
                 "grouped_bar",
+            ),
+            # Em um departamento só, a participação já é o número do cartão.
+            *(
+                [
+                    ChartSpec(
+                        "departments",
+                        "Participação do grupo simulado por departamento",
+                        "Departamento",
+                        (PARTICIPATION,),
+                        "bar",
+                    )
+                ]
+                if len(departments) > 1
+                else []
             ),
         ]
         if selected
@@ -687,7 +714,7 @@ def calculate_workload(source: AcademicSource, filters: AnalysisFilters) -> Calc
             "indicators",
             "Indicadores conforme o painel",
             ("Indicador", "Vínculos"),
-            tuple(sorted(distribution.items())),
+            tuple(sorted(distribution.items(), key=lambda item: indicator_rank(item[0]))),
             "vínculos",
         ),
         allocation_table,
@@ -719,6 +746,9 @@ def calculate_workload(source: AcademicSource, filters: AnalysisFilters) -> Calc
         tables,
         notes,
         [
+            ChartSpec(
+                "indicators", "Indicador de carga por vínculo", "Indicador", ("Vínculos",), "bar"
+            ),
             ChartSpec(
                 "real_distribution", "Distribuição de Horas Reais", "Carga", ("Vínculos",), "bar"
             ),
@@ -832,9 +862,25 @@ def calculate_functions(source: AcademicSource, filters: AnalysisFilters) -> Cal
             "Comprovações e vigências administrativas são cenários gerados "
             "exclusivamente para simulação, sem validade institucional."
         )
+    if not register_available:
+        notes.append("Cadastro docente indisponível; dupla função cadastral não pode ser apurada.")
+    if not have_events:
+        notes.append("Fonte de registros de função indisponível; essas contagens ficam ausentes.")
+    if not have_appointments:
+        notes.append(
+            "Fonte de vigências indisponível; evidência administrativa e simultaneidade "
+            "não podem ser apuradas."
+        )
     metrics = [
         Metric(
-            "Dupla função no cadastro", len(dual) if register else None, "matrículas funcionais"
+            "Dupla função no cadastro",
+            len(dual) if register else None,
+            "matrículas funcionais",
+            "Calculado"
+            if register
+            else "Fonte indisponível"
+            if not register_available
+            else "Sem dados",
         ),
         Metric(
             "Vínculos com registro de função",
@@ -852,12 +898,17 @@ def calculate_functions(source: AcademicSource, filters: AnalysisFilters) -> Cal
             "Função administrativa com evidência",
             len(confirmed) if have_appointments else None,
             "matrículas funcionais",
-            "Simulação" if source.policy.synthetic_appointments else "Fonte indisponível",
+            "Fonte indisponível"
+            if not have_appointments
+            else "Simulação"
+            if source.policy.synthetic_appointments
+            else "Calculado",
         ),
         Metric(
             "Vínculos com papéis simultâneos",
             len({r[0] for r in simultaneous}) if have_appointments else None,
             "matrículas funcionais",
+            "Calculado" if have_appointments else "Fonte indisponível",
         ),
     ]
     comparison = tuple(
@@ -866,7 +917,9 @@ def calculate_functions(source: AcademicSource, filters: AnalysisFilters) -> Cal
             r.name,
             _label(r.dual_role),
             sum(e.registration == r.registration for e in events) if have_events else None,
-            "Simulação com evidência"
+            "Fonte indisponível"
+            if not have_appointments
+            else "Simulação com evidência"
             if r.registration in confirmed
             else "Sem evidência no recorte",
         )
@@ -1164,6 +1217,22 @@ def calculate_students(source: AcademicSource, filters: AnalysisFilters) -> Calc
         ),
     ]
     last = rows[-1]
+    # Recorte do detalhe por curso, sem somar cursos; ausente vai ao fim e não vira zero.
+    tables.append(
+        ResultTable(
+            "student_courses_latest",
+            f"Matriculados por curso em {last[0]}",
+            ("Curso", "Matriculados"),
+            tuple(
+                sorted(
+                    ((row[0], row[2]) for row in course_rows if row[1] == last[0]),
+                    key=lambda item: (item[1] is None, -(item[1] or 0), item[0]),
+                )
+            ),
+            "matrículas acadêmicas distintas",
+            "Cada curso é contado separadamente; as barras não devem ser somadas.",
+        )
+    )
     return _result(
         AnalysisKind.STUDENTS,
         source,
@@ -1179,7 +1248,22 @@ def calculate_students(source: AcademicSource, filters: AnalysisFilters) -> Calc
         ],
         tables,
         notes,
-        [ChartSpec("students", "Evolução das quatro séries acadêmicas", "Período", headers[1:])],
+        [
+            ChartSpec("students", "Evolução das quatro séries acadêmicas", "Período", headers[1:]),
+            *(
+                [
+                    ChartSpec(
+                        "student_courses_latest",
+                        f"Matriculados por curso em {last[0]}",
+                        "Curso",
+                        ("Matriculados",),
+                        "bar",
+                    )
+                ]
+                if len(courses) > 1
+                else []
+            ),
+        ],
         status="Sem dados"
         if all(v is None for row in rows for v in row[1:])
         else "Parcial"

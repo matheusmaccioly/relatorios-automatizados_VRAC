@@ -19,6 +19,9 @@ dependencies = [
 [project.optional-dependencies]
 sqlserver = ["SQLAlchemy>=2.0,<3", "pyodbc>=5.3,<6"]
 postgres = ["psycopg[binary]>=3.2,<4"]
+supabase = [
+    "supabase==2.34.0",
+]
 
 [project.scripts]
 vrac-db = "vrac.db.cli:main"
@@ -32,8 +35,15 @@ packages = ["src/vrac"]
 [tool.hatch.build.targets.wheel.force-include]
 "sql" = "vrac/sql"
 "config/analyses.yaml" = "vrac/analyses/analyses.yaml"
+"config/supabase.public.toml" = "vrac/supabase.public.toml"
 "assets/branding/tokens.toml" = "vrac/branding_assets/tokens.toml"
-"assets/branding/logos/RGB/PNG/_puc_rio-H_cor_abr_rgb_23-10-18.png" = "vrac/branding_assets/logos/RGB/PNG/_puc_rio-H_cor_abr_rgb_23-10-18.png"
+"assets/branding/logos/RGB/PNG/_puc_rio-H_mono_abr_rgb_23-10-18.png" = "vrac/branding_assets/logos/RGB/PNG/_puc_rio-H_mono_abr_rgb_23-10-18.png"
+"assets/branding/fonts/Rethink Sans/RethinkSans-Regular.ttf" = "vrac/branding_assets/fonts/Rethink Sans/RethinkSans-Regular.ttf"
+"assets/branding/fonts/Rethink Sans/RethinkSans-SemiBold.ttf" = "vrac/branding_assets/fonts/Rethink Sans/RethinkSans-SemiBold.ttf"
+"assets/branding/fonts/Rethink Sans/RethinkSans-Bold.ttf" = "vrac/branding_assets/fonts/Rethink Sans/RethinkSans-Bold.ttf"
+"assets/branding/fonts/Literata/Literata-Regular.ttf" = "vrac/branding_assets/fonts/Literata/Literata-Regular.ttf"
+"assets/branding/fonts/Literata/Literata-SemiBold.ttf" = "vrac/branding_assets/fonts/Literata/Literata-SemiBold.ttf"
+"assets/branding/fonts/Literata/Literata-Bold.ttf" = "vrac/branding_assets/fonts/Literata/Literata-Bold.ttf"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -1,4 +1,6 @@
 .git
+supabase/.temp
+supabase/.branches
 /scripts/synthetic-postgres.local.py
 /scripts/connect-synthetic-app.local.py
 /scripts/prepare-academic-analyses.local.py

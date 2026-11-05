@@ -34,6 +34,10 @@ secrets.toml
 !/pyproject.toml
 !/.streamlit/config.toml
 !/config/analyses.yaml
+!/config/supabase.public.toml
+!/supabase/config.toml
+/supabase/.temp/
+/supabase/.branches/
 !/assets/branding/tokens.toml
 database.toml
 dbconfig.toml

@@ -1,0 +1,4 @@
+# Configuração PÚBLICA. Esta chave não é segredo e não concede acesso sem login/RLS.
+# Nunca colocar service_role, sb_secret, senha de banco ou token pessoal neste arquivo.
+url = "https://uaauqyjbsqvfhepualur.supabase.co"
+publishable_key = "sb_publishable_9sd6iEPryUUgVmnIcstQAw_D_vgbD1L"

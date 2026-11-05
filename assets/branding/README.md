@@ -7,9 +7,11 @@ revisão por Matheus e pelo responsável institucional ainda pendente.**
 Foram fornecidas assinaturas RGB (PNG, JPG e AI), uma prancha de referência EMoD
 de 23-10-18 e as famílias Literata e Rethink Sans. Os originais foram preservados.
 O inventário e as limitações estão em [guidelines/README.md](guidelines/README.md).
-O aplicativo utiliza a assinatura horizontal abreviada colorida, sem recorte, e
-aplica a proposta tipográfica Rethink Sans no corpo e Literata nos títulos.
-Azul, ciano, amarelo e cinza são usados; amarelo/cinza pelo hex impresso (D-021).
+O aplicativo utiliza a assinatura horizontal abreviada monocromática, sem recorte, e
+aplica Rethink Sans no corpo e nos títulos, com Literata em rótulos e identificação
+editorial. Matheus indicou o site público e o portal como o que há de mais próximo do
+design system (D-032): seus valores passaram a orientar paleta e componentes, sem
+constituir um manual completo. [Referências e divergências](guidelines/README.md).
 
 | Material | Onde colocar |
 |---|---|
@@ -41,8 +43,8 @@ sincronizar os arquivos web e reiniciar a demonstração:
 .\scripts\run-demo.cmd
 ```
 
-O script gera `.streamlit/config.toml` e copia seis pesos de fontes, sem alterações,
-para `static/branding/`. Essa pasta pública deve conter somente esses recursos web,
+O script gera `.streamlit/config.toml` e copia seis pesos de fontes e a marca em uso,
+sem alterações, para `static/branding/`. Essa pasta pública deve conter somente esses recursos web,
 nunca fontes de dados, documentos internos ou configurações privadas. Nenhum CDN,
 Google Fonts ou download de fontes é usado pela interface.
 
@@ -59,8 +61,8 @@ e arquivos produzidos pelo sistema.
 
 O tema foi aplicado aos materiais disponíveis; não representa homologação visual.
 Regras não documentadas (como tamanho mínimo, hierarquia tipográfica institucional,
-favicon e cores semânticas) continuam pendentes. A revisão no navegador também está
-pendente: o Computer Use interrompeu a captura por não conseguir verificar a URL.
+favicon e cores semânticas) continuam pendentes. A interface foi conferida em Chrome
+headless (D-032); falta a revisão humana de Matheus e do responsável institucional.
 
 Esta pasta recebe recursos de marca autorizados para o projeto. Credenciais, dados
 acadêmicos e documentos privados operacionais continuam fora do workspace e do Git.

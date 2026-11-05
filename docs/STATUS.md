@@ -1,5 +1,416 @@
 # Estado da entrega
 
+## Envio do código ao GitHub — 05/11/2026
+
+A pedido de Matheus, o trabalho pendente foi enviado à branch
+`entrega/supabase-interface-20261105` do repositório remoto, sem merge em `main`.
+Isso guarda o código no GitHub; **não publica a aplicação**. O processo Streamlit
+continua sem hospedagem, e o deploy no ambiente existente segue como tarefa própria.
+
+| Verificação antes do envio | Resultado observado |
+|---|---|
+| Suíte offline | 537 aprovados, 1 excluído, 192,81 s |
+| Ruff `check` / `format --check` | Aprovados; 129 arquivos formatados |
+| Varredura de segredos nos arquivos enviados, com controles positivos | Nenhuma ocorrência; a chave publicável do Supabase é pública por decisão registrada |
+| Visibilidade do repositório | Consulta anônima à API retornou 404, compatível com repositório privado; `gh` indisponível para confirmação direta |
+
+**Fora do commit:** `sql/query-professores-0alunos.sql` e
+`sql/query-turma-professores-0alunos.sql`, que usam nomes físicos institucionais e
+não são referenciados pelo projeto, além do diretório temporário de pytest na raiz.
+Permanecem locais até decisão de Matheus. A Q-011 (autorização do remoto e dos
+materiais compartilháveis) continua aberta.
+
+## Migração sintética e autenticação Supabase — 05/11/2026
+
+Solicitação de Matheus registrada em D-035. **Schema/dados sintéticos migrados e
+leitor integrado; Supabase Auth e autorização por departamento configurados.**
+Uma conta criada manualmente por Matheus foi liberada para quatro departamentos.
+Ele confirmou nesta conversa: “Entrei e consegui calcular”. Isso registra login e
+um cálculo por confirmação humana, sem inferir revisão completa ou homologação.
+
+| Verificação executada | Resultado observado |
+|---|---|
+| Origem PostgreSQL local, conta de leitura e TLS `verify-full` | Marcador sintético válido; quatro departamentos e seis períodos |
+| DDL/RPC no destino, primeiro em transação revertida | Compilação aprovada |
+| Migração e conciliação do schema original | **16 tabelas, 3.926 linhas**; contagens e hashes por tabela iguais |
+| Projeções tipadas para R01–R06 | **3.176 linhas**, contagens iguais às exportadas |
+| Histórico de migrações | Duas migrações aplicadas e registradas |
+| Supabase Auth | Cadastro público/anônimo desabilitados, JWT 900 s, novas senhas com mínimo de 12 caracteres; `config diff` sem atualizações pendentes para propriedades declaradas |
+| SQL de autorização transacional | Isolamento, departamento não autorizado, zero/nulo, bloqueio de escrita e revogação aprovados; identidades/linhas de teste revertidas |
+| HTTP real sem login, somente chave publicável | `vrac_options` e `vrac_snapshot` retornaram **401**; nenhum dado exposto |
+| Primeira suíte completa | 474 aprovados e 60 erros de setup pelo diretório temporário do pytest sem acesso; não tratada como aprovação |
+| Suíte com pasta temporária nova no projeto | 534 aprovados, 1 excluído, 148,07 s; depois incluídos três testes de login/logout e exportação |
+| Testes adicionais | Encontraram e corrigiram comparação do peso tipográfico textual com inteiro no link de exportação |
+| **Suíte final offline** | **537 aprovados, 1 excluído**, 159,75 s, código 0 |
+| Ruff `check` / `format --check` | Aprovados; 93 arquivos formatados |
+| `git diff --check` | Sem erros; avisos do Git sobre fim de linha |
+| Validação humana | Matheus confirmou login e cálculo no app ligado ao Supabase |
+
+**Arquivos desta tarefa:** novos `src/vrac/supabase_auth.py`, `auth_ui.py`,
+`db/supabase_reader.py`, `dev/supabase_migration.py`, `tests/test_supabase.py`,
+`config/supabase.public.toml`, `supabase/config.toml`, duas migrações SQL e teste de
+autorização. Integrações em `settings.py`, `authorization.py`, `demo_data.py`,
+`ui.py`, `academic_ui.py`, `ui_kit.py`, `faculty_presentation.py`, `feedback_ui.py`
+e `app.py`; instalação/execução em `scripts/bootstrap.*`, `scripts/run-demo.*`,
+`pyproject.toml`, `uv.lock`, configuração de exemplo e exclusões Git/Docker.
+README, arquitetura, contexto, plano, decisões e este estado atualizados.
+Mudanças anteriores do workspace foram preservadas.
+
+**Execução:** `scripts\bootstrap.cmd --postgres` e `scripts\run-demo.cmd` usam
+Supabase com login obrigatório. Para a instância local desta tarefa:
+`scripts\run-demo.cmd --supabase 8527`. Testes:
+`.venv\Scripts\python.exe -m pytest -q --basetemp .cache\PASTA_NOVA_DE_TESTE
+-o cache_dir=.cache/pytest-supabase`. Detalhes de migração/manutenção no
+[guia Supabase](operations/SUPABASE.md).
+
+**Não executados:** banco institucional, deploy, navegação por teclado/leitor de
+tela, sessão longa/recuperação de senha, download manual em navegador nem revisão
+de todas as análises/exportações por Talita. Bytes e ausência de endpoint público
+de mídia foram verificados offline; login/logout e limpeza de resultados também.
+
+**Riscos e limites:** transferência é um snapshot, sem sincronização automática.
+Pacote de transferência temporário fica fora do workspace e deve ter cópia em
+armazenamento aprovado. E01 local não é executada no Supabase; conferências sobre
+o snapshot permanecem. Feedback continua temporário. O processo Streamlit precisa
+do ambiente Python existente; não foi hospedado no Supabase nem publicado.
+`migration repair` aguardou conexão direta e foi interrompido; histórico registrado
+pela Management API no formato oficial da CLI, sem alterar TLS/firewall.
+
+**A validar:** Matheus mantém contas/liberações e preserva o pacote externo; Talita
+revisa uso e arquivos; DSI/DBA validam fontes, acesso e operação institucionais na
+etapa final; revisão visual permanece com Matheus e responsável institucional.
+Sem bloqueio para usar a demonstração autenticada. Esta tarefa implementa o
+incremento de autenticação solicitado, sem concluir fases institucionais ou publicar.
+
+## Ferramentas de desenvolvimento · Supabase MCP — 05/11/2026
+
+A pedido de Matheus, o servidor global `supabase` foi adicionado ao Codex com a URL,
+o projeto e os grupos de recursos fornecidos na conversa. A configuração fica no
+`config.toml` global do Codex, fora deste repositório. O próprio `codex mcp add`
+iniciou o OAuth; após Matheus concluir a autorização no navegador, retornou
+`Successfully logged in` com código 0. Não foi necessário iniciar outro login.
+
+As skills oficiais `supabase` e `supabase-postgres-best-practices` foram instaladas
+em `~/.codex/skills/`, pelo instalador de skills do Codex, a partir de
+`supabase/agent-skills`, revisão `c9be0e931b7930f7d02126d04774d904c381e7d7`.
+Elas ficam disponíveis no próximo turno. Nenhuma dependência da aplicação foi alterada.
+
+| Verificação/comando | Resultado observado |
+|---|---|
+| `codex --version` | `codex-cli 0.166.0` |
+| `codex mcp add supabase --url '<URL fornecida na conversa>'` | Servidor global cadastrado; OAuth concluído, código 0 |
+| `codex mcp list --json`, filtrado para `supabase` | `enabled: true`, transporte `streamable_http`, `auth_status: o_auth`, código 0 |
+| Instalador oficial com `--repo supabase/agent-skills --path skills/supabase skills/supabase-postgres-best-practices --ref c9be0e931b7930f7d02126d04774d904c381e7d7` | Duas skills instaladas, código 0; presença dos dois `SKILL.md` confirmada |
+
+**Não executados:** `/mcp` na interface do aplicativo, chamadas às ferramentas do
+servidor, consultas a banco e suíte da aplicação (não houve mudança de código).
+A autenticação verificada pela CLI não comprova que esta sessão já carregou as ferramentas.
+A abertura automática do navegador foi bloqueada pela política de execução;
+Matheus abriu o link de autorização manualmente e concluiu o fluxo.
+
+**Limites e validação:** a URL solicitada habilita grupos com recursos de escrita;
+esta instalação não executou operações em banco nem altera as restrições do `AGENTS.md`.
+Matheus deve conferir o servidor com `/mcp` após recarregar o Codex, se necessário.
+DSI/DBA não têm validação nova neste cadastro; acesso institucional permanece para
+a etapa final. Talita não tem ação neste incremento. Somente este registro foi
+alterado no repositório nesta tarefa; mudanças anteriores foram preservadas.
+Sem avanço de fase ou publicação.
+
+## Conferência fora do menu — 05/11/2026
+
+A pedido de Matheus (D-034), Conferir dados sintéticos deixou de ser aba e virou bloco
+recolhido no fim de todas as telas, acima do rodapé. O menu ficou com Início, Análise docente,
+Análises por período e o rótulo de Análise financeira. Conteúdo, filtros e regras não mudaram.
+
+| Verificação | Resultado observado |
+|---|---|
+| Suíte offline completa | **515 aprovados, 1 excluído**, 165,44 s, código 0 |
+| Ruff `check` e `format --check` | Aprovados em 88 arquivos |
+| Chrome headless, 1366 px, memória sintética | Bloco inicia fechado, abre, mostra os registros e continua aberto ao trocar de aba; console sem erros |
+
+**Não executados:** largura de celular, PostgreSQL sintético, teclado e leitor de tela. Os guias
+históricos anteriores à D-034 mantêm o nome antigo de aba. Talita avalia se encontra o bloco.
+
+## Tabelas visuais e gráficos primeiro — 05/11/2026
+
+Matheus pediu tabelas mais visuais, melhor layout, uma aba não clicável de Análise financeira
+com "em breve" e conversão de tabelas em gráficos, deixando a ponderação ao agente. Decisão em
+D-033; leitura em [INTERFACE_E_GRAFICOS.md](guides/INTERFACE_E_GRAFICOS.md). Não houve mudança
+de fórmula, SQL, fonte de dados, conexão, commit ou publicação.
+
+- **Indicador de carga:** símbolos ▼ ● ▲ ▲▲ e demais estados, com fundo somente em tokens e
+  sem vermelho, na CH Real (R01) e em Carga por vínculo (R04). Nome, indicador e horas vêm
+  primeiro na tela. CSV e PNG mantêm o texto original.
+- **Tabelas:** componente único `data_table`, cabeçalho preto, linhas mais altas, matrículas
+  e códigos sem alinhamento de quantidade. Percentuais com uma casa na tela e ▲ ▼ ● na
+  variação da R06, sem seta quando ausente.
+- **Gráficos primeiro:** tabela recolhida no cartão do gráfico, com o mesmo CSV; quatro
+  gráficos novos (indicador em R01 e R04, participação na R02, matriculados por curso na R06).
+- **Análise financeira:** rótulo decorativo por CSS, sem aba, foco, conteúdo ou dados.
+- **Defeito encontrado e corrigido:** barras nulas sumiam do eixo. No gráfico de participação
+  isso escondia o SINT-A e deixava só "SINT-B 0". Agora a categoria fica com o texto "ausente".
+
+**Ponderação:** a variação da R06 não virou gráfico, pois a linha de matriculados já mostra a
+evolução e barras negativas exigiriam outro desenho; ganhou setas. A cobertura da R03 e as
+listas por pessoa seguem como tabelas. A coluna do nome não foi fixada: o Streamlit a esmaece
+sem permitir ajuste, e em celular ela ocuparia boa parte da largura.
+
+**Mudanças em arquivos:** `R06/student_courses_latest.csv` e os PNGs novos entram no ZIP;
+`R04/indicators.csv` passa à ordem de leitura. Os demais CSVs não mudaram.
+
+| Verificação | Resultado observado |
+|---|---|
+| Primeira suíte completa | 2 falhas e 512 aprovados: contratos antigos de contagem de gráficos, sem falha de cálculo |
+| Suíte offline completa, código final | **514 aprovados, 1 excluído**, 131,66 s, código 0 |
+| Testes novos em `test_table_presentation.py` | Incluídos na suíte: todos os estados da regra têm símbolo, arquivos sem símbolos, ausente não vira zero |
+| Ruff `check` e `format --check` | Aprovados em 88 arquivos de `src tests app.py scripts` |
+| `git diff --check` | Sem erros; avisos de fim de linha do Git |
+| CSS | Sem cor fora dos tokens, `url(` ou `@import` |
+| Chrome headless, 1366 px, memória sintética, código final | R02 (vários departamentos), R04 e R06 percorridos; console sem erros |
+| Chrome headless, antes da última correção das barras | Análise docente (indicador e CH Real) em 1366 px e CH Real em 390 px; console sem erros. Essa correção não altera o gráfico de composição |
+| Clique real sobre Análise financeira | Atingiu a própria lista de abas; aba selecionada não mudou; 4 itens focáveis, as 4 abas reais |
+| Largura de 390 px | Sem estouro horizontal da página; menu rola até o item e o selo |
+| PNGs novos | R04 e R01 gerados e conferidos a olho, sem símbolos |
+
+**Não executados:** PostgreSQL sintético, conexão ou teste institucional, download real pelo
+navegador, navegação por teclado completa, leitor de tela, Firefox/Safari, avaliação de Talita,
+revisão visual humana e homologação. A cobertura de um curso ausente na R06 foi testada na
+tabela, não vista no navegador.
+
+**Riscos:** as cores do indicador e o cabeçalho preto são proposta, pois cores semânticas seguem
+pendentes (Q-012). O rótulo financeiro depende do `::before`/`::after` da lista de abas do
+Streamlit 1.66 e deve ser revisto ao atualizar a versão; como é texto em CSS, não aparece nos
+testes de interface. Exibir "em breve" sugere uma entrega que está fora do escopo da PoC. No PNG
+da R04, os rótulos longos ficam inclinados, diferentes das barras horizontais da tela. Com
+muitas tabelas abertas a página fica longa, mas todas começam recolhidas quando há gráfico.
+
+**A validar:** Matheus decide se o rótulo financeiro aparece para Talita; Matheus e o responsável
+institucional revisam cores do indicador e cabeçalho; Talita avalia símbolos, tabelas recolhidas
+e gráficos novos. DSI/DBA não têm ação nova neste incremento.
+
+## Aproximação ao design system da PUC-Rio — 04/11/2026
+
+Matheus indicou o site público e `portal_solucoes_puc.html` como o que há de mais próximo
+do design system e pediu front-end nessas normas, uso mais intuitivo e gráficos melhores.
+Decisão em D-032; roteiro em [INTERFACE_E_GRAFICOS.md](guides/INTERFACE_E_GRAFICOS.md).
+Não houve mudança de fórmulas, SQL, fontes de dados, conexão, commit ou publicação.
+
+- **Identidade:** tokens do CSS público e do portal, marca oficial monocromática sem a
+  caixa branca, faixa de aviso, navegação em caixa alta e rodapé preto. A paleta anterior
+  dos gráficos reprovava no validador; a nova foi aprovada, com aviso de contraste em
+  `#E08C07`, compensado por legenda e tabela.
+- **Uso:** tela Início com perguntas que abrem a análise já carregada, cada análise só
+  com os filtros que usa, recarga ao trocar a unidade, rolagem até os resultados e
+  navegação fixa. Cálculo com os filtros ocultos testado contra o formulário inicial.
+- **Gráficos:** barras finas, tooltip na identidade, linha-guia com todas as séries,
+  rótulos seletivos, legenda no topo e número no lugar de gráfico de uma barra. Em
+  composição docente, departamento e quadro passaram a barras horizontais.
+- **Desempenho:** PNG e ZIP gerados no clique; especificação dos gráficos reaproveitada
+  na mesma execução; Altair importado em segundo plano; marca servida como arquivo
+  estático. Interações depois do cálculo levam cerca de 1 s no servidor, contra cerca de
+  2,5 s medidos antes do reaproveitamento.
+
+| Verificação | Resultado observado |
+|---|---|
+| Suíte offline completa, código final | **438 aprovados, 1 excluído**, 504,13 s, código 0 |
+| Primeira rodada da interface, antes do ajuste dos contratos | 9 falhas de 70, nenhuma de cálculo: contagem de gráficos (categoria única), recarga automática e ZIP no clique. Testes atualizados, com 25 testes em `test_interface_navigation.py` |
+| Ruff `check` e `format --check` | Aprovados em 86 arquivos de `src tests app.py scripts` |
+| `git diff --check` | Sem erros; avisos de fim de linha do Git |
+| CSS | Sem cor fora dos tokens, `url(` ou `@import` |
+| Chrome headless, 1366 px e 390 px, memória sintética | Início, docente, R02, R03, R04, R05, R06 e conferência percorridos; console sem erros; sem estouro horizontal |
+| Interação real | Clique nos cartões, rolagem, navegação fixa e tooltips de barra, linha e pilha confirmados |
+| Download real | PNG (2,9 s) e ZIP (23,8 s, com a suíte concorrendo) baixados; ZIP com 44 arquivos, 13 PNGs, manifesto e R01; execução coincide nos metadados |
+
+O primeiro cálculo variou muito entre as rodadas, conforme a carga da máquina: as últimas
+ficaram entre 14 e 17 s no navegador, incluindo a espera do script de conferência, e
+rodadas intermediárias com o mesmo código geraram valores bem maiores. Por isso não se
+declara um ganho percentual; o dado comparável é o da instrumentação, em que a geração de
+PNG respondia por cerca de 16 s de uma execução de 34 s e deixou de ocorrer no cálculo.
+
+**Lançador:** `run-demo.ps1` foi bloqueado no terminal de Matheus pela política de execução do Windows, que não foi alterada. `run-demo.cmd` passou a aceitar porta opcional (`--memory 8545`); seis entradas inválidas foram recusadas e a interface abriu pela porta 8546, com console sem erros. O comando sem argumentos segue na 8501, ocupada por uma demo anterior.
+
+**Não executados:** PostgreSQL sintético, conexão ou teste institucional, navegação por
+teclado, leitor de tela, Firefox/Safari, avaliação de Talita, revisão visual humana e
+homologação. O destaque por clique em barra e legenda só tem verificação de contrato,
+sem exercício no navegador. Mais de cinco séries repetem cores da paleta.
+
+**Riscos:** a D-032 troca valores da D-021 com base em referência indicada por Matheus,
+não em manual aprovado; `#BF6000`, `#7817B1` e `#00A2AC` vêm do site, sem uso declarado
+para dados. O `st.html` com script é fixo e não recebe dados. Os seletores CSS dependem
+de identificadores internos do Streamlit 1.66 e devem ser revistos ao atualizar a versão.
+Matheus e o responsável institucional revisam paleta, marca e componentes; Talita avalia
+perguntas, nomes, filtros e leitura. DSI/DBA não têm ação nova neste incremento.
+
+## Reexecução de testes · diretório temporário — 04/11/2026
+
+Matheus apresentou erro `WinError 5` ao reutilizar
+`.cache/pytest-feedback-completa-20261104` como `--basetemp`. O traceback mostra
+falha na remoção da pasta temporária existente durante a preparação do pytest; não
+identifica, por si, falha nos cálculos. O comando histórico foi documentado como
+não reutilizável e foi acrescentado abaixo um comando que gera nome novo a cada
+execução. A pasta antiga e suas permissões não foram alteradas.
+
+O teste específico citado, `test_bundle_records_provenance_null_columns_and_refuses_overwrite`,
+foi executado com `--basetemp` novo gerado por UUID e **passou: 1 teste em 1,45 s**.
+A suíte completa não foi repetida neste diagnóstico; o resultado anterior de 410
+aprovados corresponde à execução anterior, não ao terminal de Matheus agora.
+
+## Prompt de feedback · revisão final sintética — 04/11/2026
+
+Revisados registros dos Prompts 3, 4a, 4b e 5, os roteiros R01–R06, estados,
+filtros, arquivos e feedback. A classificação, antes/depois, impacto e critérios
+estão em [REVISAO_FINAL_FEEDBACK.md](guides/REVISAO_FINAL_FEEDBACK.md). Não foi
+identificado feedback individual novo de Talita nos registros consultados.
+
+Corrigidos três defeitos concretos: a R05 agora identifica vigências indisponíveis
+sem apresentá-las como ausência de evidência ou simultaneidade calculada (versão
+`academic-funcoes-v2`); o PNG departamental da R02 usa unidade de contagem no eixo
+e metadados; a instalação não editável inclui as seis fontes originais exigidas pelo
+gerador de PNG. Os guias indicam a aba e o registro temporário atuais. Nenhuma
+fórmula foi alterada, regra inventada ou acesso institucional executado.
+
+| Verificação nesta rodada | Resultado |
+|---|---|
+| Testes de análises e leitor, após correção R05 | 25 aprovados |
+| Análises, fontes simuladas, gráficos e conciliações sintéticas de matrículas/carga | 75 aprovados em 73,42 s |
+| Exportações, manifesto, feedback e interface | 6 aprovados em 192,54 s, incluindo pacote e metadados PNG R02 |
+| Suíte completa | **410 aprovados e 1 excluído** em 899,97 s, com diretório temporário novo. Tentativas anteriores foram interrompidas para incluir correções ou após longa espera nos testes de interface; a execução final concluiu. |
+| Ruff | `check` aprovado e `format --check` aprovado em 84 arquivos de `src tests app.py scripts` |
+| Lock e ambiente instalado | `uv lock --check --offline` resolveu 53 pacotes; `uv pip check` confirmou compatibilidade dos 53 pacotes no ambiente existente |
+| Instalação limpa offline | Python 3.12.15, extra PostgreSQL, ambiente isolado e não editável: 45 pacotes instalados. Após correção do pacote, seis fontes presentes e PNG gerado no ambiente instalado |
+| Identidade e diff | Tema gerado igual aos tokens; marca presente e seis cópias web idênticas aos originais. `git diff --check` sem erros, com avisos de fins de linha do Git. Sem revisão visual humana. |
+
+Comandos principais (sem banco; as variáveis UV foram configuradas somente no
+processo com `UV_NO_CONFIG=1`, `UV_NO_ENV_FILE=1`, `UV_OFFLINE=1` e cache local):
+
+**Os caminhos `--basetemp` abaixo registram execuções passadas e não devem ser
+reutilizados:** o pytest tenta apagar a pasta indicada quando ela já existe, e o
+Windows pode negar essa remoção. Para repetir a suíte no PowerShell, use uma pasta
+nova gerada a cada chamada, sem apagar a pasta anterior nem mudar permissões:
+
+```powershell
+$vracPytestBase = Join-Path '.cache' ('pytest-manual-' + [guid]::NewGuid().ToString('N'))
+.\.venv\Scripts\python.exe -m pytest --basetemp $vracPytestBase -q
+```
+
+Os resultados abaixo são históricos; uma nova execução deve ser conferida pelo
+próprio resultado apresentado no terminal.
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/test_academic_analyses.py tests/test_academic_reader.py --basetemp=.cache/pytest-feedback-r05-20261104 -q
+.\.venv\Scripts\python.exe -m pytest tests/test_faculty_completion.py tests/test_faculty_monthly.py tests/test_faculty_monthly_charts.py tests/test_academic_analyses.py tests/test_academic_reader.py tests/test_student_reconciliation.py tests/test_workload_reconciliation.py --basetemp=.cache/pytest-feedback-revisao-alvos-20261104 -q
+.\.venv\Scripts\python.exe -m pytest tests/test_feedback_exports.py --basetemp=.cache/pytest-feedback-revisao-fluxos-20261104 -q
+.\.venv\Scripts\python.exe -m pytest --basetemp=.cache/pytest-feedback-revisao-final-20261104 -q
+.\.venv\Scripts\python.exe -m pytest --basetemp=.cache/pytest-feedback-completa-20261104 -q
+.\.venv\Scripts\python.exe -m ruff check src tests app.py scripts
+.\.venv\Scripts\python.exe -m ruff format --check src tests app.py scripts
+.\.tools\uv\uv.exe lock --check --offline
+.\.tools\uv\uv.exe pip check --python .venv\Scripts\python.exe
+```
+
+Para a instalação isolada, `UV_PROJECT_ENVIRONMENT=.cache/feedback-final-install-v2`,
+`UV_PYTHON_INSTALL_DIR=.tools/python` e `UV_PYTHON_DOWNLOADS=never`, além das
+opções UV acima; comando:
+
+```powershell
+.\.tools\uv\uv.exe sync --locked --offline --no-dev --no-editable --extra postgres
+```
+
+O pacote instalado foi usado para gerar PNG sintético e confirmar as
+fontes. Para demonstração offline a partir do checkout, usar
+`.\scripts\run-demo.cmd --memory`; com a origem já preparada, `.\scripts\run-demo.cmd` seleciona o
+PostgreSQL sintético. Nenhum dos lançadores foi iniciado nesta revisão.
+
+Não executados: conferência nesta instância PostgreSQL sintética, testes ou
+diagnóstico institucionais, conciliação institucional, avaliação de Talita,
+revisão visual humana e publicação. Matheus pode executar a conciliação 4b e
+revisar a demonstração; Talita avalia textos, filtros, arquivos e uso. O time e
+Matheus definem persistência, retenção, proteção, backup e integração do feedback;
+enquanto isso a sessão/CSV são temporários. Matheus e o responsável institucional
+avaliam identidade e condições de distribuição das fontes. DSI/DBA/time verificam
+fontes, acesso e segurança na etapa final. Os testes sintéticos não validam fontes
+ou resultados reais; o teste institucional excluído não foi executado.
+
+## Prompt 5 · reconferência de exportações e feedback — 04/11/2026
+
+O manifesto do ZIP passou a identificar R01 quando seus arquivos estão no pacote,
+incluindo situação e referência disponível. A conferência offline com dados
+sintéticos em memória comparou tabelas, filtros efetivos e contexto de execução do
+pacote gerado pela tela; verificou também snapshot de R01 e metadados de PNG.
+Os testes de feedback exercitaram associação à execução, rerun, recálculo e troca
+de filtros nas duas telas. O registro permanece somente na sessão, com CSV manual:
+persistência, retenção, proteção, backup e integração ao backlog dependem de Q-008.
+Texto livre exige revisão; o aviso não impede a inclusão de dados indevidos.
+[Roteiro e limites](guides/PROMPT5_VERIFICACOES.md).
+
+Antes da alteração do manifesto, a bateria de feedback, interface e conciliações
+selecionadas passou com **75 testes**. Após a alteração, `tests/test_feedback_exports.py`
+passou com **6 testes**. A suíte ampla posterior teve pelo menos uma falha durante
+lentidão e foi interrompida após paralisação prolongada; não é declarada aprovada.
+Uma tentativa adicional em paralelo do teste de interface expirou em 60 segundos.
+Repetido isoladamente, após a interrupção da suíte, o teste de feedback docente
+com categorias, recálculo e filtros passou: **1 teste em 132,25 s**. A causa da
+falha observada na suíte ampla não foi determinada. Ruff e verificação de
+formatação passaram nos arquivos Python alterados; `git diff
+--check` passou com avisos de conversão de fim de linha do Git. Não foram executadas
+conferência PostgreSQL sintética, conexão ou diagnóstico institucionais, revisão de
+Talita, homologação visual ou publicação. Resultados sintéticos não validam fontes
+reais. A revisão dos arquivos por Talita e a decisão operacional do time continuam
+pendentes; DSI/DBA atuam na integração institucional da etapa final.
+
+Comandos offline utilizados (diretórios temporários isolados em `.cache`):
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/test_feedback_exports.py tests/test_academic_ui.py tests/test_faculty_overview.py tests/test_student_reconciliation.py tests/test_workload_reconciliation.py --basetemp=.cache/pytest-prompt5-revisao-20261104 -q
+.\.venv\Scripts\python.exe -m pytest tests/test_feedback_exports.py --basetemp=.cache/pytest-prompt5-fluxos-20261104 -q
+.\.venv\Scripts\python.exe -m pytest tests/test_feedback_exports.py::test_faculty_feedback_is_bound_to_each_calculation_and_retained_in_session --basetemp=.cache/pytest-prompt5-categorias-isolado-20261104 -q
+.\.venv\Scripts\python.exe -m pytest --basetemp=.cache/pytest-prompt5-final-20261104 -q
+```
+
+Para demonstração: `.\scripts\run-demo.cmd`; a origem deve ser confirmada pelo
+operador. Não foi iniciada nesta conferência.
+
+## Diagnóstico do comando de testes — 04/11/2026
+
+A mensagem relatada de porta 8501 indisponível corresponde à inicialização do
+Streamlit pelo lançador de demonstração; não comprova que o pytest tenha sido
+executado naquele terminal. A origem da combinação de saídas não foi determinada.
+Nesta sessão, a coleta offline selecionou 406 testes e a suíte executada com
+`--basetemp=.cache/pytest-diagnostico-porta-20261104-1639` terminou com
+**406 aprovados e 1 excluído**; não iniciou o servidor. Nenhuma alteração de
+aplicação ou acesso a banco foi necessária. A disponibilidade da porta 8501 no
+terminal de Matheus permanece sem confirmação.
+
+Matheus informou posteriormente que sua execução da suíte terminou com
+**406 aprovados e 1 excluído em 167,58 segundos**. Esse resultado não confirma
+disponibilidade da porta nem execução de testes de integração ou acesso ao banco.
+
+## Prompt 5 · arquivos e feedback — 04/11/2026
+
+O registro sintético tem quatro categorias, comentário opcional para útil e
+obrigatório para os demais, aviso para não inserir informações pessoais ou
+acadêmicas e vínculo por identificador de execução. O CSV descarregado é manual,
+fica sob responsabilidade de quem o baixar e reúne os registros da sessão; não
+há envio, armazenamento durável ou backlog compartilhado. Matheus informou que o
+mecanismo de armazenamento ainda não foi definido (Q-008). Encerrar a sessão
+descarta os registros não baixados. Texto livre pode conter dados indevidos apesar
+do aviso, portanto deve ser revisado antes de encaminhar.
+
+Os CSVs e o manifesto ZIP incluem contexto efetivo e datas disponíveis; o CSV de
+conferências usa agora a proteção contra fórmulas comum. PNGs incluem contexto nos
+metadados, além das referências visíveis já existentes. O horário de extração na
+tela docente não é registrado e aparece como indisponível, sem presumir que seja
+igual ao horário de cálculo. A listagem de testes e limites está no
+[guia do Prompt 5](guides/PROMPT5_VERIFICACOES.md). Sem acesso ao PostgreSQL ou
+origem institucional, sem homologação visual, publicação ou avanço de fase.
+
+Verificações offline: suíte ampla com diretório temporário isolado **405 aprovados,
+1 excluído**; após os ajustes finais, testes de feedback/exportações e interface
+**14 aprovados**. Ruff nos arquivos Python alterados passou. A primeira tentativa
+da suíte usou o diretório temporário padrão, teve erros de permissão e foi
+interrompida; a execução isolada concluiu. Sem teste de conexão PostgreSQL ou
+institucional e sem revisão humana do fluxo nesta sessão.
+
 ## Conexão sintética indisponível na demonstração — 03/11/2026
 
 A tentativa orientada de iniciar a aplicação na porta 8516 recebeu relato de

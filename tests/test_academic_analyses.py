@@ -143,6 +143,50 @@ def test_function_evidence_and_simultaneity_do_not_follow_gratification_or_dual_
     assert next(m.value for m in result.metrics if m.label == "Registros de função") > 0
 
 
+def test_functions_distinguish_unavailable_sources_from_observed_absence() -> None:
+    source = load_fixture("SINT-A")
+    unavailable = replace(
+        source,
+        appointments=(),
+        available=source.available - {"appointments"},
+    )
+    result = calculate(AnalysisKind.FUNCTIONS, unavailable, FILTERS)
+    metrics = {m.label: m for m in result.metrics}
+    assert result.status == "Parcial" and result.calculation_version == "academic-funcoes-v2"
+    for label in ("Função administrativa com evidência", "Vínculos com papéis simultâneos"):
+        assert metrics[label].value is None and metrics[label].status == "Fonte indisponível"
+    baseline = calculate(AnalysisKind.FUNCTIONS, source, FILTERS)
+    assert metrics["Registros de função"].value == next(
+        metric.value for metric in baseline.metrics if metric.label == "Registros de função"
+    )
+    assert all(row[-1] == "Fonte indisponível" for row in table(result, "function_comparison").rows)
+    assert any("Fonte de vigências indisponível" in note for note in result.notes)
+    exported = table_csv(result, table(result, "function_comparison"), NOW).decode("utf-8-sig")
+    assert "Fonte indisponível" in exported and "Sem evidência no recorte" not in exported
+
+    observed_empty = calculate(AnalysisKind.FUNCTIONS, replace(source, appointments=()), FILTERS)
+    assert all(
+        row[-1] == "Sem evidência no recorte"
+        for row in table(observed_empty, "function_comparison").rows
+    )
+    observed_metrics = {m.label: m for m in observed_empty.metrics}
+    assert observed_metrics["Função administrativa com evidência"].value == 0
+    assert observed_metrics["Vínculos com papéis simultâneos"].value == 0
+
+    no_register = replace(
+        source,
+        faculty=replace(source.faculty, register=()),
+        available=source.available - {"register", "functions"},
+        functions=(),
+    )
+    result = calculate(AnalysisKind.FUNCTIONS, no_register, FILTERS)
+    metrics = {m.label: m for m in result.metrics}
+    assert metrics["Dupla função no cadastro"].value is None
+    assert metrics["Dupla função no cadastro"].status == "Fonte indisponível"
+    assert metrics["Registros de função"].status == "Fonte indisponível"
+    assert any("registros de função indisponível" in note for note in result.notes)
+
+
 def student(reg, period, status="MT", entry=20241, kind="Ingresso sintético", course="C1"):
     return StudentRow(
         reg, "SINT-A", course, f"Curso {course}", "H1", "D", "GR", entry, period, status, kind

@@ -1,5 +1,69 @@
 # Prompt 5 · modos de conferência sintéticos
 
+## Conferência do pacote e do feedback — 04/11/2026
+
+O manifesto do ZIP agora identifica também R01 em `additional_analyses`, com
+situação e, quando disponível, origem, versão e snapshot do cadastro. Antes, os
+arquivos R01 podiam estar no pacote sem sua identificação na lista do manifesto.
+As demais análises continuam em `analyses`; o contexto compartilhado registra
+os filtros e a execução. A conferência automatizada do pacote produzido pela tela
+usou uma seleção de quadro e período: comparou todas as linhas das tabelas dos
+roteiros com os resultados calculados, referência e quadro com a seleção, snapshot
+R01 com seu CSV, e execução, unidade e avisos nos metadados de um PNG.
+
+Foram exercitados feedback nas duas telas, vínculo por execução, rerun, novo
+cálculo e mudança de filtros. Os registros anteriores continuam na sessão com a
+execução original; uma nova submissão é vinculada ao novo cálculo. As quatro
+categorias, a proteção do CSV e a exigência de comentário foram verificadas com
+dados sintéticos. O formulário alerta contra dados pessoais e acadêmicos, mas não
+consegue garantir a sanitização do texto. O CSV e os registros em sessão continuam
+temporários, sem persistência ou compartilhamento operacional. O time precisa
+definir persistência, retenção, proteção, backup e integração ao backlog (Q-008).
+
+Esta conferência é offline, com fonte sintética em memória. Não substitui uso de
+Talita nem verifica PostgreSQL ou fontes institucionais. PNG pode ocultar metadados
+em visualizadores comuns; o CSV e o manifesto são as referências para o contexto.
+A suíte completa foi interrompida após lentidão e uma falha ainda não diagnosticada;
+a bateria específica de seis testes passou, e o teste docente ampliado passou em
+execução isolada. Resultados e comandos estão em [STATUS](../STATUS.md).
+
+## Arquivos e feedback — incremento de 04/11/2026
+
+Em **Análise docente** ou **Análises por período**, calcule um resultado e abra
+**Registrar feedback desta execução**. Escolha útil, divergência, dificuldade ou
+sugestão. Para útil o comentário é opcional; para as demais categorias, descreva
+o ponto sem nomes, matrículas, valores ou outros dados pessoais/acadêmicos. O aviso
+não consegue garantir que o texto esteja sanitizado: revise antes de encaminhá-lo.
+O registro contém apenas identificador aleatório da execução, análise, situação,
+datas, categoria e comentário; não copia filtros nem registros acadêmicos.
+
+Registros acumulam apenas na sessão e podem ser baixados em CSV; não são enviados
+automaticamente. O CSV é um meio manual provisório, não um backlog compartilhado;
+quem baixa precisa protegê-lo e decidir seu encaminhamento. O time ainda não
+definiu armazenamento, retenção, proteção e backup (Q-008, informado por Matheus
+em 04/11). Ao encerrar a sessão, registros não baixados são perdidos. A solução
+operacional definitiva e a incorporação ao backlog dependem dessa decisão; não foi
+adotado SQLite nem feita escrita na origem sintética ou institucional.
+
+Os downloads preservam CSV/PNG/ZIP existentes. CSV e manifesto incluem centro,
+departamentos efetivos, filtros, execução e horários conhecidos; cada CSV também
+informa unidade, situação, origem, versão, snapshot e avisos correspondentes.
+O CSV das conferências passa pelo mesmo tratamento contra fórmulas. Números
+negativos permanecem numéricos em CSV e valores preservam a precisão do cálculo;
+a interface pode abreviar sua apresentação. Textos potencialmente interpretados
+como fórmula recebem prefixo de proteção, e CSV usa UTF-8 com BOM. O PNG conserva
+unidade e referência no desenho e contém contexto, execução, datas e avisos nos
+metadados: visualizadores comuns podem não exibir esses metadados, portanto use o
+CSV/manifesto para consultar o conjunto completo. Na tela docente, o horário de
+extração não é registrado e assim é informado; não é deduzido do cálculo.
+
+Os testes usam fixtures sintéticas em memória, incluindo leitura do CSV, do ZIP e
+dos metadados PNG, acentos, proteção de fórmulas, precisão, categorias, vínculo,
+rerun e troca de filtros. Não foi realizada leitura do PostgreSQL sintético nesta
+sessão; ela permanece uma conferência separada pelo desenvolvedor. Nenhum teste
+sintético valida fontes institucionais. Avaliação de Talita dos textos, arquivos e
+utilidade, e revisão visual institucional continuam pendentes.
+
 Incremento local de 03/11/2026. As dez conferências C01–C10 leem o snapshot já
 carregado e não executam consulta de aprofundamento. A E01 v1 é um experimento
 desabilitado por padrão: conta alocações sem classificação nos departamentos e
@@ -39,8 +103,8 @@ transforma a origem em histórico versionado.
 |---|---|
 | Modos, autorização, estados e limites | Implementados para E01 experimental; testes offline e interface simulada. Conferência no PostgreSQL sintético ainda pendente. C01–C10 ainda não têm todos os metadados do catálogo previsto no guia. |
 | Pontos descritivos | E01 apresenta motivo, contagem e limitação. C01–C10 apresentam motivo, ocorrências e tratamento sobre o snapshot. |
-| Exportações | CSV/PNG/ZIP existentes, com testes offline de filtros, referência e proteção de fórmulas. XLSX e SVG não foram identificados; exportação da decisão e do resultado E01 não foi implementada. Conferência de todos os arquivos e formatos para aceite permanece pendente. |
-| Feedback e armazenamento operacional | Não há formulário, persistência ou backlog alimentado por feedback neste incremento. SQLite, retenção e backup dependem de Q-008; nenhuma base operacional foi criada. Categorias, aviso de dados pessoais e associação à execução permanecem pendentes. |
+| Exportações | CSV/PNG/ZIP conferidos offline conforme incremento acima. XLSX/SVG não foram criados; exportação da decisão e resultado E01 não foi implementada. Conferência humana e na origem PostgreSQL sintética permanecem pendentes. |
+| Feedback e armazenamento operacional | Formulário e CSV temporário associados à execução disponíveis; não há persistência ou backlog compartilhado. Armazenamento, retenção e backup dependem de Q-008. |
 | Aceite humano | Demonstração, avaliação de Talita e registro de feedback sanitizado pendentes. Não há confirmação institucional nem validação visual. |
 
 O Prompt 4b tem testes e conciliação offline, mas sua execução no PostgreSQL

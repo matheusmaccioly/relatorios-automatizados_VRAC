@@ -60,7 +60,7 @@ def test_overview_all_departments_is_limited_to_center_in_screen_and_csv() -> No
     assert not app.metric and not app.get("download_button")
 
 
-def test_workbench_center_change_removes_snapshot_results_and_downloads() -> None:
+def test_workbench_center_change_replaces_snapshot_and_removes_results() -> None:
     app = AppTest.from_file(str(APP), default_timeout=60).run()
     app.selectbox(key="suite_analysis").select("R01 · Situação geral do departamento").run()
     app.selectbox(key="suite_center").select("Centro sintético 1").run()
@@ -79,8 +79,11 @@ def test_workbench_center_change_removes_snapshot_results_and_downloads() -> Non
     )
     app.selectbox(key="suite_center").select("Centro sintético 2").run()
     assert not app.exception and not app.error
-    for key in ("suite_source", "suite_results", "suite_overview", "suite_generated"):
+    for key in ("suite_results", "suite_overview", "suite_generated"):
         assert key not in app.session_state
+    replaced = app.session_state["suite_source"]
+    assert replaced.department.startswith("Centro sintético 2")
+    assert replaced.fingerprint != source.fingerprint
     assert not app.metric and not app.get("download_button")
 
 

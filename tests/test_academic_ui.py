@@ -129,3 +129,35 @@ def test_history_only_category_is_empty_in_r01_without_blocking_the_flow(monkeyp
     app.button(key="suite_run").click().run()
     assert not app.exception and not app.error and not app.metric
     assert any("não acrescentam vínculos" in i.value for i in app.info)
+
+
+def test_analysis_guidance_and_filter_summary_are_available_before_calculation():
+    app = AppTest.from_file(str(APP), default_timeout=60).run()
+    app.selectbox(key="suite_analysis").select("R06 · Evolução de matrículas e alunos").run()
+    assert any("Como evoluíram as matrículas e os alunos?" in text.value for text in app.markdown)
+    assert any("Próximo passo" in message.value for message in app.info)
+    app.button(key="suite_load").click().run()
+    course_selector = app.multiselect(key="suite_courses")
+    course_selector.select(course_selector.options[0]).run()
+    assert not app.exception and "suite_results" not in app.session_state
+    selected_filters = next(
+        text.value for text in app.markdown if text.value.startswith("| Filtro | Valor |")
+    )
+    assert f"| Cursos | {app.multiselect(key='suite_courses').value[0]} |" in selected_filters
+    assert any("Recorte pronto" in message.value for message in app.info)
+
+
+def test_reset_filters_keeps_loaded_snapshot_and_removes_results_and_downloads():
+    app = AppTest.from_file(str(APP), default_timeout=60).run()
+    app.button(key="suite_load").click().run()
+    fingerprint = app.session_state["suite_source"].fingerprint
+    app.selectbox(key="suite_first").select("2024.2").run()
+    app.multiselect(key="suite_categories").select("Não informado").run()
+    app.button(key="suite_run").click().run()
+    assert not app.exception and app.get("download_button")
+    app.button(key="suite_reset_filters").click().run()
+    assert not app.exception and not app.error
+    assert app.session_state["suite_source"].fingerprint == fingerprint
+    assert app.selectbox(key="suite_first").value == app.selectbox(key="suite_first").options[0]
+    assert not app.multiselect(key="suite_categories").value
+    assert "suite_results" not in app.session_state and not app.get("download_button")

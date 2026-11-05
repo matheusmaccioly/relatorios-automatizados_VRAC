@@ -193,8 +193,11 @@ local já existente em `.cache/branding-review/page-1.png`.
 5. Se necessário, abrir R04 para o semestre da carga ou R05 para eventos/vigências.
    Ler limitações das simulações. Baixar CSV, PNG ou pacote ZIP e conferir filtros
    e valores com a tela. Mudar filtro remove resultados/arquivos até nova geração.
-6. Relatar dificuldade ou divergência indicando roteiro, filtros e snapshot, sem
-   incluir dados pessoais. Feedback de uso não equivale a aprovação institucional.
+6. No formulário da execução, relatar dificuldade ou divergência sem nomes,
+   matrículas, resultados ou outros dados pessoais/acadêmicos. O identificador
+   vincula o comentário à execução; filtros e registros não são copiados para o
+   feedback. O CSV é temporário e manual. Feedback de uso não equivale a aprovação
+   institucional.
 
 ## Limites e validações restantes
 
