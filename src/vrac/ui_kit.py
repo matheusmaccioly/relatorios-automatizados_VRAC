@@ -40,6 +40,7 @@ def download_button(label: str, data: Any, *, file_name: str, mime: str, **kwarg
         if not isinstance(content, bytes) or len(content) > 25 * 1024 * 1024:
             st.error("O arquivo excede o limite de exportação desta demonstração.")
             return False
+        current_session()  # Revalidar após gerar, antes de entregar os bytes.
         encoded = base64.b64encode(content).decode("ascii")
         # Iframe isolado: sem scripts, token ou armazenamento persistente.
         from streamlit.components.v1 import html
@@ -69,8 +70,8 @@ ROW_HEIGHT = 38
 # Nas listas por docente, o que se quer ler vem logo depois do nome.
 FIRST_COLUMNS = (
     "Nome fictício",
-    "Indicador de carga (regra do painel)",
-    "Indicador do painel",
+    "Resultado de carga (regra do painel)",
+    "Resultado do painel",
     "Horas Reais (semestre atual)",
     "Horas Reais",
     "CH contratada",
@@ -118,11 +119,11 @@ def _indicator_styles() -> dict[str, str]:
 
 
 def data_table(frame: pd.DataFrame, *, numeric: Collection[str] = ()) -> None:
-    """Tabela padrão da aplicação: mesma altura de linha, colunas úteis antes e indicador visual.
+    """Tabela padrão da aplicação: mesma altura de linha, colunas úteis antes e resultado visual.
 
     Só muda o que se vê. Os valores calculados e os arquivos exportados não passam por aqui.
     """
-    indicators = [name for name in frame.columns if str(name).startswith("Indicador")]
+    indicators = [name for name in frame.columns if str(name).startswith("Resultado")]
     shown = frame.assign(**{name: frame[name].map(indicator_label) for name in indicators})
     first = [name for name in FIRST_COLUMNS if name in shown.columns]
     st.dataframe(

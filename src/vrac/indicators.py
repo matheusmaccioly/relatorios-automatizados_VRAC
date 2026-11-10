@@ -1,6 +1,6 @@
-"""Símbolos da tela para o indicador de carga e variações; não mudam regra nem arquivos.
+"""Símbolos da tela para o resultado de carga e variações; não mudam regra nem arquivos.
 
-A cor marca o que foge do esperado, sem julgamento: o indicador não avalia produtividade,
+A cor marca o que foge do esperado, sem julgamento: o resultado não avalia produtividade,
 por isso nenhum estado usa vermelho. A direção é dita pelo símbolo e o estado, pelo texto.
 """
 
@@ -18,7 +18,7 @@ INDICATORS: dict[str, tuple[str, str]] = {
     "Sem alocação (CH = 0)": ("○", "neutral"),
     "Sem CH (em branco)": ("–", "neutral"),
     "Sem regra definida": ("?", "neutral"),
-    "Indicadores distintos": ("≠", "neutral"),
+    "Resultados distintos": ("≠", "neutral"),
 }
 _RANK = {name: position for position, name in enumerate(INDICATORS)}
 
@@ -33,7 +33,7 @@ def indicator_rank(value: str) -> int:
 
 
 def indicator_distribution(values: Iterable[str | None]) -> tuple[tuple[str, int], ...]:
-    """Contagem por estado na ordem de leitura; sem indicador continua visível como ausente."""
+    """Contagem por estado na ordem de leitura; sem resultado continua visível como ausente."""
     counts = Counter(ABSENT if value is None else value for value in values)
     return tuple(sorted(counts.items(), key=lambda item: indicator_rank(item[0])))
 

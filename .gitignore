@@ -108,3 +108,25 @@ UsersmatheusacciolyDocumentsGitHubrelatorios-automatizados_VRAC.cachepytest-doce
 UsersmatheusacciolyDocumentsGitHubrelatorios-automatizados_VRAC.cachepytest-docentes-final-20261103-b/test_runtime_rejects_tampered_0/bundle/01-seed.sql
 UsersmatheusacciolyDocumentsGitHubrelatorios-automatizados_VRAC.cachepytest-docentes-final-20261103-b/test_runtime_rejects_tampered_0/bundle/02-check.sql
 UsersmatheusacciolyDocumentsGitHubrelatorios-automatizados_VRAC.cachepytest-docentes-final-20261103-b/test_runtime_rejects_tampered_0/bundle/manifest.json
+sql/SQLQuery15.sql
+sql/SQLQuery11.sql
+sql/SQLQuery14.sql
+sql/SQLQuery10.sql
+.gitignore
+.gitignore
+.gitignore
+.gitignore
+.gitignore
+docs/STATUS.md
+sql/SQLQuery9.sql
+sql/SQLQuery8.sql
+sql/SQLQuery7.sql
+sql/SQLQuery6.sql
+sql/Report1.txt
+
+# Conferência offline de PDF e execução de testes
+/tmp/
+
+# Modelo fornecido e pacote SQL interno; revisão local autorizada, sem publicação.
+/base/
+/docs/operations/departamentos.local/

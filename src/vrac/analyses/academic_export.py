@@ -15,7 +15,7 @@ FILTER_LABELS = {
     "first_period": "Semestre inicial",
     "last_period": "Semestre final",
     "workload_period": "Semestre da carga",
-    "qp_cadres": "Grupo QP simulado",
+    "qp_cadres": "Grupo QP selecionado",
     "courses": "Cursos",
     "cadres": "Quadros",
     "categories": "Categorias",
@@ -76,9 +76,9 @@ def summary_table(result: CalculatedAnalysis) -> ResultTable:
     return ResultTable(
         "summary",
         "Resultados calculados",
-        ("Indicador", "Valor", "Unidade", "Situação"),
+        ("Resultado", "Valor", "Unidade", "Situação"),
         tuple((m.label, m.value, m.unit, m.status) for m in result.metrics),
-        "por indicador",
+        "por resultado",
     )
 
 

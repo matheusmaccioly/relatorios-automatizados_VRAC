@@ -5,10 +5,13 @@ Somente apresentação: códigos, nomes e textos. Nenhum cálculo ou acesso a da
 
 from dataclasses import dataclass
 
+VIEW_KEY = "vrac-view"
+FACULTY_PICKER = "docentes_analysis"
 PANORAMA = "panorama"
 ALL_FACULTY = "todas"
-# Códigos que a opção "todas" calcula juntos, na ordem dos roteiros.
 FACULTY_CODES = ("R01", "R02", "R03", "R04", "R05")
+# O relatório completo calcula os seis roteiros juntos, inclusive matrículas, para o PDF.
+COMPLETE_CODES = (*FACULTY_CODES, "R06")
 
 
 @dataclass(frozen=True, slots=True)
@@ -75,9 +78,9 @@ FACULTY = Area(
         ),
         Analysis(
             ALL_FACULTY,
-            "Todas as análises docentes",
+            "Relatório completo (R01–R06)",
             "Quer ver tudo de uma vez?",
-            "Calcula as análises docentes juntas e libera o pacote completo (ZIP).",
+            "Calcula as seis análises, inclusive matrículas, e libera o PDF e o ZIP completos.",
         ),
     ),
 )
@@ -119,4 +122,4 @@ def area_of(code: str) -> Area:
 
 def codes_for(code: str) -> tuple[str, ...]:
     """Roteiros que uma escolha calcula; o panorama tem tela própria."""
-    return FACULTY_CODES if code == ALL_FACULTY else (code,)
+    return COMPLETE_CODES if code == ALL_FACULTY else (code,)

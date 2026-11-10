@@ -129,7 +129,7 @@ def test_person_functional_and_academic_identifiers_have_distinct_namespaces() -
 
 
 def test_two_functional_registrations_are_not_reported_as_two_people() -> None:
-    # A fixture declara uma pessoa com duas matrículas; não calcula um indicador real.
+    # A fixture declara uma pessoa com duas matrículas; não calcula um resultado real.
     people = replace(faculty_result(), data=(MetricDatum("total", MetricUnit.TEACHERS, 1),))
     functional = replace(
         people,

@@ -122,6 +122,35 @@ def academic_chart(
     colors = branding.tokens["colors"]
     family = _register_fonts(branding)
     table = next(t for t in result.tables if t.key == specification.table)
+    if specification.table in {"real_distribution", "contract_distribution"}:
+        items = sorted(table.rows, key=lambda row: -row[1])
+        figure, axis = plt.subplots(figsize=(9.5, 4.7), dpi=140)
+        values = [row[1] for row in items]
+        axis.barh(
+            range(len(items)),
+            values,
+            left=[-v / 2 for v in values],
+            color=colors["blue"],
+            height=0.75,
+        )
+        axis.set_yticks(
+            range(len(items)),
+            [f"{r[0]} h" if r[0] != "ausente" else "ausente" for r in items],
+            family=family,
+        )
+        axis.invert_yaxis()
+        largest = max(values, default=1) or 1
+        axis.set_xlim(-largest * 0.8, largest * 0.8)
+        for i, value in enumerate(values):
+            axis.text(value / 2 + largest * 0.03, i, str(value), va="center", family=family)
+        axis.set_xticks([])
+        for spine in axis.spines.values():
+            spine.set_visible(False)
+        axis.set_title(specification.title, family=family, loc="left", pad=20)
+        axis.set_xlabel("Quantidade de vínculos por carga horária", family=family)
+        figure.text(0.02, 0.015, "DEMONSTRAÇÃO — DADOS SINTÉTICOS", family=family, fontsize=7)
+        figure.tight_layout(rect=(0, 0.045, 1, 1))
+        return figure
     xi = table.columns.index(specification.x)
     monthly = specification.table == "monthly_history"
     labels = [str(row[xi]) for row in table.rows]

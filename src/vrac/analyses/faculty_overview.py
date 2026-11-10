@@ -8,7 +8,7 @@ Regras reproduzidas (D-022), com referência à documentação semântica local:
   que na linha da tabela é a própria matrícula (A-M-009/A-M-010); ligação
   `V_HORAS_REAIS_PROF[MATRICULA_PRF]` → `V_FUNCIONARIO[MATRICULAINT]`.
 - Status CH (Semáforo): coluna calculada A-CC-007, com comparação de texto sem
-  diferenciar maiúsculas, como no motor do painel; Indicador CH Texto (A-M-012)
+  diferenciar maiúsculas, como no motor do painel; Resultado CH Texto (A-M-012)
   usa o status único do semestre atual.
 
 Lacunas registradas, sem regra inventada: valores do filtro salvo de quadro da página
@@ -182,7 +182,7 @@ def semaphore_status(hours: float | None, cadre: str | None) -> str:
 def current_real_hours(
     rows: Iterable[RealHoursRow],
 ) -> dict[int, tuple[float | None, int, str | None]]:
-    """Por matrícula: (Horas Reais do semestre atual, semestre, Indicador CH Texto)."""
+    """Por matrícula: (Horas Reais do semestre atual, semestre, Resultado CH Texto)."""
     by_registration: dict[int, list[RealHoursRow]] = defaultdict(list)
     for row in rows:
         if row.registration_int is not None and row.semester is not None:
@@ -322,7 +322,7 @@ def compute_overview(source: FacultySource, filters: OverviewFilters) -> Faculty
     hours = current_real_hours(source.real_hours) if source.real_hours_available else {}
     if not source.real_hours_available:
         warnings.append(
-            "Fonte de Horas Reais indisponível: somente as cargas e seus indicadores "
+            "Fonte de Horas Reais indisponível: somente as cargas e seus resultados "
             "na lista ficam indisponíveis; a composição cadastral continua calculada."
         )
     detail = tuple(
@@ -352,10 +352,10 @@ def compute_overview(source: FacultySource, filters: OverviewFilters) -> Faculty
     )
     if any(item.indicator == "Sem regra definida" for item in detail):
         warnings.append(
-            "Indicador de carga “Sem regra definida”: a regra do painel reconhece os quadros "
+            "Resultado de carga “Sem regra definida”: a regra do painel reconhece os quadros "
             "PRINCIPAL, COMPLEMENTAR TEMPO INTEGRAL e COMPLEMENTAR TEMPO PARCIAL; outros "
             "nomes de quadro não recebem faixa. Nenhuma equivalência foi presumida. O "
-            "indicador não avalia produtividade."
+            "resultado não avalia produtividade."
         )
     if any(row.registration_int not in hours for row in eligible):
         warnings.append(

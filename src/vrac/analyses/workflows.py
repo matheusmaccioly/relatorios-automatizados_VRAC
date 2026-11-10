@@ -55,7 +55,7 @@ WORKFLOW_DECISIONS = tuple(
             ("Qual fonte, chave, granularidade e unidade de Horas Reais?", "Talita + fonte + DBA"),
             ("Qual referência e unidade tornam as cargas comparáveis?", "Talita + fontes"),
             (
-                "Quais limites e fronteiras do indicador de carga?",
+                "Quais limites e fronteiras do resultado de carga?",
                 "Talita + responsável pela regra",
             ),
             ("Qual domínio e vigência de dupla função?", "Talita + fonte"),
@@ -253,7 +253,7 @@ WORKFLOWS = (
                 "dupla_funcao",
                 "V01 V02 V04 V11",
                 "cadastro_docente",
-                "Indicador cadastral não comprova cargo administrativo.",
+                "Resultado cadastral não comprova cargo administrativo.",
             ),
             _metric(
                 "gratificacao_registrada",

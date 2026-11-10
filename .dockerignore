@@ -74,3 +74,7 @@ docs/ANALISE_MODELOS_SEMANTICOS_VRAC.md
 config/semantic_model_sources.local.yaml
 docs/ROTEIROS_ANALISES_VRAC.local.md
 docs/EVIDENCIAS_PAINEIS_VRAC.local.json
+
+# Modelo fornecido e pacote SQL interno; revisão local autorizada, sem publicação.
+/base/
+/docs/operations/departamentos.local/

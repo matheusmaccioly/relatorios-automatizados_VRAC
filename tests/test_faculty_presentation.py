@@ -29,7 +29,7 @@ def test_faculty_lists_sort_names_without_losing_duplicate_rows_or_source_states
     assert general.iloc[-1]["Nome fictício"] == "Zélia fictícia"
     assert workload.iloc[0]["Horas Reais (semestre atual)"] == "0"
     assert workload.iloc[0]["CH contratada"] == "20"
-    assert workload.iloc[0]["Indicador de carga (regra do painel)"] == "Sem alocação (CH = 0)"
+    assert workload.iloc[0]["Resultado de carga (regra do painel)"] == "Sem alocação (CH = 0)"
     assert list(workload.columns)[:9] == [
         "Semestre das Horas Reais",
         "Departamento",
@@ -37,7 +37,7 @@ def test_faculty_lists_sort_names_without_losing_duplicate_rows_or_source_states
         "Nome fictício",
         "Quadro",
         "Categoria funcional",
-        "Indicador de carga (regra do painel)",
+        "Resultado de carga (regra do painel)",
         "Horas Reais (semestre atual)",
         "CH contratada",
     ]

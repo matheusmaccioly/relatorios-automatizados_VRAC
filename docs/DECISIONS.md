@@ -10,8 +10,10 @@ achou a interface pouco intuitiva e pediu as análises agrupadas nas abas superi
 Decidido: (1) abas **Início · Docentes · Alunos · Financeira (em breve) · Projetos
 patrocinados (em breve)**; somem as abas "Análise docente" e "Análises por período" e o
 seletor "Todos os roteiros (R01–R06)". (2) Em Docentes, um seletor horizontal escolhe
-Panorama docente, Grupo QP e geral, Evolução docente, Funções, Carga horária ou Todas as
-análises docentes (R01–R05 com pacote ZIP). Alunos traz a R06. (3) A base da área é lida
+Panorama docente, Grupo QP e geral, Evolução docente, Funções, Carga horária ou Relatório
+completo (R01–R06). Alunos traz a R06. O relatório completo inclui a R06 para preservar o
+PDF consolidado do commit a289092; o botão "Preparar relatório completo (R01–R06)" leva a
+essa opção e calcula com o recorte de Docentes. (3) A base da área é lida
 automaticamente ao abrir a aba; não há mais o passo "Carregar dados", só "Atualizar dados".
 Na abertura do app nenhuma base analítica é lida. (4) Filtros e resultados de cada análise
 são preservados ao alternar entre elas na mesma sessão. (5) A página inicial ganha o atalho

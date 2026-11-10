@@ -173,7 +173,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 [data-testid="stMultiSelect"] [data-baseweb="tag"] span {color: $white;}
 [data-testid="stMultiSelect"] [data-baseweb="tag"] svg {fill: $white;}
 
-/* Painéis, resultados e indicadores */
+/* Painéis, resultados e resultados */
 [class*="st-key-vrac-panel"] {background: $white; border: 1px solid $line; border-radius: 3px;
   padding: 1.5rem 1.75rem; scroll-margin-top: 3.5rem;}
 [data-testid="stMetric"] {background: $white; border: 1px solid $line; border-radius: 3px;

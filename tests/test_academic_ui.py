@@ -28,7 +28,13 @@ def test_all_six_routes_generate_tables_charts_downloads_and_clear_on_filter_cha
     assert not app.exception and not app.error
     app.button(key="suite_run").click().run()
     assert not app.exception and not app.error
-    assert [r.kind for r in app.session_state["suite_results"]] == ["R02", "R03", "R04", "R05"]
+    assert [r.kind for r in app.session_state["suite_results"]] == [
+        "R02",
+        "R03",
+        "R04",
+        "R05",
+        "R06",
+    ]
     assert any(t.label == "R01 · Situação geral" for t in app.tabs)
     assert len(app.metric) > 10
     assert len(app.get("download_button")) > 20

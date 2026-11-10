@@ -202,6 +202,26 @@ def interactive_chart(result: CalculatedAnalysis, spec: ChartSpec, branding: Bra
     import altair as alt
 
     records = chart_records(result, spec)
+    if spec.table in {"real_distribution", "contract_distribution"}:
+        ordered = sorted(records, key=lambda r: -(r["Valor"] or 0))
+        rows = [
+            dict(
+                r,
+                left=None if r["Valor"] is None else -r["Valor"] / 2,
+                right=None if r["Valor"] is None else r["Valor"] / 2,
+            )
+            for r in ordered
+        ]
+        base = alt.Chart(alt.Data(values=rows)).encode(
+            y=alt.Y("Referência:N", sort=[r["Referência"] for r in ordered], title="Carga horária"),
+            tooltip=["Referência:N", "Valor:Q", "Unidade:N"],
+        )
+        bars = base.mark_bar(color=branding.tokens["colors"]["blue"]).encode(
+            x=alt.X("left:Q", axis=None), x2="right:Q"
+        )
+        labels = base.mark_text(align="left", dx=6).encode(x="right:Q", text="Valor exibido:N")
+        return _theme((bars + labels).properties(height=max(180, len(rows) * 38)), branding)
+
     if spec.table == "monthly_history":
         return _monthly_chart(records, spec, branding)
     colors = branding.tokens["colors"]

@@ -1,4 +1,4 @@
-"""Cenários fictícios para testar a fundação; não definem indicadores institucionais."""
+"""Cenários fictícios para testar a fundação; não definem resultados institucionais."""
 
 from dataclasses import dataclass
 from datetime import datetime

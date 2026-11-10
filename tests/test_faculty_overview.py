@@ -62,7 +62,7 @@ def test_real_hours_use_latest_semester_per_registration_without_summing_semeste
         RealHoursRow(3, 20261, 10, "PRINCIPAL"),
         RealHoursRow(3, 20261, 2, "PRINCIPAL"),  # duas linhas no semestre: soma, como o painel
         RealHoursRow(4, 20261, 0, "PRINCIPAL"),
-        RealHoursRow(4, 20261, 8, "PRINCIPAL"),  # status distintos: indicador indisponível
+        RealHoursRow(4, 20261, 8, "PRINCIPAL"),  # status distintos: resultado indisponível
     )
     result = current_real_hours(rows)
     assert result[1] == (12, 20261, "Dentro do esperado")

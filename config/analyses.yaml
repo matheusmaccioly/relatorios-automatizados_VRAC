@@ -17,7 +17,7 @@ documentary_evidence:
     de RLS foi realizado.
   - D-022 dispensa reaprovar fórmulas documentadas; decisões pending preservam o histórico institucional,
     sem bloquear os executores sintéticos de D-027/D-028.
-  - Cardinalidade, filtros bidirecionais, relações inativas e tabelas calculadas exigem revisão por indicador.
+  - Cardinalidade, filtros bidirecionais, relações inativas e tabelas calculadas exigem revisão por resultado.
   - Mapeamento detalhado local em config/semantic_model_sources.local.yaml; não é carregado pelo aplicativo
     nem incluído no pacote.
   - Documento interno e mapeamento local não têm publicação autorizada; não copiar literais pessoais ou
@@ -120,7 +120,7 @@ analyses:
     evidence_reference: null
   - id: faculty_acceptance
     area: functional
-    question: O significado do indicador e suas limitações foram aprovados por Talita?
+    question: O significado do resultado e suas limitações foram aprovados por Talita?
     owner_role: Talita
     status: pending
     reviewed_on: null
@@ -181,7 +181,7 @@ analyses:
       mencione pessoas.
     constraints:
     - Revisar remoção do filtro de folha e limite de mês.
-    - Não comparar com última data por matrícula como se fossem o mesmo indicador.
+    - Não comparar com última data por matrícula como se fossem o mesmo resultado.
 - id: evolucao_matriculas
   workflow_ids: [R06]
   synthetic_status: implemented_offline_verified
@@ -380,7 +380,7 @@ analyses:
   exceptions:
   - Atuação interdepartamental depende de cobertura e autorização confirmadas.
   - Compartilhamento sem identificador/regra fica pendente, sem dedução ou rateio.
-  - Turma com zero alunos gera conferência; não exclui horas do indicador oficial.
+  - Turma com zero alunos gera conferência; não exclui horas do resultado oficial.
   - Classificação ausente não autoriza inferir TCC/monografia nem disciplina regular.
   - Arredondamento exige casas, modo e evidência de revisão acordados.
   - Medidas e caminhos de filtro documentados exigem revisão e conciliação; a inspeção estática não avaliou

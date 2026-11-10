@@ -46,10 +46,12 @@ from vrac.feedback_ui import render_feedback
 from vrac.navigation import (
     ALL_FACULTY,
     AREAS,
+    COMPLETE_CODES,
     FACULTY,
-    FACULTY_CODES,
+    FACULTY_PICKER,
     PANORAMA,
     STUDENTS,
+    VIEW_KEY,
     Area,
     area_of,
     codes_for,
@@ -61,13 +63,11 @@ from vrac.web_charts import warm_up
 
 MISSING_LABEL = "ausente"
 
-VIEW_KEY = "vrac-view"
 VIEW_HOME = "Início"
 VIEWS = (VIEW_HOME, *(area.tab for area in AREAS))
 RECORDS_TITLE = "Conferir dados sintéticos"
-FACULTY_PICKER = "docentes_analysis"
 # Prefixo das chaves de cada tela; o panorama tem formulário próprio.
-PREFIXES = {PANORAMA: "overview", **dict.fromkeys(FACULTY_CODES + (ALL_FACULTY,), "suite")}
+PREFIXES = {PANORAMA: "overview", **dict.fromkeys((*COMPLETE_CODES[:-1], ALL_FACULTY), "suite")}
 STUDENTS_PREFIX = "alunos"
 
 FACULTY_COLUMNS = {
@@ -396,7 +396,7 @@ def _records(settings: Settings, options) -> None:
         st.subheader("Registros de demonstração")
         st.info(
             "Consulte os registros sintéticos pelos filtros abaixo. "
-            "A tela apresenta os dados disponíveis sem consolidar indicadores."
+            "A tela apresenta os dados disponíveis sem consolidar resultados."
         )
         department_column, period_column, action_column = st.columns(
             [2, 2, 1.4], vertical_alignment="bottom"
