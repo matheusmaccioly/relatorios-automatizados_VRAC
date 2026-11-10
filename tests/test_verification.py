@@ -211,8 +211,7 @@ def test_ui_approval_decline_and_rerun_preserve_basic_results(monkeypatch):
     app = AppTest.from_file(
         str(Path(__file__).resolve().parents[1] / "app.py"), default_timeout=60
     ).run()
-    app.selectbox(key="suite_analysis").select("R04 · Carga horária e alocações").run()
-    app.button(key="suite_load").click().run()
+    app.button(key="home_open_R04").click().run()
     app.button(key="suite_run").click().run()
     app.checkbox(key="suite_check_enable").check().run()
     app.button(key="suite_check_decline").click().run()

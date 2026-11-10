@@ -17,7 +17,7 @@ from vrac.settings import Settings
 APP = Path(__file__).resolve().parents[1] / "app.py"
 
 
-@pytest.mark.parametrize("prefix", ["overview", "suite"])
+@pytest.mark.parametrize("prefix", ["overview", "alunos"])
 def test_center_limits_departments_and_resets_selection_outside_its_scope(prefix) -> None:
     app = AppTest.from_file(str(APP), default_timeout=60).run()
     app.selectbox(key=f"{prefix}_department").select("SINT-B").run()
@@ -62,7 +62,7 @@ def test_overview_all_departments_is_limited_to_center_in_screen_and_csv() -> No
 
 def test_workbench_center_change_replaces_snapshot_and_removes_results() -> None:
     app = AppTest.from_file(str(APP), default_timeout=60).run()
-    app.selectbox(key="suite_analysis").select("R01 · Situação geral do departamento").run()
+    app.button(key="home_open_todas").click().run()
     app.selectbox(key="suite_center").select("Centro sintético 1").run()
     app.selectbox(key="suite_department").select(ALL_DEPARTMENTS).run()
     app.button(key="suite_load").click().run()
@@ -114,6 +114,7 @@ def test_postgres_without_center_mapping_keeps_explicit_unknown_group(monkeypatc
     monkeypatch.setattr("vrac.ui.load_academic_source", academic)
     monkeypatch.setattr("vrac.academic_ui.load_academic_source", academic)
     app = AppTest.from_file(str(APP), default_timeout=60).run()
+    app.button(key="home_open_todas").click().run()
     assert not app.exception and not app.error
     assert app.selectbox(key="suite_center").options == ["Todos os centros", UNKNOWN_CENTER]
     app.selectbox(key="suite_center").select(UNKNOWN_CENTER).run()

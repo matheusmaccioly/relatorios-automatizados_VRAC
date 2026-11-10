@@ -65,8 +65,8 @@ PNG trazem o texto original da regra.
 | Participação do grupo simulado por departamento | R02, com mais de um departamento | Participação em %, ausente quando falta classificação |
 | Matriculados por curso em (último período) | R06, com mais de um curso | Matriculados por curso; as barras não devem ser somadas |
 
-**Análise financeira** aparece no menu com o selo **Em breve** apenas como sinalização: não
-abre nada e não há análise financeira nesta prova de conceito (D-033).
+As abas **Financeira (em breve)** e **Projetos patrocinados (em breve)** mostram apenas um
+aviso: não há filtros, análises nem dados dessas áreas nesta prova de conceito (D-037).
 
 ## Como ler os gráficos
 

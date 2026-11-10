@@ -16,7 +16,8 @@ from vrac.analyses.academic_fixture import load_fixture
 from vrac.branding import load_branding, streamlit_theme
 from vrac.charts import distribution_bars, render_png
 from vrac.demo_data import DemoDataError
-from vrac.ui import HOME_CARDS, VIEW_ANALYSES, VIEW_FACULTY, VIEW_KEY
+from vrac.navigation import AREAS, FACULTY, STUDENTS
+from vrac.ui import FACULTY_PICKER, VIEW_HOME, VIEW_KEY, VIEWS
 from vrac.ui_kit import session_cached
 from vrac.web_charts import (
     BAR_THICKNESS,
@@ -111,22 +112,63 @@ def test_chart_series_are_authorized_colors_in_a_fixed_order() -> None:
     assert branding.series[0] == branding.tokens["colors"]["blue"]
 
 
-def test_home_cards_cover_each_analysis_and_open_it_with_the_base_ready() -> None:
-    assert {card[-1] for card in HOME_CARDS} == {None, "R02", "R03", "R04", "R05", "R06"}
+def test_tabs_group_the_analyses_by_area_with_coming_soon_last() -> None:
+    assert VIEWS == (
+        VIEW_HOME,
+        "Docentes",
+        "Alunos",
+        "Financeira (em breve)",
+        "Projetos patrocinados (em breve)",
+    )
+    codes = {item.code for area in AREAS for item in area.analyses}
+    assert codes == {"panorama", "R02", "R03", "R04", "R05", "todas", "R06"}
+    assert [area.available for area in AREAS] == [True, True, False, False]
+
+
+def test_home_area_buttons_open_each_analysis_with_the_base_ready() -> None:
     app = _open_card("R04")
-    assert app.session_state[VIEW_KEY] == VIEW_ANALYSES
-    assert app.selectbox(key="suite_analysis").value.startswith("R04 ·")
-    assert "suite_source" in app.session_state
-    assert "suite_autoload" not in app.session_state
+    assert app.session_state[VIEW_KEY] == FACULTY.tab
+    assert app.session_state[FACULTY_PICKER] == "R04"
+    assert "suite_source" in app.session_state and "alunos_source" not in app.session_state
     app.button(key="suite_run").click().run()
     assert not app.exception and app.metric
+    app = _open_card("R06")
+    assert app.session_state[VIEW_KEY] == STUDENTS.tab
+    assert "alunos_source" in app.session_state and "suite_source" not in app.session_state
 
 
 def test_home_shortcut_opens_the_faculty_view_without_reading_the_workbench_base() -> None:
     app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60).run()
-    app.button(key="home_open_docente").click().run()
-    assert not app.exception and app.session_state[VIEW_KEY] == VIEW_FACULTY
+    app.button(key="home_open_panorama").click().run()
+    assert not app.exception and app.session_state[VIEW_KEY] == FACULTY.tab
     assert "suite_source" not in app.session_state
+
+
+def test_starting_the_app_reads_no_analysis_base() -> None:
+    app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60).run()
+    assert not app.exception and app.session_state[VIEW_KEY] == VIEW_HOME
+    for name in ("suite_source", "alunos_source", "overview_result"):
+        assert name not in app.session_state
+
+
+@pytest.mark.parametrize(
+    ("code", "result", "department_key"),
+    [
+        ("panorama", "overview_result", "overview_department"),
+        ("R03", "suite_results", "suite_department"),
+        ("R06", "alunos_results", "alunos_department"),
+    ],
+)
+def test_quick_start_opens_the_area_and_calculates_for_the_department(
+    code, result, department_key
+) -> None:
+    app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60).run()
+    app.selectbox(key="home_analysis").select(code).run()
+    app.selectbox(key="home_department").select("SINT-B").run()
+    app.button(key="home_start").click().run()
+    assert not app.exception and not app.error
+    assert result in app.session_state
+    assert app.selectbox(key=department_key).value == "SINT-B"
 
 
 def test_card_failure_reports_the_error_without_loading_substitute_data(monkeypatch) -> None:
@@ -137,23 +179,23 @@ def test_card_failure_reports_the_error_without_loading_substitute_data(monkeypa
     app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60).run()
     app.button(key="home_open_R06").click().run()
     assert not app.exception and app.error
-    assert "suite_source" not in app.session_state and "suite_results" not in app.session_state
+    assert "alunos_source" not in app.session_state and "alunos_results" not in app.session_state
 
 
 def test_scope_change_reload_failure_removes_the_previous_snapshot(monkeypatch) -> None:
     app = _open_card("R06")
-    app.button(key="suite_run").click().run()
-    assert "suite_results" in app.session_state
+    app.button(key="alunos_run").click().run()
+    assert "alunos_results" in app.session_state
 
     def fail(*args, **kwargs):
         raise DemoDataError("Fonte sintética indisponível.")
 
     monkeypatch.setattr("vrac.academic_ui.load_academic_source", fail)
-    app.selectbox(key="suite_center").select("Centro sintético 2").run()
+    app.selectbox(key="alunos_center").select("Centro sintético 2").run()
     assert not app.exception and app.error
-    assert "suite_source" not in app.session_state and "suite_results" not in app.session_state
+    assert "alunos_source" not in app.session_state and "alunos_results" not in app.session_state
     assert not app.get("download_button") or all(
-        not (button.key or "").startswith("suite_") for button in app.get("download_button")
+        not (button.key or "").startswith("alunos_") for button in app.get("download_button")
     )
 
 
@@ -177,8 +219,8 @@ def test_scope_change_reload_failure_removes_the_previous_snapshot(monkeypatch) 
         ),
         (
             "R06",
-            {"suite_first", "suite_last", "suite_courses", "suite_shifts"},
-            {"suite_workload_period", "suite_cadres", "suite_qp"},
+            {"alunos_first", "alunos_last", "alunos_courses", "alunos_shifts"},
+            {"alunos_workload_period", "alunos_cadres", "alunos_qp", "suite_first"},
         ),
     ],
 )
@@ -191,12 +233,13 @@ def test_each_analysis_shows_only_the_filters_it_uses(code, shown, hidden) -> No
 @pytest.mark.parametrize("kind", [AnalysisKind.WORKLOAD, AnalysisKind.STUDENTS])
 def test_hidden_filters_keep_the_result_of_the_initial_form(kind) -> None:
     """Esconder filtros sem efeito não pode alterar o que a análise calcula."""
+    prefix = "alunos" if kind == AnalysisKind.STUDENTS else "suite"
     app = _open_card(kind.value)
-    app.button(key="suite_run").click().run()
-    source = app.session_state["suite_source"]
+    app.button(key=f"{prefix}_run").click().run()
+    source = app.session_state[f"{prefix}_source"]
     first, last = source.periods[0], source.periods[-1]
     expected = calculate(kind, source, AnalysisFilters(first, last, last))
-    (result,) = app.session_state["suite_results"]
+    (result,) = app.session_state[f"{prefix}_results"]
     assert result.tables == expected.tables
     assert result.metrics == expected.metrics
 

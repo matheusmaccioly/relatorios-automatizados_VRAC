@@ -1,5 +1,47 @@
 # Estado da entrega
 
+## Navegação por área e página inicial interativa — 10/11/2026
+
+Matheus achou a interface pouco intuitiva: página inicial só informativa e análises
+espalhadas entre "Análise docente" e "Análises por período". Decisão em D-037.
+
+**O que mudou para quem usa:**
+
+- Abas superiores por área: **Início · Docentes · Alunos · Financeira (em breve) ·
+  Projetos patrocinados (em breve)**.
+- **Docentes:** seletor horizontal com Panorama docente, Grupo QP e geral, Evolução
+  docente, Funções, Carga horária e Todas as análises docentes (pacote ZIP).
+- **Alunos:** Matrículas e alunos (R06).
+- A base é lida ao abrir a aba; o passo "Carregar dados" deixou de existir. Filtros e
+  resultados ficam guardados ao trocar de análise.
+- **Início:** atalho *Comece rápido* (análise + departamento → resultado calculado) e
+  cartões por área com um botão por análise.
+- Financeira e Projetos patrocinados: só aviso e "Voltar ao início"; nenhum dado.
+
+| Verificação | Resultado observado |
+|---|---|
+| Suíte offline (`pytest`) | **530 aprovados, 5 ignorados**, 1 excluído, ~27 s |
+| Ignorados | 3 exigem `sqlalchemy` (extra `sqlserver` não instalado: falta `unixODBC` no Mac), 2 são exclusivos do Windows |
+| Ruff `check` / `format --check` | Aprovados |
+| Navegador headless (Playwright, local, origem memória) | Início, Docentes, Carga horária calculada, Alunos, Financeira e Início em 390 px renderizados; sem erros de console |
+
+**Arquivos:** novo `src/vrac/navigation.py`; alterados `ui.py`, `academic_ui.py`,
+`organisation_ui.py`, `branding.py`; testes de interface atualizados
+(`test_interface_navigation`, `test_academic_ui`, `test_student_ui`, `test_faculty_page`,
+`test_table_presentation`, `test_department_hierarchy_ui`, `test_verification`,
+`test_feedback_exports`, `test_supabase`). Fórmulas, consultas e exportações sem mudança.
+
+**Não executados:** Supabase/Cloud com login real, navegação por teclado e leitor de tela,
+validação de Talita.
+
+**Riscos:** as chaves de estado da R06 mudaram de `suite_*` para `alunos_*`; a opção
+"Todas as análises docentes" não inclui mais a R06 no mesmo ZIP. A cor de destaque do seletor
+(preto) e o cinza das abas "em breve" seguem a paleta provisória (Q-012).
+
+**A validar:** Matheus e Talita — se a divisão por área e os nomes curtos das análises são
+claros; se as abas "em breve" devem aparecer para Talita.
+
+
 ## Correção do deploy no Streamlit Community Cloud — 05/11/2026
 
 Matheus publicou no Streamlit Community Cloud e relatou app sem login, com dados

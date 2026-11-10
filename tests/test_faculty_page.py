@@ -50,15 +50,22 @@ def test_invalid_history_interval_only_blocks_history_and_changing_period_clears
     assert not app.get("download_button")
 
 
-def test_main_faculty_page_and_history_workbench_can_keep_results_together():
+def test_switching_faculty_analyses_keeps_each_filter_and_result():
     app = AppTest.from_file(str(APP), default_timeout=60).run()
+    app.button(key="home_open_panorama").click().run()
+    app.selectbox(key="overview_center").select("Centro sintético 2").run()
     app.button(key="overview_run").click().run()
-    app.selectbox(key="suite_analysis").select("R03 · Histórico semestral docente").run()
-    app.button(key="suite_load").click().run()
+    app.button_group(key="docentes_analysis").set_value("R03").run()
+    app.selectbox(key="suite_first").select("2024.2").run()
     app.button(key="suite_run").click().run()
     assert not app.exception and not app.error
+    keys = [button.key for button in app.get("download_button")]
+    assert "suite_R03_monthly_history_csv" in keys
+    app.button_group(key="docentes_analysis").set_value("panorama").run()
+    assert not app.exception and app.selectbox(key="overview_center").value == "Centro sintético 2"
     assert "overview_history" in app.session_state and "suite_results" in app.session_state
-    assert len(app.get("vega_lite_chart")) == 9
     keys = [button.key for button in app.get("download_button")]
     assert "overview_R03_monthly_history_csv" in keys
-    assert "suite_R03_monthly_history_csv" in keys
+    app.button_group(key="docentes_analysis").set_value("R03").run()
+    assert app.selectbox(key="suite_first").value == "2024.2"
+    assert "suite_results" in app.session_state

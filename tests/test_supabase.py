@@ -25,6 +25,7 @@ from vrac.supabase_auth import (
     sign_out,
     verify_session,
 )
+from vrac.ui import VIEWS
 
 SETTINGS = Settings(demo_source=DemoSource.SUPABASE)
 CONFIG = SupabaseConfig("https://example.supabase.co", "sb_publishable_test")
@@ -279,7 +280,7 @@ def test_login_and_logout_clear_previous_results_and_files(monkeypatch):
     app.text_input(key="vrac_login_email").set_value("test@example.invalid")
     app.text_input(key="vrac_login_password").set_value("synthetic-password")
     app.button[0].click().run()
-    assert not app.exception and len(app.tabs) == 3
+    assert not app.exception and len(app.tabs) == len(VIEWS)
     app.session_state["vrac_artifact_cache"] = {"previous-file": b"PRIVATE"}
     app.session_state["feedback_records"] = ["PRIVATE"]
     app.button(key="vrac_sign_out").click().run()

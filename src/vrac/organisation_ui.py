@@ -37,14 +37,20 @@ def organisation_filters(
     first, second = st.columns(2)
     with first:
         center = st.selectbox(
-            "Centro", centers, key=center_key, help="Restringe a lista de departamentos."
+            "Centro",
+            centers,
+            key=center_key,
+            help="Restringe a lista de departamentos.",
+            persist_state="page",
         )
     available = hierarchy.departments_for(center)
     departments = (*available, ALL_DEPARTMENTS)
     if st.session_state.get(department_key, departments[0]) not in departments:
         st.session_state[department_key] = departments[0]
     with second:
-        department = st.selectbox(department_label, departments, key=department_key)
+        department = st.selectbox(
+            department_label, departments, key=department_key, persist_state="page"
+        )
     st.caption(hierarchy.note)
     selected = available if department == ALL_DEPARTMENTS else (department,)
     return OrganisationScope(center, department, selected)

@@ -4,6 +4,24 @@ Registro iniciado em 26/10/2026. “Adotada para a fundação” descreve uma de
 
 ## Decisões
 
+**D-037 — navegação por área e página inicial interativa, Matheus, 10/11/2026:** Matheus
+achou a interface pouco intuitiva e pediu as análises agrupadas nas abas superiores por
+área: Docentes, Alunos, Financeira e Projetos patrocinados, as duas últimas com "em breve".
+Decidido: (1) abas **Início · Docentes · Alunos · Financeira (em breve) · Projetos
+patrocinados (em breve)**; somem as abas "Análise docente" e "Análises por período" e o
+seletor "Todos os roteiros (R01–R06)". (2) Em Docentes, um seletor horizontal escolhe
+Panorama docente, Grupo QP e geral, Evolução docente, Funções, Carga horária ou Todas as
+análises docentes (R01–R05 com pacote ZIP). Alunos traz a R06. (3) A base da área é lida
+automaticamente ao abrir a aba; não há mais o passo "Carregar dados", só "Atualizar dados".
+Na abertura do app nenhuma base analítica é lida. (4) Filtros e resultados de cada análise
+são preservados ao alternar entre elas na mesma sessão. (5) A página inicial ganha o atalho
+**Comece rápido** (análise + departamento → abre a aba e já calcula) e cartões por área com
+um botão por análise. (6) **Financeira e Projetos patrocinados são abas reais apenas com
+aviso**: não têm filtros, análises nem consulta de dados. Isso substitui o item 5 da D-033
+(rótulo decorativo por CSS) e **não amplia o escopo**: análises financeiras e de projetos
+seguem fora da PoC e exigem decisão explícita própria. Fórmulas, regras e exportações não
+mudam. Proposta de interface sem validação de Talita.
+
 **D-036 — hospedagem no Streamlit Community Cloud, Matheus, 05/11/2026:** Matheus publicou
 a demonstração sintética no Streamlit Community Cloud, em vez da Vercel avaliada antes.
 Secrets do painel definem somente `VRAC_ENVIRONMENT=production`, `VRAC_DATA_MODE=synthetic`

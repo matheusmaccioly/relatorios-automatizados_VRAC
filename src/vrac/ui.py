@@ -10,8 +10,9 @@ from uuid import uuid4
 import pandas as pd
 import streamlit as st
 
-from vrac.academic_ui import ALL_ANALYSES, _render_result, analysis_names, workbench
+from vrac.academic_ui import _clear, _render_result, workbench
 from vrac.analyses.academic import AnalysisFilters, AnalysisKind, calculate
+from vrac.analyses.academic_data import ALL_DEPARTMENTS
 from vrac.analyses.export import detail_csv, summary_csv
 from vrac.analyses.faculty_overview import (
     UNIT_LABEL,
@@ -34,6 +35,7 @@ from vrac.demo_data import (
     load_faculty_source,
     load_selected_demo,
 )
+from vrac.department_hierarchy import ALL_CENTERS
 from vrac.faculty_presentation import (
     render_composition,
     render_faculty_details,
@@ -41,6 +43,17 @@ from vrac.faculty_presentation import (
 )
 from vrac.feedback import OVERVIEW_STATUS
 from vrac.feedback_ui import render_feedback
+from vrac.navigation import (
+    ALL_FACULTY,
+    AREAS,
+    FACULTY,
+    FACULTY_CODES,
+    PANORAMA,
+    STUDENTS,
+    Area,
+    area_of,
+    codes_for,
+)
 from vrac.organisation_ui import organisation_filters
 from vrac.settings import ConfigurationError, DemoSource, Settings, load_settings
 from vrac.ui_kit import data_table, download_button, scroll_to, step
@@ -50,62 +63,12 @@ MISSING_LABEL = "ausente"
 
 VIEW_KEY = "vrac-view"
 VIEW_HOME = "Início"
-VIEW_FACULTY = "Análise docente"
-VIEW_ANALYSES = "Análises por período"
-VIEWS = (VIEW_HOME, VIEW_FACULTY, VIEW_ANALYSES)
+VIEWS = (VIEW_HOME, *(area.tab for area in AREAS))
 RECORDS_TITLE = "Conferir dados sintéticos"
-
-# Tema, nome curto, pergunta, descrição, cor da capa e destino (None = tela docente).
-HOME_CARDS = (
-    (
-        "Docentes",
-        "Panorama docente",
-        "Como se distribuem os docentes e como evolui o total de ativos?",
-        "Composição do cadastro atual e histórico mensal no mesmo recorte.",
-        "amarelo",
-        None,
-    ),
-    (
-        "Docentes",
-        "Grupo QP e geral",
-        "Como o grupo QP se compara ao corpo docente geral?",
-        "Comparação por departamento com um grupo simulado e configurável.",
-        "amarelo",
-        "R02",
-    ),
-    (
-        "Docentes",
-        "Evolução docente",
-        "Como o corpo docente evoluiu no período?",
-        "Pessoas distintas por semestre e ativos a cada mês.",
-        "amarelo",
-        "R03",
-    ),
-    (
-        "Docentes",
-        "Funções",
-        "Quais funções possuem evidência no período?",
-        "Vigências por grupo de função no intervalo escolhido.",
-        "amarelo",
-        "R05",
-    ),
-    (
-        "Carga horária",
-        "Carga e alocações",
-        "Como se distribuem a carga horária e as alocações?",
-        "Horas Reais e horas alocadas, cada uma com sua unidade e fonte.",
-        "azul",
-        "R04",
-    ),
-    (
-        "Matrículas",
-        "Matrículas e alunos",
-        "Como evoluíram as matrículas e os alunos?",
-        "Séries por curso, habilitação, turno, nível e forma de ingresso.",
-        "preto",
-        "R06",
-    ),
-)
+FACULTY_PICKER = "docentes_analysis"
+# Prefixo das chaves de cada tela; o panorama tem formulário próprio.
+PREFIXES = {PANORAMA: "overview", **dict.fromkeys(FACULTY_CODES + (ALL_FACULTY,), "suite")}
+STUDENTS_PREFIX = "alunos"
 
 FACULTY_COLUMNS = {
     "department": "Departamento do vínculo",
@@ -172,12 +135,11 @@ def _footer() -> None:
 
 
 def _clear_all_results() -> None:
-    from vrac.academic_ui import _clear
-
     for key in ("demo_data", "demo_filters"):
         st.session_state.pop(key, None)
     _clear_overview()
     _clear(source=True)
+    _clear(source=True, prefix=STUDENTS_PREFIX)
 
 
 def main() -> None:
@@ -191,84 +153,175 @@ def main() -> None:
     _footer()
 
 
-def _open_view(view: str, analysis: str | None = None) -> None:
-    """Executado antes dos widgets: abre a tela e já prepara a análise escolhida."""
-    st.session_state[VIEW_KEY] = view
-    if analysis is not None:
-        st.session_state["suite_analysis"] = analysis
-        st.session_state["suite_autoload"] = True
+def _open_analysis(code: str, department: str | None = None, *, run: bool = False) -> None:
+    """Executado antes dos widgets: abre a aba da área e já prepara a análise escolhida."""
+    area = area_of(code)
+    st.session_state[VIEW_KEY] = area.tab
+    if area is FACULTY:
+        st.session_state[FACULTY_PICKER] = code
+    prefix = PREFIXES.get(code, STUDENTS_PREFIX)
+    if department is not None:
+        st.session_state[f"{prefix}_center"] = ALL_CENTERS
+        st.session_state[f"{prefix}_department"] = department
+    if run:
+        st.session_state[f"{prefix}_autorun"] = True
 
 
-def _home(settings: Settings, options: DemoOptions) -> None:
-    """Porta de entrada: cada cartão é uma pergunta e leva direto à análise que a responde."""
-    names = {code: name for name, code in analysis_names().items()}
-    semesters = faculty_history_periods(settings, options)
+def _quick_start() -> None:
+    _open_analysis(st.session_state["home_analysis"], st.session_state["home_department"], run=True)
+
+
+def _go_home() -> None:
+    st.session_state[VIEW_KEY] = VIEW_HOME
+
+
+def _analysis_label(code: str) -> str:
+    area = area_of(code)
+    return f"{area.title} · {area.analysis(code).name}"
+
+
+def _home(settings: Settings) -> None:
+    """Porta de entrada: atalho que já calcula e áreas que levam a cada análise."""
     with st.container(key="vrac-home-hero"):
-        text, numbers = st.columns([1.5, 1], gap="large")
+        text, start = st.columns([1.3, 1], gap="large")
         with text:
             st.html(
                 '<div class="vrac-hero"><p class="vrac-kicker">Análises disponíveis</p>'
-                "<h1>Comece pela pergunta que você quer responder</h1>"
-                '<p class="lead">Docentes, matrículas e carga horária em gráficos, tabelas '
-                "e arquivos prontos para baixar. Escolha uma análise, defina o recorte e "
-                "calcule.</p></div>"
+                "<h1>O que você quer analisar?</h1>"
+                '<p class="lead">Escolha uma área nas abas acima ou use o atalho Comece rápido: '
+                "indique a análise e o departamento e veja os resultados calculados, com "
+                "gráficos, tabelas e arquivos para baixar.</p></div>"
             )
-            with st.container(horizontal=True):
+        with start, st.container(key="vrac-home-start"):
+            st.html('<p class="vrac-start-title">Comece rápido</p>')
+            try:
+                hierarchy = load_department_hierarchy(settings)
+            except DemoDataError as error:
+                st.error(str(error))
+            else:
+                st.selectbox(
+                    "Análise",
+                    [item.code for area in AREAS for item in area.analyses],
+                    format_func=_analysis_label,
+                    key="home_analysis",
+                )
+                st.selectbox(
+                    "Departamento",
+                    (*hierarchy.departments_for(ALL_CENTERS), ALL_DEPARTMENTS),
+                    key="home_department",
+                )
                 st.button(
-                    "Abrir análise docente",
+                    "Ver resultados",
                     type="primary",
-                    key="home_faculty",
-                    on_click=_open_view,
-                    args=(VIEW_FACULTY,),
+                    width="stretch",
+                    key="home_start",
+                    on_click=_quick_start,
                 )
-                st.button(
-                    "Ver todas as análises",
-                    key="home_all",
-                    on_click=_open_view,
-                    args=(VIEW_ANALYSES, ALL_ANALYSES),
-                )
-        with numbers:
-            st.html(
-                '<div class="vrac-bloco-num"><span class="rot">Nesta demonstração</span><dl>'
-                f"<dt>{len(names)}</dt><dd>análises disponíveis</dd>"
-                f"<dt>{len(options.departments)}</dt><dd>departamentos fictícios</dd>"
-                f"<dt>{len(semesters)}</dt><dd>semestres fictícios</dd></dl></div>"
-            )
     st.html(
-        '<div class="vrac-section-title"><h2>O que você quer saber?</h2>'
-        "<p>Cada cartão abre a análise com os filtros certos.</p></div>"
+        '<div class="vrac-section-title"><h2>Explore por área</h2>'
+        "<p>Cada área reúne as análises de um mesmo tema. Clique em uma para abri-la.</p></div>"
     )
-    with st.container(key="vrac-home-cards"):
-        for start in range(0, len(HOME_CARDS), 3):
-            for column, card in zip(
-                st.columns(3, gap="medium"), HOME_CARDS[start : start + 3], strict=True
-            ):
-                theme, name, question, description, color, code = card
-                with column, st.container(key=f"vrac-card-{code or 'docente'}"):
-                    st.html(
-                        f'<div class="vrac-capa {color}"><span class="selo">{theme}</span>'
-                        f'<span class="capa-nome">{name}'
-                        '<span class="seta" aria-hidden="true">↗</span></span></div>'
-                        f'<div class="vrac-card-body"><h3>{question}</h3>'
-                        f"<p>{description}</p></div>"
-                    )
+    with st.container(key="vrac-home-areas"):
+        for column, area in zip(st.columns(len(AREAS), gap="medium"), AREAS, strict=True):
+            with column, st.container(key=f"vrac-area-{area.key}"):
+                count = len(area.analyses)
+                seal = f"{count} {'análise' if count == 1 else 'análises'}" if count else "Em breve"
+                st.html(
+                    f'<div class="vrac-capa {area.color}"><span class="selo">{seal}</span>'
+                    f'<span class="capa-nome">{area.title}</span></div>'
+                    f'<div class="vrac-card-body"><p>{area.summary}</p></div>'
+                )
+                for item in area.analyses:
                     st.button(
-                        "Abrir análise",
-                        key=f"home_open_{code or 'docente'}",
-                        width="stretch",
-                        on_click=_open_view,
-                        args=(VIEW_ANALYSES, names[code]) if code else (VIEW_FACULTY,),
+                        f"{item.name} →",
+                        key=f"home_open_{item.code}",
+                        type="tertiary",
+                        help=item.question,
+                        on_click=_open_analysis,
+                        args=(item.code,),
                     )
+                if not area.available:
+                    st.button("Em breve", key=f"home_soon_{area.key}", disabled=True)
     st.html(
         '<div class="vrac-section-title"><h2>Como funciona</h2></div>'
         '<ol class="vrac-passos">'
-        '<li><span class="vrac-n">1</span><span><b>Escolha a análise</b>'
-        "Comece por um dos cartões acima.</span></li>"
-        '<li><span class="vrac-n">2</span><span><b>Defina os filtros e calcule</b>'
+        '<li><span class="vrac-n">1</span><span><b>Escolha a área e a análise</b>'
+        "Pelas abas no topo ou pelos atalhos desta página.</span></li>"
+        '<li><span class="vrac-n">2</span><span><b>Defina o recorte e calcule</b>'
         "Só aparecem os filtros que afetam a análise.</span></li>"
         '<li><span class="vrac-n">3</span><span><b>Explore e exporte os resultados</b>'
         "Passe o cursor nos gráficos e baixe tabelas e imagens.</span></li></ol>"
     )
+
+
+def _area_intro(area: Area) -> None:
+    st.html(
+        f'<div class="vrac-area-intro"><p class="vrac-kicker">Análises disponíveis</p>'
+        f'<h1>{area.title}</h1><p class="lead">{area.summary}</p></div>'
+    )
+
+
+def _question(question: str, description: str) -> None:
+    st.markdown(f"**{question}**")
+    st.caption(description)
+
+
+def _faculty_area(
+    settings: Settings, branding: Branding, options: DemoOptions, *, active: bool
+) -> None:
+    _area_intro(FACULTY)
+    names = {item.code: item.name for item in FACULTY.analyses}
+    if st.session_state.get(FACULTY_PICKER) not in names:
+        st.session_state[FACULTY_PICKER] = PANORAMA
+    code = (
+        st.segmented_control(
+            "Escolha a análise",
+            tuple(names),
+            format_func=names.__getitem__,
+            key=FACULTY_PICKER,
+            required=True,
+        )
+        or PANORAMA
+    )
+    analysis = FACULTY.analysis(code)
+    _question(analysis.question, analysis.description)
+    if code == PANORAMA:
+        _faculty_overview(settings, branding, options)
+        return
+    workbench(
+        settings,
+        branding,
+        options,
+        codes=codes_for(code),
+        label=analysis.name,
+        active=active,
+    )
+
+
+def _students_area(
+    settings: Settings, branding: Branding, options: DemoOptions, *, active: bool
+) -> None:
+    _area_intro(STUDENTS)
+    (analysis,) = STUDENTS.analyses
+    _question(analysis.question, analysis.description)
+    workbench(
+        settings,
+        branding,
+        options,
+        codes=codes_for(analysis.code),
+        label=analysis.name,
+        prefix=STUDENTS_PREFIX,
+        active=active,
+    )
+
+
+def _coming_soon(area: Area) -> None:
+    with st.container(key=f"vrac-soon-{area.key}"):
+        st.html(
+            '<div class="vrac-area-intro"><span class="vrac-breve">Em breve</span>'
+            f'<h1>{area.title}</h1><p class="lead">{area.summary}</p></div>'
+        )
+        st.button("Voltar ao início", key=f"{area.key}_home", on_click=_go_home)
 
 
 def _content(branding: Branding, notice) -> None:
@@ -318,14 +371,21 @@ def _authorized_content(settings: Settings, branding: Branding, notice) -> None:
         f"Origem dos dados: {options.source}"
     )
 
-    # Todas as abas são executadas para preservar os filtros ao navegar entre elas.
-    home_tab, overview_tab, analyses_tab = st.tabs(VIEWS, key=VIEW_KEY, on_change="rerun")
+    # Todas as abas são executadas para preservar os filtros ao navegar entre elas;
+    # a base de cada área só é lida enquanto a sua aba está aberta.
+    home_tab, faculty_tab, students_tab, *soon_tabs = st.tabs(
+        VIEWS, key=VIEW_KEY, on_change="rerun"
+    )
     with home_tab:
-        _home(settings, options)
-    with overview_tab:
-        _faculty_overview(settings, branding, options)
-    with analyses_tab:
-        workbench(settings, branding, options)
+        _home(settings)
+    with faculty_tab:
+        _faculty_area(settings, branding, options, active=bool(faculty_tab.open))
+    with students_tab:
+        _students_area(settings, branding, options, active=bool(students_tab.open))
+    soon = [area for area in AREAS if not area.available]
+    for tab, area in zip(soon_tabs, soon, strict=True):
+        with tab:
+            _coming_soon(area)
     # Apoio à conferência, fora do menu: fica recolhido no fim de todas as telas.
     with st.container(key="vrac-conferencia"), st.expander(RECORDS_TITLE):
         _records(settings, options)
@@ -470,14 +530,12 @@ def _reset_overview_filters() -> None:
 def _selection(label: str, values: tuple[str, ...], key: str) -> frozenset[str] | None:
     if key in st.session_state:
         st.session_state[key] = [v for v in st.session_state[key] if v in values]
-    chosen = st.multiselect(label, values, key=key, placeholder="Todos")
+    chosen = st.multiselect(label, values, key=key, placeholder="Todos", persist_state="page")
     return frozenset(chosen) if chosen else None
 
 
 def _faculty_overview(settings: Settings, branding: Branding, demo_options: DemoOptions) -> None:
     with st.container(key="vrac-panel-overview-filters"):
-        st.subheader("Análise docente")
-        st.write("Como se distribuem os docentes e como evolui o total de ativos?")
         step(1, "Defina o recorte")
         try:
             hierarchy = load_department_hierarchy(settings)
@@ -503,6 +561,7 @@ def _faculty_overview(settings: Settings, branding: Branding, demo_options: Demo
                     "Semestre inicial do histórico",
                     periods,
                     key="overview_first",
+                    persist_state="page",
                     help="O semestre docente segue janeiro–julho e agosto–dezembro, "
                     "conforme a regra documentada.",
                 )
@@ -512,6 +571,7 @@ def _faculty_overview(settings: Settings, branding: Branding, demo_options: Demo
                     periods,
                     index=len(periods) - 1,
                     key="overview_last",
+                    persist_state="page",
                 )
         step(2, "Refine, se precisar, e calcule")
         with st.expander("Mais filtros · opcional", expanded=False):
@@ -562,6 +622,7 @@ def _faculty_overview(settings: Settings, branding: Branding, demo_options: Demo
                 type="tertiary",
                 on_click=_reset_overview_filters,
             )
+        run = st.session_state.pop("overview_autorun", False) or run
 
     if run:
         _clear_overview()

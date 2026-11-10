@@ -165,13 +165,18 @@ def test_unavailable_enrollment_stays_missing_in_the_course_table() -> None:
     assert latest.rows and all(value is None for _, value in latest.rows)
 
 
-def test_financial_item_is_only_decoration_with_no_tab_or_content() -> None:
-    styles = load_branding().styles
-    assert 'content: "Análise financeira"' in styles and 'content: "Em breve"' in styles
-    assert not any("financeira" in view.casefold() for view in VIEWS)
+def test_coming_soon_areas_are_tabs_without_data_or_analyses() -> None:
+    soon = [view for view in VIEWS if "em breve" in view]
+    assert soon == ["Financeira (em breve)", "Projetos patrocinados (em breve)"]
+    assert 'content: "Análise financeira"' not in load_branding().styles
     app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60).run()
     assert not app.exception
-    assert not any("financeira" in tab.label.casefold() for tab in app.tabs)
+    for label in soon:
+        tab = next(item for item in app.tabs if item.label == label)
+        assert not tab.selectbox and not tab.multiselect and not tab.metric
+        assert [button.key for button in tab.button] == [f"{label.split()[0].casefold()}_home"]
+    app.button(key="financeira_home").click().run()
+    assert app.session_state["vrac-view"] == "Início"
 
 
 def test_records_left_the_menu_and_stay_collapsed_at_the_end_of_the_page() -> None:
@@ -186,8 +191,7 @@ def test_records_left_the_menu_and_stay_collapsed_at_the_end_of_the_page() -> No
 
 def r04_app() -> AppTest:
     app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60).run()
-    app.selectbox(key="suite_analysis").select("R04 · Carga horária e alocações").run()
-    app.button(key="suite_load").click().run()
+    app.button(key="home_open_R04").click().run()
     app.button(key="suite_run").click().run()
     assert not app.exception and not app.error
     return app
@@ -225,8 +229,7 @@ def test_every_table_keeps_a_csv_with_its_previous_key_and_shows_the_symbols() -
 
 def test_table_feeding_two_charts_gets_distinct_download_keys() -> None:
     app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60).run()
-    app.selectbox(key="suite_analysis").select("R03 · Histórico semestral docente").run()
-    app.button(key="suite_load").click().run()
+    app.button(key="home_open_R03").click().run()
     app.button(key="suite_run").click().run()
     assert not app.exception and not app.error
     keys = [button.key for button in app.get("download_button")]
