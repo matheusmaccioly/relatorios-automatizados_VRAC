@@ -47,12 +47,11 @@ from vrac.faculty_presentation import (
 from vrac.feedback import OVERVIEW_STATUS
 from vrac.feedback_ui import render_feedback
 from vrac.indicators import change_label
+from vrac.navigation import ALL_FACULTY, COMPLETE_CODES, FACULTY, FACULTY_PICKER, VIEW_KEY
 from vrac.organisation_ui import OrganisationScope, organisation_filters
 from vrac.settings import DemoSource, Settings
 from vrac.ui_kit import card_title, data_table, download_button, scroll_to, show_chart, step
 from vrac.web_charts import interactive_chart
-
-ALL_ANALYSES = "Todos os roteiros (R01–R06)"
 
 ANALYSIS_GUIDE = {
     "R01": (
@@ -87,27 +86,28 @@ ANALYSIS_GUIDE = {
     ),
 }
 
-# Filtros que cada análise realmente usa; a visão conjunta (None) mostra todos.
+# Filtros que cada análise realmente usa; ao calcular várias, aparecem os de todas.
 # Os ocultos mantêm o valor inicial do formulário, sem alterar o cálculo daquela análise.
-INTERVAL_ANALYSES = {None, "R03", "R05", "R06"}
-WORKLOAD_ANALYSES = {None, "R04"}
-CADRE_ANALYSES = {None, "R01", "R03", "R04", "R05"}
-CATEGORY_ANALYSES = {None, "R01", "R02", "R03", "R04", "R05"}
-QP_ANALYSES = {None, "R02"}
-ACADEMIC_ANALYSES = {None, "R06"}
+INTERVAL_ANALYSES = {"R03", "R05", "R06"}
+WORKLOAD_ANALYSES = {"R04"}
+CADRE_ANALYSES = {"R01", "R03", "R04", "R05"}
+CATEGORY_ANALYSES = {"R01", "R02", "R03", "R04", "R05"}
+QP_ANALYSES = {"R02"}
+ACADEMIC_ANALYSES = {"R06"}
 
+# Sufixos das chaves; cada aba usa o seu prefixo para não misturar estados.
 FILTER_WIDGET_KEYS = (
-    "suite_first",
-    "suite_last",
-    "suite_workload_period",
-    "suite_cadres",
-    "suite_categories",
-    "suite_qp",
-    "suite_courses",
-    "suite_qualifications",
-    "suite_shifts",
-    "suite_levels",
-    "suite_entries",
+    "first",
+    "last",
+    "workload_period",
+    "cadres",
+    "categories",
+    "qp",
+    "courses",
+    "qualifications",
+    "shifts",
+    "levels",
+    "entries",
 )
 
 # Códigos e datas são inteiros na tabela, mas não são quantidades.
@@ -123,19 +123,19 @@ def analysis_names() -> dict[str, str]:
     }
 
 
-def _clear(*, source: bool = False) -> None:
+def _clear(*, source: bool = False, prefix: str = "suite") -> None:
     for key in (
-        "suite_results",
-        "suite_result_key",
-        "suite_generated",
-        "suite_overview",
-        "suite_verification",
-        "suite_execution_id",
+        "results",
+        "result_key",
+        "generated",
+        "overview",
+        "verification",
+        "execution_id",
     ):
-        st.session_state.pop(key, None)
+        st.session_state.pop(f"{prefix}_{key}", None)
     if source:
-        st.session_state.pop("suite_source", None)
-        st.session_state.pop("suite_loaded_at", None)
+        st.session_state.pop(f"{prefix}_source", None)
+        st.session_state.pop(f"{prefix}_loaded_at", None)
 
 
 def _format(value: object) -> str:
@@ -182,25 +182,28 @@ def _pick(label: str, options: set[str], key: str) -> tuple[str, ...]:
     # Remover seleções que deixaram de existir quando a origem é recarregada.
     if key in st.session_state:
         st.session_state[key] = [x for x in st.session_state[key] if x in options]
-    return tuple(st.multiselect(label, sorted(options), key=key, placeholder="Todos"))
+    return tuple(
+        st.multiselect(label, sorted(options), key=key, placeholder="Todos", persist_state="page")
+    )
 
 
-def _reset_filters() -> None:
+def _reset_filters(prefix: str) -> None:
     """Limpa somente o recorte analítico, preservando a origem explicitamente carregada."""
-    _clear()
+    _clear(prefix=prefix)
     for key in FILTER_WIDGET_KEYS:
-        st.session_state.pop(key, None)
+        st.session_state.pop(f"{prefix}_{key}", None)
 
 
-def _filters(source: AcademicSource, selected_kind: str | None = None) -> AnalysisFilters:
+def _filters(source: AcademicSource, kinds: frozenset[str], prefix: str) -> AnalysisFilters:
     periods = source.periods
     first_period, last_period, workload_period = periods[0], periods[-1], periods[-1]
     st.caption(
         "Seleções vazias incluem todos os valores disponíveis. "
         "Ao mudar um filtro, calcule novamente para atualizar resultados e arquivos."
     )
-    show_interval = selected_kind in INTERVAL_ANALYSES
-    show_workload = selected_kind in WORKLOAD_ANALYSES
+    single = len(kinds) == 1
+    show_interval = bool(kinds & INTERVAL_ANALYSES)
+    show_workload = bool(kinds & WORKLOAD_ANALYSES)
     if show_interval or show_workload:
         fields = iter(st.columns(3 if show_interval and show_workload else 2))
     if show_interval:
@@ -208,7 +211,8 @@ def _filters(source: AcademicSource, selected_kind: str | None = None) -> Analys
             first_period = st.selectbox(
                 "Semestre inicial",
                 periods,
-                key="suite_first",
+                key=f"{prefix}_first",
+                persist_state="page",
                 help="Início do intervalo usado no histórico docente, funções e matrículas.",
             )
         with next(fields):
@@ -216,7 +220,8 @@ def _filters(source: AcademicSource, selected_kind: str | None = None) -> Analys
                 "Semestre final",
                 periods,
                 index=len(periods) - 1,
-                key="suite_last",
+                key=f"{prefix}_last",
+                persist_state="page",
                 help="Fim do intervalo, incluindo o semestre selecionado.",
             )
     if show_workload:
@@ -225,7 +230,8 @@ def _filters(source: AcademicSource, selected_kind: str | None = None) -> Analys
                 "Semestre da carga horária",
                 periods,
                 index=len(periods) - 1,
-                key="suite_workload_period",
+                key=f"{prefix}_workload_period",
+                persist_state="page",
                 help="Referência específica da R04; não é a soma do intervalo de semestres.",
             )
     from vrac.analyses.faculty_overview import NOT_INFORMED
@@ -238,31 +244,33 @@ def _filters(source: AcademicSource, selected_kind: str | None = None) -> Analys
     staff_cadres: tuple[str, ...] = ()
     staff_categories: tuple[str, ...] = ()
     qp: tuple[str, ...] = ()
-    if selected_kind in CATEGORY_ANALYSES:
-        with st.expander(
-            "Filtros docentes e grupo de comparação",
-            expanded=selected_kind in {"R01", "R02", "R03", "R04", "R05"},
-        ):
+    if kinds & CATEGORY_ANALYSES:
+        show_cadres = bool(kinds & CADRE_ANALYSES)
+        with st.expander("Filtros docentes e grupo de comparação", expanded=single):
             first, second = st.columns(2)
-            if selected_kind in CADRE_ANALYSES:
+            if show_cadres:
                 with first:
-                    staff_cadres = _pick("Quadros docentes", cadres, "suite_cadres")
-            with second if selected_kind in CADRE_ANALYSES else first:
-                staff_categories = _pick("Categorias funcionais", categories, "suite_categories")
-            if selected_kind in QP_ANALYSES:
+                    staff_cadres = _pick("Quadros docentes", cadres, f"{prefix}_cadres")
+            with second if show_cadres else first:
+                staff_categories = _pick(
+                    "Categorias funcionais", categories, f"{prefix}_categories"
+                )
+            if kinds & QP_ANALYSES:
+                qp_key = f"{prefix}_qp"
                 qp_options = sorted({r.cadre for r in source.faculty.register if r.cadre})
                 defaults = [x for x in qp_options if x in {"PROF PRINCIPAL", "PRINCIPAL"}]
-                if "suite_qp" in st.session_state:
-                    st.session_state["suite_qp"] = [
-                        x for x in st.session_state["suite_qp"] if x in qp_options
+                if qp_key in st.session_state:
+                    st.session_state[qp_key] = [
+                        x for x in st.session_state[qp_key] if x in qp_options
                     ]
                 else:
-                    st.session_state["suite_qp"] = defaults
+                    st.session_state[qp_key] = defaults
                 qp = tuple(
                     st.multiselect(
                         "Quadros do grupo QP — simulação configurável",
                         qp_options,
-                        key="suite_qp",
+                        key=qp_key,
+                        persist_state="page",
                     )
                 )
             st.caption(
@@ -277,26 +285,30 @@ def _filters(source: AcademicSource, selected_kind: str | None = None) -> Analys
     levels: tuple[str, ...] = ()
     shifts: tuple[str, ...] = ()
     entries: tuple[str, ...] = ()
-    if selected_kind in ACADEMIC_ANALYSES:
-        with st.expander("Filtros acadêmicos", expanded=selected_kind == "R06"):
+    if kinds & ACADEMIC_ANALYSES:
+        with st.expander("Filtros acadêmicos", expanded=single):
             student_rows = (*source.students, *source.student_history)
             courses = _pick(
-                "Cursos (códigos separados)", {r.course for r in student_rows}, "suite_courses"
+                "Cursos (códigos separados)", {r.course for r in student_rows}, f"{prefix}_courses"
             )
             first, second = st.columns(2)
             with first:
                 qualifications = _pick(
                     "Habilitações",
                     {r.qualification for r in student_rows if r.qualification},
-                    "suite_qualifications",
+                    f"{prefix}_qualifications",
                 )
-                levels = _pick("Níveis", {r.level for r in student_rows if r.level}, "suite_levels")
+                levels = _pick(
+                    "Níveis", {r.level for r in student_rows if r.level}, f"{prefix}_levels"
+                )
             with second:
-                shifts = _pick("Turnos", {r.shift for r in student_rows if r.shift}, "suite_shifts")
+                shifts = _pick(
+                    "Turnos", {r.shift for r in student_rows if r.shift}, f"{prefix}_shifts"
+                )
                 entries = _pick(
                     "Formas de ingresso",
                     {r.entry_kind for r in student_rows if r.entry_kind},
-                    "suite_entries",
+                    f"{prefix}_entries",
                 )
             st.caption(
                 "As situações de cada série seguem a regra documentada; cursos "
@@ -496,6 +508,7 @@ def _render_overview(
     branding: Branding,
     generated_at: datetime,
     export_context: dict[str, str],
+    prefix: str,
 ) -> tuple[dict[str, bytes | Callable[[], bytes]], dict[str, str]]:
     if "register" not in source.available:
         st.error("R01 indisponível: o cadastro docente não pôde ser consultado neste snapshot.")
@@ -540,7 +553,7 @@ def _render_overview(
     )
     st.write(result.narrative)
     if result.total is not None:
-        render_faculty_metric(result, prefix="suite")
+        render_faculty_metric(result, prefix=prefix)
     for note in result.warnings:
         st.caption(note)
     files = {
@@ -548,7 +561,7 @@ def _render_overview(
         "R01/lista-conferencia.csv": detail_csv(result, generated_at, export_context),
     }
     files.update(
-        render_composition(result, branding, prefix="suite_r01", export_context=export_context)
+        render_composition(result, branding, prefix=f"{prefix}_r01", export_context=export_context)
     )
     render_faculty_details(result)
     for name, data in tuple(files.items()):
@@ -558,7 +571,7 @@ def _render_overview(
                 data,
                 file_name="vrac-" + name.replace("/", "-"),
                 mime="text/csv",
-                key="suite_" + name,
+                key=f"{prefix}_{name}",
             )
     st.caption(
         "A referência da R01 é o cadastro atual. A R02 trata separadamente o grupo QP simulado."
@@ -573,90 +586,146 @@ def _render_overview(
 
 
 def _request_complete_report() -> None:
-    st.session_state["suite_analysis"] = ALL_ANALYSES
+    """Executado antes dos widgets: o relatório completo vive em Docentes."""
+    st.session_state[VIEW_KEY] = FACULTY.tab
+    st.session_state[FACULTY_PICKER] = ALL_FACULTY
     st.session_state.pop("suite_pdf_analyses", None)
-    st.session_state["suite_auto_run"] = True
+    st.session_state["suite_autorun"] = True
 
 
-def workbench(settings: Settings, branding: Branding, options: DemoOptions) -> None:
-    names = analysis_names()
-    with st.container(key="vrac-panel-suite-filters"):
-        st.subheader("Análises disponíveis por período")
-        step(1, "Escolha a análise")
-        selected = st.selectbox(
-            "Análise",
-            (ALL_ANALYSES, *names),
-            key="suite_analysis",
-            help="Escolha uma consulta para começar ou calcule os seis roteiros em conjunto.",
+def export_box(
+    target,
+    *,
+    prefix: str,
+    available: tuple[str, ...],
+    package: Callable[[tuple[str, ...] | None], bytes],
+    branding: Branding,
+    generated_at: datetime,
+) -> None:
+    """Bloco único de exportação, no topo dos resultados de todas as telas.
+
+    PDF e ZIP são montados só no clique, a partir do mesmo pacote.
+    """
+    pdf_key = f"{prefix}_pdf_analyses"
+    if pdf_key in st.session_state:
+        st.session_state[pdf_key] = [k for k in st.session_state[pdf_key] if k in available]
+    stamp = f"{generated_at:%Y%m%d-%H%M%S}"
+    with target, st.container(border=True, key=f"vrac-export-{prefix}"):
+        card_title(
+            "Baixar relatório",
+            "PDF em formato de apresentação, com resultados e gráficos. "
+            "ZIP com todas as tabelas, gráficos e conferências.",
         )
-        selected_kind = names.get(selected)
-        if selected_kind is not None:
-            question, explanation = ANALYSIS_GUIDE[selected_kind]
-            st.markdown(f"**{question}**")
-            st.caption(explanation)
-        else:
-            st.caption(
-                "Visão conjunta: composição docente, comparação QP, histórico, carga horária, "
-                "funções e matrículas. Cada análise informa sua referência e suas limitações."
+        chosen = tuple(
+            st.multiselect(
+                "Análises incluídas no PDF",
+                available,
+                default=None if pdf_key in st.session_state else available,
+                format_func=lambda k: f"{k} · {TITLES.get(k, 'Situação geral do departamento')}",
+                key=pdf_key,
+                placeholder="Escolha ao menos uma análise",
             )
-        step(2, "Defina o recorte")
+        )
+        with st.container(horizontal=True, vertical_alignment="center"):
+            if chosen:
+                complete = len(chosen) == len(COMPLETE_CODES)
+                download_button(
+                    "Baixar relatório completo (PDF)"
+                    if complete
+                    else "Baixar relatório das análises selecionadas (PDF)",
+                    lambda: report_pdf(package(chosen), branding, selected=chosen),
+                    file_name=f"vrac-{'-'.join(chosen)}-{stamp}.pdf",
+                    mime="application/pdf",
+                    key=f"{prefix}_download_pdf_" + "_".join(chosen),
+                    type="primary",
+                    on_click="ignore",
+                )
+            download_button(
+                "Baixar pacote (ZIP)",
+                package,
+                file_name=f"vrac-analises-sinteticas-{stamp}.zip",
+                mime="application/zip",
+                key=f"{prefix}_download_all",
+                on_click="ignore",
+            )
+            if set(available) != set(COMPLETE_CODES):
+                st.button(
+                    "Preparar relatório completo (R01–R06)",
+                    key=f"{prefix}_complete_report",
+                    type="tertiary",
+                    on_click=_request_complete_report,
+                    help="Abre Docentes › Relatório completo e calcula os seis roteiros "
+                    "com o recorte de Docentes.",
+                )
+        if not chosen:
+            st.caption("Escolha ao menos uma análise para liberar o PDF; o ZIP segue disponível.")
+
+
+def workbench(
+    settings: Settings,
+    branding: Branding,
+    options: DemoOptions,
+    *,
+    codes: tuple[str, ...],
+    label: str,
+    prefix: str = "suite",
+    active: bool = True,
+) -> None:
+    """Recorte, filtros e resultados das análises escolhidas na aba.
+
+    A base é lida automaticamente quando a aba está aberta; fora dela, só o recorte
+    é desenhado, para preservar as escolhas sem consultar a origem.
+    """
+    kinds = frozenset(codes)
+    with st.container(key=f"vrac-panel-{prefix}-filters"):
+        step(1, "Defina o recorte")
         try:
             hierarchy = load_department_hierarchy(settings)
         except DemoDataError as error:
-            _clear(source=True)
+            _clear(source=True, prefix=prefix)
             st.error(str(error))
             return
         scope = organisation_filters(
-            hierarchy, prefix="suite", department_label="Departamento das análises"
+            hierarchy, prefix=prefix, department_label="Departamento das análises"
         )
         department = scope.department
         source_key = (settings.demo_source, scope)
-        if st.session_state.get("suite_source_key") != source_key:
-            # Com a base já aberta, trocar a unidade recarrega sem exigir outro clique.
-            reload_source = "suite_source" in st.session_state
-            _clear(source=True)
-            st.session_state["suite_source_key"] = source_key
-            if reload_source:
-                st.session_state["suite_autoload"] = True
-        loaded = "suite_source" in st.session_state
-        clicked = st.button(
-            "Atualizar dados" if loaded else "Carregar dados",
-            key="suite_load",
-            type="tertiary" if loaded else "primary",
-            help=(
-                "Lê somente a origem sintética selecionada. "
-                "Uma atualização remove o cálculo anterior."
-            ),
-        )
-        automatic = st.session_state.pop("suite_autoload", False) and not loaded
-        if clicked or automatic:
-            _clear(source=True)
+        if st.session_state.get(f"{prefix}_source_key") != source_key:
+            _clear(source=True, prefix=prefix)
+            st.session_state[f"{prefix}_source_key"] = source_key
+        if active and f"{prefix}_source" not in st.session_state:
             try:
                 with st.spinner("Lendo as fontes sintéticas..."):
-                    st.session_state["suite_source"] = load_academic_source(
+                    st.session_state[f"{prefix}_source"] = load_academic_source(
                         settings, **scope.source_arguments
                     )
-                    st.session_state["suite_loaded_at"] = datetime.now(UTC)
+                    st.session_state[f"{prefix}_loaded_at"] = datetime.now(UTC)
             except (DemoDataError, ValueError) as error:
                 st.error(str(error))
                 return
-        source: AcademicSource | None = st.session_state.get("suite_source")
+        source: AcademicSource | None = st.session_state.get(f"{prefix}_source")
         if source is None:
-            st.info(
-                "Próximo passo: clique em Carregar dados. "
-                "Depois você poderá escolher os semestres e refinar os filtros."
-            )
             return
-        loaded_at = st.session_state["suite_loaded_at"]
-        st.caption(
-            f"Snapshot sintético carregado em {loaded_at:%d/%m/%Y %H:%M:%S} UTC. "
-            "Use atualizar dados para consultar uma nova versão da base."
-        )
+        loaded_at = st.session_state[f"{prefix}_loaded_at"]
+        with st.container(horizontal=True, vertical_alignment="center"):
+            st.caption(f"Dados sintéticos lidos em {loaded_at:%d/%m/%Y %H:%M:%S} UTC.")
+            # O clique descarta a base; a aba aberta lê de novo na mesma execução.
+            st.button(
+                "Atualizar dados",
+                key=f"{prefix}_load",
+                type="tertiary",
+                on_click=_clear,
+                kwargs={"source": True, "prefix": prefix},
+                help=(
+                    "Lê novamente somente a origem sintética selecionada. "
+                    "Uma atualização remove o cálculo anterior."
+                ),
+            )
         for text in source.errors:
             st.warning(text)
         checks = inspect_source(source)
-        step(3, "Refine os filtros e calcule")
-        filters = _filters(source, selected_kind)
+        step(2, "Refine os filtros, se precisar, e calcule")
+        filters = _filters(source, kinds, prefix)
         descriptions = {
             "Centro": scope.center,
             "Departamento": department,
@@ -674,6 +743,21 @@ def workbench(settings: Settings, branding: Branding, options: DemoOptions) -> N
             "Níveis": ", ".join(filters.levels) or "Todos",
             "Formas de ingresso": ", ".join(filters.entry_kinds) or "Todas",
         }
+        key = (codes, source.fingerprint, filters)
+        if st.session_state.get(f"{prefix}_result_key") != key:
+            _clear(prefix=prefix)
+        with st.container(horizontal=True, vertical_alignment="center"):
+            run = st.button("Calcular resultados", type="primary", key=f"{prefix}_run")
+            st.button(
+                "Limpar filtros",
+                key=f"{prefix}_reset_filters",
+                type="tertiary",
+                on_click=_reset_filters,
+                args=(prefix,),
+                help="Restaura o intervalo completo e as seleções iniciais, "
+                "mantendo a base carregada.",
+            )
+        run = st.session_state.pop(f"{prefix}_autorun", False) or run
         review, quality = st.columns(2, gap="medium")
         with review, st.expander("Conferir filtros selecionados", expanded=False):
             st.markdown(
@@ -704,53 +788,32 @@ def workbench(settings: Settings, branding: Branding, options: DemoOptions) -> N
                 hide_index=True,
                 width="stretch",
             )
-        key = (selected, source.fingerprint, filters)
-        if st.session_state.get("suite_result_key") != key:
-            _clear()
-        with st.container(horizontal=True, vertical_alignment="center"):
-            run = st.button("Calcular análises selecionadas", type="primary", key="suite_run")
-            st.button(
-                "Preparar relatório completo (R01–R06)",
-                key="suite_complete_report",
-                on_click=_request_complete_report,
-                help="Calcula todos os roteiros com os filtros da visão conjunta.",
-            )
-            run = st.session_state.pop("suite_auto_run", False) or run
-            st.button(
-                "Limpar filtros",
-                key="suite_reset_filters",
-                type="tertiary",
-                on_click=_reset_filters,
-                help="Restaura o intervalo completo e as seleções iniciais, "
-                "mantendo a base carregada.",
-            )
     if run:
         try:
-            with st.spinner("Calculando os roteiros..."):
-                kinds = (
-                    tuple(AnalysisKind)
-                    if selected == ALL_ANALYSES
-                    else (() if names[selected] == "R01" else (names[selected],))
+            with st.spinner("Calculando as análises..."):
+                results = tuple(
+                    calculate(AnalysisKind(code), source, filters)
+                    for code in codes
+                    if code != "R01"
                 )
-                results = tuple(calculate(kind, source, filters) for kind in kinds)
-                st.session_state["suite_results"] = results
-                st.session_state["suite_result_key"] = key
-                st.session_state["suite_generated"] = datetime.now(UTC)
-                st.session_state["suite_execution_id"] = str(uuid4())
+                st.session_state[f"{prefix}_results"] = results
+                st.session_state[f"{prefix}_result_key"] = key
+                st.session_state[f"{prefix}_generated"] = datetime.now(UTC)
+                st.session_state[f"{prefix}_execution_id"] = str(uuid4())
         except ValueError as error:
-            _clear()
+            _clear(prefix=prefix)
             st.error(str(error))
             return
-    results = st.session_state.get("suite_results")
+    results = st.session_state.get(f"{prefix}_results")
     if results is None:
-        with st.container(key="vrac-empty-suite"):
+        with st.container(key=f"vrac-empty-{prefix}"):
             st.info(
-                "Recorte pronto para consulta. Clique em Calcular análises selecionadas "
-                "para ver os resultados e liberar os arquivos deste recorte."
+                "Recorte pronto. Clique em Calcular resultados para ver os gráficos "
+                "e liberar os arquivos deste recorte."
             )
         return
-    generated_at = st.session_state["suite_generated"]
-    panel = st.container(key="vrac-panel-suite-results")
+    generated_at = st.session_state[f"{prefix}_generated"]
+    panel = st.container(key=f"vrac-panel-{prefix}-results")
     panel.subheader("Resultados calculados")
     panel.caption(
         f"Recorte: {scope.label} · {filters.first_period} a {filters.last_period}. "
@@ -766,7 +829,7 @@ def workbench(settings: Settings, branding: Branding, options: DemoOptions) -> N
             f"cálculo {generated_at:%d/%m/%Y %H:%M:%S} UTC · atualização da fonte: não disponível"
         )
     export_context = {
-        "Execução": st.session_state["suite_execution_id"],
+        "Execução": st.session_state[f"{prefix}_execution_id"],
         **descriptions,
         "Extração (UTC)": loaded_at.isoformat(),
         "Cálculo (UTC)": generated_at.isoformat(),
@@ -774,11 +837,13 @@ def workbench(settings: Settings, branding: Branding, options: DemoOptions) -> N
         "Snapshot acadêmico": source.fingerprint,
         "Atualização da fonte": "não disponível",
     }
-    show_overview = selected == ALL_ANALYSES or names.get(selected) == "R01"
+    export_slot = panel.container()
+    show_overview = "R01" in kinds
     labels = (["R01 · Situação geral"] if show_overview else []) + [
         f"{r.kind} · {r.title}" for r in results
     ]
-    tabs = panel.tabs(labels)
+    # Uma análise só dispensa abas internas; várias ficam lado a lado.
+    tabs = panel.tabs(labels) if len(labels) > 1 else [panel.container()]
     files, images = {}, {}
     quality_rows = [asdict(c) for c in checks]
     files["conferencias-programadas.csv"] = _write(
@@ -794,13 +859,15 @@ def workbench(settings: Settings, branding: Branding, options: DemoOptions) -> N
     if show_overview:
         with tabs[0]:
             overview_files, overview_manifest = _render_overview(
-                source, filters, branding, generated_at, export_context
+                source, filters, branding, generated_at, export_context, prefix
             )
             files.update(overview_files)
     for tab, result in zip(tabs[1:] if show_overview else tabs, results, strict=True):
         with tab:
             images.update(
-                _render_result(result, branding, generated_at, export_context=export_context)
+                _render_result(
+                    result, branding, generated_at, prefix=prefix, export_context=export_context
+                )
             )
 
     def package(include: tuple[str, ...] | None = None) -> bytes:
@@ -824,68 +891,39 @@ def workbench(settings: Settings, branding: Branding, options: DemoOptions) -> N
             else (),
         )
 
-    with panel:
-        available = (["R01"] if show_overview else []) + [str(r.kind) for r in results]
-        if "suite_pdf_analyses" in st.session_state:
-            st.session_state["suite_pdf_analyses"] = [
-                k for k in st.session_state["suite_pdf_analyses"] if k in available
-            ]
-        chosen = tuple(
-            st.multiselect(
-                "Análises que entram no PDF",
-                available,
-                default=None if "suite_pdf_analyses" in st.session_state else available,
-                format_func=lambda k: f"{k} · {TITLES.get(k, 'Situação geral do departamento')}",
-                key="suite_pdf_analyses",
-                help="Marque apenas as análises desejadas. Para disponibilizar as seis, use "
-                "Preparar relatório completo (R01–R06). O ZIP mantém as análises calculadas.",
-            )
-        )
-        if chosen:
-            st.caption(
-                "PDF visual: resultados consolidados e gráficos, em formato de apresentação. "
-                "As tabelas detalhadas permanecem na tela e no pacote ZIP."
-            )
-            complete = len(chosen) == 6
-            download_button(
-                "Baixar relatório completo (PDF)"
-                if complete
-                else "Baixar relatório das análises selecionadas (PDF)",
-                lambda: report_pdf(package(chosen), branding, selected=chosen),
-                file_name=f"vrac-{'-'.join(chosen)}-{generated_at:%Y%m%d-%H%M%S}.pdf",
-                mime="application/pdf",
-                key="suite_download_pdf_" + "_".join(chosen),
-                on_click="ignore",
-            )
-        else:
-            st.info("Selecione pelo menos uma análise para baixar o PDF.")
-        download_button(
-            "Baixar pacote das análises (ZIP)",
-            package,
-            file_name=f"vrac-analises-sinteticas-{generated_at:%Y%m%d-%H%M%S}.zip",
-            mime="application/zip",
-            key="suite_download_all",
-            on_click="ignore",
-        )
+    export_box(
+        export_slot,
+        prefix=prefix,
+        available=(*(("R01",) if show_overview else ()), *(str(r.kind) for r in results)),
+        package=package,
+        branding=branding,
+        generated_at=generated_at,
+    )
     status = "; ".join(
         ([f"R01: {overview_manifest['status']}"] if overview_manifest else [])
         + [f"{r.kind}: {r.status}" for r in results]
     )
-    _render_verification(settings, selected, scope, filters, source)
-    render_feedback(st.session_state["suite_execution_id"], selected, status, generated_at)
+    _render_verification(settings, label, kinds, scope, filters, source, prefix)
+    render_feedback(
+        st.session_state[f"{prefix}_execution_id"], label, status, generated_at, prefix=prefix
+    )
     if run:
-        scroll_to("vrac-panel-suite-results")
+        scroll_to(f"vrac-panel-{prefix}-results")
 
 
 def _render_verification(
     settings: Settings,
-    selected: str,
+    label: str,
+    kinds: frozenset[str],
     scope: OrganisationScope,
     filters: AnalysisFilters,
     source: AcademicSource,
+    prefix: str,
 ) -> None:
     from vrac.db.synthetic_postgres import query_missing_classification
 
+    if "R04" not in kinds:
+        return
     if settings.demo_source == DemoSource.SUPABASE:
         st.caption(
             "E01 experimental disponível somente na base local; "
@@ -905,12 +943,14 @@ def _render_verification(
             "Limites: uma verificação, até cinco departamentos e 5.000 alocações; "
             "até 61 comandos de leitura incluindo a revalidação, com até 5 segundos por comando."
         )
-        enabled = st.checkbox("Habilitar E01 para esta demonstração", key="suite_check_enable")
-        mode = st.radio("Modo de execução", ("Sob aprovação", "Automático"), key="suite_check_mode")
-        session = st.session_state.setdefault("suite_verification", VerificationSession())
+        enabled = st.checkbox("Habilitar E01 para esta demonstração", key=f"{prefix}_check_enable")
+        mode = st.radio(
+            "Modo de execução", ("Sob aprovação", "Automático"), key=f"{prefix}_check_mode"
+        )
+        session = st.session_state.setdefault(f"{prefix}_verification", VerificationSession())
         context = Context(
             identity=IDENTITY,
-            analysis=selected,
+            analysis=label,
             filters=filters,
             department=scope.label,
             departments=scope.departments,
@@ -918,9 +958,7 @@ def _render_verification(
             reference=source.fingerprint,
         )
         session.select(context)
-        applicable = (
-            selected == ALL_ANALYSES or selected.startswith("R04 ·")
-        ) and "allocations" in source.available
+        applicable = "allocations" in source.available
         outcome = session.run(
             settings,
             automatic=False,
@@ -933,15 +971,15 @@ def _render_verification(
             outcome = existing
         if enabled and mode == "Sob aprovação" and outcome.status == Status.SUGGESTED:
             approve, decline = st.columns(2)
-            if approve.button("Autorizar consulta experimental", key="suite_check_approve"):
+            if approve.button("Autorizar consulta experimental", key=f"{prefix}_check_approve"):
                 session.decide(True)
                 outcome = session.outcomes[RULE_ID]
-            if decline.button("Recusar consulta", key="suite_check_decline"):
+            if decline.button("Recusar consulta", key=f"{prefix}_check_decline"):
                 session.decide(False)
                 outcome = session.outcomes[RULE_ID]
         execute = enabled and mode == "Automático"
         if enabled and mode == "Sob aprovação" and outcome.status == Status.APPROVED:
-            execute = st.button("Executar consulta autorizada", key="suite_check_execute")
+            execute = st.button("Executar consulta autorizada", key=f"{prefix}_check_execute")
         if execute:
             outcome = session.run(
                 settings,

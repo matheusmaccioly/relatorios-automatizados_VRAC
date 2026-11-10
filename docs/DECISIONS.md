@@ -4,6 +4,37 @@ Registro iniciado em 26/10/2026. “Adotada para a fundação” descreve uma de
 
 ## Decisões
 
+**D-038 — exportação do PDF em todas as telas, Matheus, 10/11/2026:** Matheus pediu
+melhor disposição da construção do PDF, presente em todas as páginas, e opção de relatório
+completo na página inicial. Decidido: (1) um único bloco **Baixar relatório** no topo dos
+resultados de cada tela (Panorama, demais análises docentes e Alunos), com a seleção das
+análises do PDF, o PDF, o ZIP e, quando faltam roteiros, o atalho do relatório completo.
+(2) O Panorama passa a exportar PDF/ZIP com R01 e o histórico como exibido na tela (série
+mensal, sem métricas adicionais). (3) A página inicial ganha **Gerar relatório completo
+(R01–R06)**, que usa o departamento escolhido, abre Docentes › Relatório completo e já
+calcula. Financeira e Projetos patrocinados continuam sem dados e sem exportação. O
+conteúdo do PDF e as regras não mudam.
+
+**D-037 — navegação por área e página inicial interativa, Matheus, 10/11/2026:** Matheus
+achou a interface pouco intuitiva e pediu as análises agrupadas nas abas superiores por
+área: Docentes, Alunos, Financeira e Projetos patrocinados, as duas últimas com "em breve".
+Decidido: (1) abas **Início · Docentes · Alunos · Financeira (em breve) · Projetos
+patrocinados (em breve)**; somem as abas "Análise docente" e "Análises por período" e o
+seletor "Todos os roteiros (R01–R06)". (2) Em Docentes, um seletor horizontal escolhe
+Panorama docente, Grupo QP e geral, Evolução docente, Funções, Carga horária ou Relatório
+completo (R01–R06). Alunos traz a R06. O relatório completo inclui a R06 para preservar o
+PDF consolidado do commit a289092; o botão "Preparar relatório completo (R01–R06)" leva a
+essa opção e calcula com o recorte de Docentes. (3) A base da área é lida
+automaticamente ao abrir a aba; não há mais o passo "Carregar dados", só "Atualizar dados".
+Na abertura do app nenhuma base analítica é lida. (4) Filtros e resultados de cada análise
+são preservados ao alternar entre elas na mesma sessão. (5) A página inicial ganha o atalho
+**Comece rápido** (análise + departamento → abre a aba e já calcula) e cartões por área com
+um botão por análise. (6) **Financeira e Projetos patrocinados são abas reais apenas com
+aviso**: não têm filtros, análises nem consulta de dados. Isso substitui o item 5 da D-033
+(rótulo decorativo por CSS) e **não amplia o escopo**: análises financeiras e de projetos
+seguem fora da PoC e exigem decisão explícita própria. Fórmulas, regras e exportações não
+mudam. Proposta de interface sem validação de Talita.
+
 **D-036 — hospedagem no Streamlit Community Cloud, Matheus, 05/11/2026:** Matheus publicou
 a demonstração sintética no Streamlit Community Cloud, em vez da Vercel avaliada antes.
 Secrets do painel definem somente `VRAC_ENVIRONMENT=production`, `VRAC_DATA_MODE=synthetic`

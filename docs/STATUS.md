@@ -1,3 +1,60 @@
+## Exportação do PDF em todas as telas — 10/11/2026
+
+Pedido de Matheus (D-038): bloco único **Baixar relatório** (seleção do PDF, PDF, ZIP e
+atalho do relatório completo) no topo dos resultados do Panorama, das análises docentes e
+de Alunos; botão **Gerar relatório completo (R01–R06)** na página inicial.
+
+| Verificação | Resultado observado |
+|---|---|
+| Suíte offline | **549 aprovados, 5 ignorados** (sqlalchemy ausente no Mac; testes de Windows) |
+| Novos testes | Relatório completo pela página inicial; PDF real do Panorama com R01 e R03 |
+| Navegador headless | Início, bloco no Panorama e relatório completo pela página inicial; PDF de 1,1 MB baixado; sem erros de console |
+
+**A validar:** Matheus e Talita — posição do bloco e se o PDF do Panorama deve incluir o
+histórico mensal. **Não executado:** Supabase/Cloud com login real.
+
+## Navegação por área e página inicial interativa — 10/11/2026
+
+Matheus achou a interface pouco intuitiva: página inicial só informativa e análises
+espalhadas entre "Análise docente" e "Análises por período". Decisão em D-037.
+
+**O que mudou para quem usa:**
+
+- Abas superiores por área: **Início · Docentes · Alunos · Financeira (em breve) ·
+  Projetos patrocinados (em breve)**.
+- **Docentes:** seletor horizontal com Panorama docente, Grupo QP e geral, Evolução
+  docente, Funções, Carga horária e Relatório completo (R01–R06, PDF e ZIP).
+- **Alunos:** Matrículas e alunos (R06).
+- A base é lida ao abrir a aba; o passo "Carregar dados" deixou de existir. Filtros e
+  resultados ficam guardados ao trocar de análise.
+- **Início:** atalho *Comece rápido* (análise + departamento → resultado calculado) e
+  cartões por área com um botão por análise.
+- Financeira e Projetos patrocinados: só aviso e "Voltar ao início"; nenhum dado.
+
+| Verificação | Resultado observado |
+|---|---|
+| Suíte offline (`pytest`) | **530 aprovados, 5 ignorados**, 1 excluído, ~27 s |
+| Ignorados | 3 exigem `sqlalchemy` (extra `sqlserver` não instalado: falta `unixODBC` no Mac), 2 são exclusivos do Windows |
+| Ruff `check` / `format --check` | Aprovados |
+| Navegador headless (Playwright, local, origem memória) | Início, Docentes, Carga horária calculada, Alunos, Financeira e Início em 390 px renderizados; sem erros de console |
+
+**Arquivos:** novo `src/vrac/navigation.py`; alterados `ui.py`, `academic_ui.py`,
+`organisation_ui.py`, `branding.py`; testes de interface atualizados
+(`test_interface_navigation`, `test_academic_ui`, `test_student_ui`, `test_faculty_page`,
+`test_table_presentation`, `test_department_hierarchy_ui`, `test_verification`,
+`test_feedback_exports`, `test_supabase`). Fórmulas, consultas e exportações sem mudança.
+
+**Não executados:** Supabase/Cloud com login real, navegação por teclado e leitor de tela,
+validação de Talita.
+
+**Riscos:** as chaves de estado da R06 mudaram de `suite_*` para `alunos_*`. O relatório
+completo R01–R06 (PDF do commit a289092) fica em Docentes › Relatório completo e usa o
+recorte de Docentes, inclusive quando acionado pela aba Alunos. A cor de destaque do seletor
+(preto) e o cinza das abas "em breve" seguem a paleta provisória (Q-012).
+
+**A validar:** Matheus e Talita — se a divisão por área e os nomes curtos das análises são
+claros; se as abas "em breve" devem aparecer para Talita.
+
 ## Preparação do commit solicitado — 10/11/2026
 
 Matheus solicitou commit e envio ao GitHub das alterações acumuladas: PDF consolidado,

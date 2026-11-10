@@ -82,17 +82,9 @@ html {scroll-behavior: smooth;}
 [data-testid="stTabs"] [data-baseweb="tab-border"] {display: none;}
 .st-key-vrac-view > div > [role="tablist"] [role="tab"] p {text-transform: uppercase;
   font-size: .95rem;}
-/* Item do menu sem aba por trás: não recebe clique nem foco e não abre conteúdo.
-   O Streamlit usa o ::after da lista como linha de base; aqui ele volta ao fluxo. */
-.st-key-vrac-view > div > [role="tablist"]::before,
-.st-key-vrac-view > div > [role="tablist"]::after {align-self: center; flex: none;
-  cursor: not-allowed; white-space: nowrap;}
-.st-key-vrac-view > div > [role="tablist"]::before {content: "Análise financeira"; order: 98;
-  color: $ink_soft; font-weight: 400; font-size: .95rem; text-transform: uppercase;}
-.st-key-vrac-view > div > [role="tablist"]::after {content: "Em breve"; order: 99;
-  position: static; width: auto; height: auto; margin-left: -1.1rem;
-  background: $yellow_soft; color: $black; font-size: .72rem; font-weight: 700;
-  padding: 2px 8px; border-radius: 3px; text-transform: uppercase;}
+/* Áreas ainda não disponíveis: aba real, com rótulo atenuado */
+.st-key-vrac-view > div > [role="tablist"] [role="tab"]:nth-last-child(-n+2) p
+  {color: $ink_soft; font-weight: 400;}
 
 /* Início */
 .vrac-kicker {font-family: "$editorial_family", serif; font-size: 1rem; color: $black;
@@ -102,16 +94,6 @@ html {scroll-behavior: smooth;}
   margin: 0 0 1rem; padding: 0;}
 .vrac-hero p.lead {font-size: 1.15rem; color: $ink_soft; max-width: 40rem; margin: 0;}
 .st-key-vrac-home-hero {padding: 2rem 0 .5rem;}
-.vrac-bloco-num {background: $yellow; border-radius: 3px; padding: 1.4rem 1.75rem;
-  height: 100%; min-height: 15rem; display: flex; flex-direction: column;
-  justify-content: space-between; position: relative; box-sizing: border-box;}
-.vrac-bloco-num .rot {font-family: "$editorial_family", serif; color: $black;}
-.vrac-bloco-num dl {display: grid; grid-template-columns: auto 1fr; gap: .55rem .85rem;
-  align-items: baseline; margin: 1rem 0 0;}
-.vrac-bloco-num dl, .vrac-bloco-num dt, .vrac-bloco-num dd {padding: 0; margin-left: 0;}
-.vrac-bloco-num dt {font-size: 2.4rem; line-height: 1; font-weight: 700; color: $black;
-  font-variant-numeric: tabular-nums;}
-.vrac-bloco-num dd {margin: 0; font-size: 1.05rem; color: $black;}
 .vrac-section-title {border-top: 1px solid $black; padding-top: 1rem; margin-top: 1.25rem;}
 .vrac-section-title h2 {font-family: "$heading_family", sans-serif; font-weight: 700;
   color: $black; font-size: clamp(1.5rem, 2.6vw, 2rem); margin: 0; padding: 0;}
@@ -123,15 +105,34 @@ html {scroll-behavior: smooth;}
   font-weight: 700; padding: 3px 9px; border-radius: 3px;}
 .vrac-capa .capa-nome {display: flex; justify-content: space-between; align-items: flex-end;
   gap: .5rem; font-size: 1.45rem; font-weight: 700; line-height: 1.1;}
-.vrac-capa .seta {flex: none; font-size: 1.4rem; line-height: 1;}
 .vrac-capa.amarelo {background: $yellow; color: $black;}
 .vrac-capa.azul {background: $blue; color: $white;}
 .vrac-capa.preto {background: $black; color: $white;}
-.vrac-card-body {min-height: 7.6rem;}
+.vrac-card-body {min-height: 4.5rem; margin-top: .6rem;}
 .vrac-card-body h3 {font-family: "$heading_family", sans-serif; color: $black; font-weight: 700;
   font-size: 1.15rem; line-height: 1.25; margin: .75rem 0 .35rem; padding: 0;}
 .vrac-card-body p {color: $ink_soft; font-size: .95rem; margin: 0;}
-[class*="st-key-vrac-card-"] {justify-content: space-between; height: 100%;}
+.st-key-vrac-home-start {background: $yellow; border-radius: 3px; padding: 1.25rem 1.5rem;}
+.st-key-vrac-home-start label p {color: $black; font-weight: 600;}
+.vrac-start-ou {text-align: center; color: $black; font-size: .85rem; margin: -.25rem 0;}
+[class*="st-key-vrac-export-"] {background: $yellow_soft; border-color: $yellow !important;}
+.vrac-start-title {font-family: "$heading_family", sans-serif; font-weight: 700;
+  font-size: 1.35rem; color: $black; margin: 0;}
+[class*="st-key-vrac-area-"] {gap: .15rem;}
+[class*="st-key-vrac-area-"] [data-testid="stBaseButton-tertiary"] {justify-content: flex-start;
+  padding: .2rem 0; min-height: 0; text-align: left;}
+.vrac-capa.neutro {background: $surface_hover; color: $ink_soft;}
+.vrac-area-intro {padding: 1.5rem 0 .25rem;}
+.vrac-area-intro h1 {font-family: "$heading_family", sans-serif; font-weight: 700; color: $black;
+  font-size: clamp(1.8rem, 3.4vw, 2.5rem); line-height: 1.1; margin: 0 0 .5rem; padding: 0;}
+.vrac-area-intro p.lead {font-size: 1.05rem; color: $ink_soft; max-width: 44rem; margin: 0;}
+.vrac-breve {display: inline-block; background: $yellow_soft; color: $black; font-size: .75rem;
+  font-weight: 700; padding: 2px 8px; border-radius: 3px; text-transform: uppercase;
+  margin-bottom: .6rem;}
+button[data-variant="segmented_control"] {background: $white;}
+button[data-variant="segmented_control"][aria-checked="true"]
+  {background: $black !important; border-color: $black !important;}
+button[data-variant="segmented_control"][aria-checked="true"] p {color: $white; font-weight: 700;}
 .vrac-passos {list-style: none; margin: .5rem 0 0; padding: 0; display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem;}
 .vrac-passos li {display: flex; gap: .75rem; font-size: .95rem; color: $ink_soft;
@@ -240,18 +241,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .vrac-footer span {color: $line;}
 
 @media (max-width: 960px) {
-  .st-key-vrac-home-cards [data-testid="stColumn"] {min-width: calc(50% - 1rem);}
+  .st-key-vrac-home-areas [data-testid="stColumn"] {min-width: calc(50% - 1rem);}
   .vrac-passos {grid-template-columns: 1fr;}
-  .vrac-bloco-num {min-height: 0;}
   .vrac-card-body {min-height: 0;}
 }
 @media (max-width: 640px) {
   [data-testid="stMainBlockContainer"] {padding: 0 1rem !important;}
   .vrac-marca .sep, .vrac-marca small {display: none;}
-  .st-key-vrac-home-cards [data-testid="stColumn"] {min-width: 100%;}
+  .st-key-vrac-home-areas [data-testid="stColumn"] {min-width: 100%;}
   [class*="st-key-vrac-panel"] {padding: 1rem .9rem;}
   [data-testid="stTabs"] [role="tablist"] {gap: 1.1rem;}
-  .st-key-vrac-view > div > [role="tablist"]::after {margin-left: -.6rem;}
   [data-testid="stMetricValue"] {font-size: 1.75rem;}
   .vrac-footer {grid-template-columns: 1fr; padding: 1.5rem 1rem;}
 }

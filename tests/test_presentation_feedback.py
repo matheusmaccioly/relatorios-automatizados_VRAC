@@ -68,9 +68,8 @@ def test_presentation_is_selectable_in_application():
     app = AppTest.from_file(
         str(Path(__file__).resolve().parents[1] / "app.py"), default_timeout=90
     ).run()
+    app.button(key="home_open_R02").click().run()
     app.selectbox(key="suite_center").select("Exemplo de apresentação").run()
-    app.selectbox(key="suite_analysis").select("R02 · Corpo docente geral e QP").run()
-    app.button(key="suite_load").click().run()
     app.button(key="suite_run").click().run()
     assert not app.exception and not app.error
     assert [m.value for m in app.metric][:3] == ["14", "12", "2"]

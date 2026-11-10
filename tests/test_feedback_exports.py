@@ -103,26 +103,25 @@ def test_r01_files_keep_effective_context_and_their_own_snapshot():
 
 def test_feedback_is_tied_to_execution_and_survives_rerun_not_filter_change():
     app = AppTest.from_file(str(APP), default_timeout=60).run()
-    app.selectbox(key="suite_analysis").select("R06 · Evolução de matrículas e alunos").run()
-    app.button(key="suite_load").click().run()
-    app.button(key="suite_run").click().run()
-    first = app.session_state["suite_execution_id"]
-    app.selectbox(key="suite_feedback_category").select("Divergência")
-    app.text_area(key="suite_feedback_comment").input("Conferir informação exibida")
-    app.button(key="suite_feedback_submit").click().run()
+    app.button(key="home_open_R06").click().run()
+    app.button(key="alunos_run").click().run()
+    first = app.session_state["alunos_execution_id"]
+    app.selectbox(key="alunos_feedback_category").select("Divergência")
+    app.text_area(key="alunos_feedback_comment").input("Conferir informação exibida")
+    app.button(key="alunos_feedback_submit").click().run()
     assert not app.exception
     assert len(app.session_state["feedback_records"]) == 1
     assert app.session_state["feedback_records"][0].execution_id == first
-    app.button(key="suite_run").click().run()
-    assert app.session_state["suite_execution_id"] != first
+    app.button(key="alunos_run").click().run()
+    assert app.session_state["alunos_execution_id"] != first
     assert len(app.session_state["feedback_records"]) == 1
-    second = app.session_state["suite_execution_id"]
+    second = app.session_state["alunos_execution_id"]
     app.run()
     assert len(app.session_state["feedback_records"]) == 1
-    app.selectbox(key="suite_last").select("2026.1").run()
-    assert "suite_execution_id" not in app.session_state
-    app.button(key="suite_run").click().run()
-    assert app.session_state["suite_execution_id"] not in (first, second)
+    app.selectbox(key="alunos_last").select("2026.1").run()
+    assert "alunos_execution_id" not in app.session_state
+    app.button(key="alunos_run").click().run()
+    assert app.session_state["alunos_execution_id"] not in (first, second)
     assert app.session_state["feedback_records"][0].execution_id == first
 
 
@@ -178,7 +177,7 @@ def test_package_manifest_and_files_follow_the_displayed_execution(monkeypatch):
 
     monkeypatch.setattr(academic_ui.st, "download_button", click)
     app = AppTest.from_file(str(APP), default_timeout=60).run()
-    app.button(key="suite_load").click().run()
+    app.button(key="home_open_todas").click().run()
     app.selectbox(key="suite_last").select("2026.1").run()
     app.multiselect(key="suite_cadres").select("PROF PRINCIPAL").run()
     app.button(key="suite_run").click().run()
