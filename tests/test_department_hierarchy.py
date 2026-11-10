@@ -28,7 +28,12 @@ def test_centers_limit_departments_and_unknown_origin_stays_explicit() -> None:
     hierarchy = load_department_hierarchy(Settings())
     assert hierarchy.departments_for("Centro sintético 1") == ("SINT-A", "SINT-VAZIO")
     assert hierarchy.departments_for("Centro sintético 2") == ("SINT-B",)
-    assert hierarchy.departments_for(ALL_CENTERS) == ("SINT-A", "SINT-B", "SINT-VAZIO")
+    assert hierarchy.departments_for(ALL_CENTERS) == (
+        "SINT-A",
+        "SINT-B",
+        "SINT-VAZIO",
+        "DEMO — Departamento exemplo",
+    )
     assert "fictícios" in hierarchy.note
     unknown = hierarchy_for_departments(("SYN-A", "SYN-B"), source="PostgreSQL sintético")
     assert unknown.centers == (UNKNOWN_CENTER,)

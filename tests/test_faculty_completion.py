@@ -139,11 +139,19 @@ def test_web_specs_keep_table_values_nulls_units_and_local_only_highlighting(kin
         marks = serialized.get("layer", [serialized])
         assert serialized["width"] == "container"
         assert marks[0]["encoding"]["tooltip"]
-        if spec.table != "monthly_history" or spec.kind == "stacked_bar":
+        funnel = spec.table in {"real_distribution", "contract_distribution"}
+        if not funnel and (spec.table != "monthly_history" or spec.kind == "stacked_bar"):
             assert serialized["params"][0]["bind"] == "legend"
         assert "transform" not in serialized  # nenhum filtro visual reduz a tabela
         source_data = serialized.get("data", marks[0].get("data", {}))
-        assert source_data["values"] == records
+        if funnel:
+            assert [
+                {k: v for k, v in row.items() if k not in {"left", "right"}}
+                for row in source_data["values"]
+            ] == sorted(records, key=lambda row: -(row["Valor"] or 0))
+            assert "x2" in marks[0]["encoding"]
+        else:
+            assert source_data["values"] == records
         assert "url" not in source_data
         assert serialized["config"]["font"] == "Rethink Sans"
         assert before == table_csv(result, source_table, NOW)

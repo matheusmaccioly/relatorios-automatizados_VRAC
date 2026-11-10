@@ -336,7 +336,7 @@ def _records(settings: Settings, options) -> None:
         st.subheader("Registros de demonstração")
         st.info(
             "Consulte os registros sintéticos pelos filtros abaixo. "
-            "A tela apresenta os dados disponíveis sem consolidar indicadores."
+            "A tela apresenta os dados disponíveis sem consolidar resultados."
         )
         department_column, period_column, action_column = st.columns(
             [2, 2, 1.4], vertical_alignment="bottom"

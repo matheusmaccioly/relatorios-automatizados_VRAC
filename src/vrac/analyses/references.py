@@ -1,4 +1,4 @@
-"""Referências e comparação de valores fornecidos; não calcula indicadores."""
+"""Referências e comparação de valores fornecidos; não calcula resultados."""
 
 from dataclasses import dataclass
 from datetime import date

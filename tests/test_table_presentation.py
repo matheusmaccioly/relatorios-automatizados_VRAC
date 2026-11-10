@@ -57,7 +57,7 @@ def test_symbols_are_unique_and_tones_use_only_declared_tokens() -> None:
     assert len(symbols) == len(set(symbols))
     colors = load_branding().tokens["colors"]
     assert {colors[token] for token in TONE_TOKENS.values()} <= set(colors.values())
-    # O indicador não avalia produtividade: nenhum estado recebe a cor de erro.
+    # O resultado não avalia produtividade: nenhum estado recebe a cor de erro.
     assert not any(colors["red"] in style for style in _indicator_styles().values())
     assert indicator_label("Dentro do esperado") not in _indicator_styles()
 
@@ -76,7 +76,7 @@ def test_distribution_counts_every_row_in_reading_order_and_keeps_missing_visibl
         ("Acima do necessário", 2),
         (ABSENT, 2),
     )
-    assert indicator_rank(ABSENT) > indicator_rank("Indicadores distintos")
+    assert indicator_rank(ABSENT) > indicator_rank("Resultados distintos")
 
 
 def test_change_direction_never_marks_a_missing_variation() -> None:
@@ -211,13 +211,13 @@ def test_every_table_keeps_a_csv_with_its_previous_key_and_shows_the_symbols() -
     result = app.session_state["suite_results"][0]
     keys = {button.key for button in app.get("download_button")}
     assert {f"suite_R04_{item.key}_csv" for item in result.tables} <= keys
-    element = next(item for item in app.dataframe if "Indicador do painel" in item.value)
-    shown = set(element.value["Indicador do painel"])
+    element = next(item for item in app.dataframe if "Resultado do painel" in item.value)
+    shown = set(element.value["Resultado do painel"])
     assert shown <= {indicator_label(name) for name in INDICATORS}
     # A leitura começa pelo que interessa; a ordem do cálculo e do CSV não muda.
     assert list(element.proto.column_order)[:3] == [
         "Nome fictício",
-        "Indicador do painel",
+        "Resultado do painel",
         "Horas Reais",
     ]
     assert list(element.value.columns)[:2] == ["Matrícula fictícia", "Nome fictício"]

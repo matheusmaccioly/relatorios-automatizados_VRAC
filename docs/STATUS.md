@@ -1,4 +1,233 @@
+## Preparação do commit solicitado — 10/11/2026
+
+Matheus solicitou commit e envio ao GitHub das alterações acumuladas: PDF consolidado,
+seleção de análises, ajustes de apresentação, cenário sintético e documentação.
+Arquivos internos locais e saídas geradas permanecem excluídos do Git.
+
+Verificações desta tarefa:
+- `python -m pytest -q -p no:cacheprovider --basetemp tmp/pytest-commit-20261110`:
+  **554 passaram e 1 teste de integração foi excluído**, em 152,96 segundos.
+- `python -m ruff check src tests scripts/export-synthetic-pdf.py`: aprovado.
+- `python -m ruff format --check src tests scripts/export-synthetic-pdf.py`:
+  97 arquivos aprovados.
+- `.tools/uv/uv.exe --cache-dir .cache/uv lock --check --offline`: aprovado;
+  cache local utilizado após bloqueio de acesso ao cache padrão.
+- `git diff --cached --check`: aprovado antes do commit.
+
+Python utilizado: `.venv/Scripts/python.exe`. Envio previsto por `git push origin main`.
+Nenhuma alteração funcional adicional, avanço de fase ou execução de deploy nesta
+tarefa. Banco, integração institucional e revisão visual não executados.
+Permanecem as validações de apresentação por Matheus/Talita e de identidade visual
+pelo responsável institucional; DSI/DBA sem nova ação exigida por este commit.
+Links para materiais locais excluídos continuam disponíveis somente no ambiente local.
+
+## Extração individual pseudonimizada — 10/11/2026
+
+Matheus solicitou identificadores fictícios consistentes entre consultas, preservando
+linhas individuais para teste. Preparado pacote SQL local de leitura com HMAC e chave
+privada preenchida apenas pelo operador fora do workspace. Pessoas e vínculos têm
+IDs separados; nomes/identificadores diretos e dados pessoais desnecessários removidos.
+Oferta compartilhada preservada; atributos analíticos restantes continuam restritos,
+sem alegação de anonimização. Lista de pessoas e cadastro por vínculo separados.
+[Pacote, execução e limites](operations/departamentos.local/pseudonimos/LEIA_ME.md).
+Cinco testes offline passaram com dados sintéticos e primitivas de referência;
+SQL Server, desempenho e integração não executados. App inalterado, sem conexão,
+publicação ou avanço de fase. Não existe chave real no pacote nem dados reais lidos.
+
+## Restrição de saída e conferência IND — 10/11/2026
+
+Matheus informou que a consulta de cadastro mostra todos os docentes esperados
+em IND. Confirmação humana de presença; não comprova exclusividade, unicidade,
+horas ou outros departamentos. Solicitou saída sem dados sensíveis.
+Preparado resumo local somente com total de vínculos distintos, sem registros
+individuais. O pacote detalhado anterior contém dados pessoais e não atende à
+restrição de compartilhamento; não enviar suas saídas ao agente. Hash de CPF não
+é anonimização. Nenhum resultado individual foi recebido ou armazenado.
+App e consultas detalhadas não foram alterados; nenhuma execução SQL Server.
+
+## Unidades compartilhadas de oferta — 10/11/2026
+
+Matheus informou que CPE e UCB oferecem disciplinas para vários cursos com docentes
+de diferentes departamentos do CTC. Mantida seleção pela alocação atual do docente;
+oferta compartilhada não muda sua unidade de seleção. As consultas locais de turmas
+e horários já preservam oferta externa por vínculo. Documentados execução no SSMS,
+parâmetros e conferência de turmas compartilhadas no guia local da matriz. Códigos
+na fonte e inclusão dessas atividades nas Horas Reais ainda exigem conferência.
+Somente documentação alterada; SQL/app inalterados, sem conexão ou avanço de fase.
+Testes não repetidos nesta complementação; conferência estática dos blocos 06/10.
+
+## Matriz e consultas comuns — 10/11/2026
+
+Verificação offline aprovada: 11 consultas com referências conferidas no modelo e
+parâmetros compilados; dois SQL de fatos executados em SQLite em memória para seis
+departamentos fictícios, incluindo duplicação cadastral, oferta externa, nulo/zero
+e entradas adversas. Correspondência SSMS/arquivos conferida. SQL Server, DAX,
+integração, suíte completa e desempenho não executados. Comando e detalhes no guia local.
+
+Matheus definiu departamento pela alocação do docente e solicitou consultas iguais
+para IND, Economia, Direito, Letras, Engenharia Elétrica e Informática. Preparados
+matriz e SQL de leitura locais a partir do modelo fornecido em base, usando a
+alocação atual e o recorte inicial de quadros/situações da extração IND anterior.
+Cobertura desse recorte nos outros departamentos e seus códigos ainda precisam
+ser conferidos. Histórico passa a representar a coorte atual neste pacote; o app
+não foi alterado. Matrículas acadêmicas não têm fonte/relação suficiente no modelo
+fornecido; vigências administrativas requerem evidência e classificação próprias.
+[Entrega local, parâmetros e validação](operations/departamentos.local/MATRIZ.md).
+Nenhuma conexão, execução SQL Server, integração, avanço de fase ou publicação.
+
+**Verificação do feedback PDF:** 552 testes passaram na suíte completa; uma expectativa
+antiga de legenda dos gráficos R04 foi corrigida e os 13 testes afetados passaram no
+reteste. Suíte completa não repetida após o ajuste final. Ruff aprovado; PDF renderizado
+e revisado visualmente. Banco e publicação não executados. Detalhes no guia abaixo.
+
+**Feedback do PDF — 09/11/2026:** revisão de vocabulário, data em Brasília,
+funis de carga, notas resumidas e cenário local de apresentação com 14 docentes.
+Fixtures de teste preservadas; sem alteração de banco remoto, avanço de fase ou
+publicação. [Entrega, comandos e pendências](guides/FEEDBACK_PDF.md).
+
 # Estado da entrega
+
+## Consulta local para validação de Engenharia Industrial — 09/11/2026
+
+**Arquivo final solicitado para SSMS:** população fechada na lotação atual IND,
+PROF PRINCIPAL/PROF QCI e ATIVO/AFASTADO. Removidas inclusões por lotação histórica
+e oferta com professor externo. Recorte 2026 e antecedentes/contexto documentados
+preservados; uma grade. SQL completo, prévia e guia locais atualizados. Teste do
+predicado em SQLite e conferências estruturais passaram; SQL Server/desempenho
+não executados. Matheus confere execução; DBA diagnostica se persistir lentidão.
+
+
+**Filtro docente confirmado:** DISTINCT informado por Matheus identificou
+PROF PRINCIPAL e PROF QCI, além de administrativos/estágio. Extração e prévia
+limitadas aos dois quadros docentes atuais, com IND, ATIVO/AFASTADO e fatos de
+2026 preservados. Guia atualizado; teste offline do predicado passou. SQL Server
+e desempenho não executados; Matheus confere o resultado ao executar no SSMS.
+Histórico dos selecionados conserva seus quadros originais.
+
+
+**Retorno da prévia:** Matheus compartilhou registros com IND/ENGENHARIA INDUSTRIAL,
+ATIVO e AFASTADO, incluindo vínculos administrativos e estágio. Sigla IND confirmada
+no cadastro; DEI retirada das consultas locais. Extração bruta preservada, sem
+converter todos os vínculos em docentes. Guia atualizado; nenhum registro individual
+armazenado. Conferência estática executada; consulta completa/desempenho não validados.
+
+
+**Recorte 2026 após lentidão informada:** fontes mensais/semestrais e eventos
+limitados ao ano solicitado; seleção histórica da coorte também limitada a 2026.
+Preservado último cargo anterior para vigência inicial e contexto cadastral sem
+historização. Prévia local de até 50 linhas em `sql/previa-industrial.local.sql`.
+Guia atualizado. Conferências offline dos filtros e limites temporais executadas;
+SQL Server e desempenho não testados. Matheus executa primeiro a prévia; se houver
+lentidão, DBA diagnostica bloqueios/plano. Não há garantia de tempo nem mudanças
+no banco. A comparação com anos anteriores fica fora deste recorte.
+
+
+**Ajuste solicitado:** seleção limitada a `DESC_SITUACAO` atual ATIVO/AFASTADO,
+inclusive nas fontes acadêmicas selecionadas por departamento. Histórico dos
+elegíveis preservado. Conferência offline dos filtros; SQL Server não executado.
+Matheus confere o recorte na reexecução do lote no SSMS. Sem cadastro/ponte
+elegível, o registro não entra; a amostra não representa todos os docentes passados.
+
+A pedido de Matheus, preparada extração SQL Server baseada no modelo semântico
+fornecido em `base`: uma grade com tipos de registro separados, sem multiplicar
+fatos de granularidades distintas, e identificadores pseudonimizados por execução.
+Consulta e guia internos ficam locais, ignorados via `.git/info/exclude`:
+`sql/extracao-industrial.local.sql` e `docs/guides/EXTRACAO_INDUSTRIAL.local.md`.
+O nome do departamento tem evidência no modelo; siglas candidatas exigem conferência.
+
+Conferência estática offline dos campos físicos, projeções e exclusões; SQL Server,
+exportação real, conciliação e importação no app não executados. Não houve conexão,
+mudança do app, avanço de fase ou publicação. Matrículas discentes não estão nesse
+modelo; recortes pessoais excluídos não serão validados por esta extração.
+Matheus/DBA conferem fontes, sigla e vínculos; DSI/responsável pelos dados orientam
+armazenamento/uso; Talita/Matheus conciliam o relatório. Pseudonimização não declara
+anonimato nem autoriza envio dos registros ao agente. Alterações anteriores preservadas.
+
+## PDF como apresentação visual — 09/11/2026
+
+Por orientação de Matheus, o PDF passou a apresentar indicadores consolidados e
+gráficos em páginas 16:9, com capa, cartões e hierarquia visual dos tokens oficiais.
+Tabelas detalhadas permanecem exclusivamente na tela/ZIP. Seleção de análises,
+autorização, fórmulas e avisos preservados; filtros/rastreabilidade no final.
+
+Exemplo completo atualizado: 42 páginas, integralmente renderizadas/inspecionadas;
+exemplo R01/R06: 16 páginas. Testes PDF/interface: **23 aprovados**; testes PDF
+repetidos após espaçamento final: **14 aprovados**. Ruff check/format aprovados.
+Arquivos: `pdf_slides.py` (novo), `pdf_export.py`, `academic_ui.py`,
+`tests/test_pdf_export.py`, este estado e [guia atualizado](guides/PDF_CONSOLIDADO.md).
+Comando de exemplo: `.\.venv\Scripts\python.exe scripts/export-synthetic-pdf.py`.
+Aplicação reiniciada na porta 8520 com dados sintéticos em memória.
+Sem banco, publicação ou novo aceite humano. Download no ambiente publicado não
+executado. Matheus/Talita revisam clareza; homologação visual segue pendente.
+
+## Seleção de análises para o PDF — 09/11/2026
+
+Incluído o campo **Análises que entram no PDF**, com seleção múltipla das análises
+calculadas. R01 também pode ser exportada isoladamente; seleção vazia não libera
+download. A preparação completa restaura R01–R06. PDF contém somente as seções
+escolhidas; o ZIP mantém o comportamento anterior. Gráficos desmarcados não são
+gerados no download selecionado. Fórmulas, autorização e origem permanecem iguais.
+
+Exemplo R01/R06: `output/pdf/relatorio-selecionado-R01-R06.pdf`, 18 páginas,
+renderizadas e inspecionadas. [Arquivos e comandos](guides/PDF_CONSOLIDADO.md).
+Verificação final: **23 testes offline aprovados** (PDF e interface), Ruff check,
+format e `git diff --check` aprovados.
+Sem banco, publicação ou aceite humano. Matheus valida implementação e Talita
+confere a clareza da escolha; identidade visual segue pendente. Não foi executado
+download manual no ambiente publicado. Sem novas dependências ou bloqueios.
+
+## PDF consolidado implementado — 09/11/2026
+
+Adicionadas preparação de R01–R06 e exportação PDF local a partir do mesmo
+conteúdo do ZIP, com R01 explícita, marca/fontes/tokens locais, filtros aplicáveis,
+paginação e identificação sintética em todas as páginas. Download autenticado
+revalida a sessão também após gerar os bytes. Mudanças locais anteriores preservadas.
+
+Exemplo completo: `output/pdf/relatorio-sintetico.pdf` (74 páginas), renderizado
+integralmente e inspecionado. Revisão de Outras análises registrada, mantendo
+fórmulas e ordem; refinamentos limitados à exportação e clareza do documento.
+[Arquivos, comandos, evidências, riscos e validações pendentes](guides/PDF_CONSOLIDADO.md).
+
+Testes existentes de interface/análises/exportação: **33 aprovados**. PDF e segurança
+offline: **28 aprovados**; teste adicional de expiração durante a geração:
+**1 aprovado** (62 no total nas execuções finais). Testes novos
+incluem valores do PDF contra tabelas calculadas, cenários parcial/vazio/indisponível,
+restrição de vínculos, textos extensos, gráfico mensal, seleção individual para
+relatório completo e invalidação por filtros. Ruff check e format aprovados.
+Sem banco, navegador manual, publicação, preparação da versão ou aceite humano.
+
+## Feedback no Todoist · PDF consolidado e Outras análises — 09/11/2026
+
+A pedido de Matheus, o feedback recebido foi incorporado ao
+[projeto no Todoist](https://app.todoist.com/app/project/6hvgC82GJR7Fgc9R).
+Foram preservadas as quatro tarefas abertas e acrescentadas duas atividades na
+seção de finalização, nesta sequência:
+
+1. [Exportar todas as análises em um único relatório PDF](https://app.todoist.com/app/task/6hxChM67cHF8QpR2):
+   consolidar as análises existentes da PoC, tabelas, gráficos, filtros por análise,
+   origem e avisos, com conferência offline de conteúdo e apresentação.
+2. [Revisar e refinar Outras análises a partir do PDF completo](https://app.todoist.com/app/task/6hxChPJ2vCPg9QFR):
+   avaliar lacunas, redundâncias, nomes, ordem e clareza; ajustar somente o que a
+   revisão indicar e conferir novamente tela/PDF, preservando as fórmulas.
+
+Preparação da versão/guia e conferência final receberam os critérios do PDF e da
+revisão. A descrição do projeto registra o novo feedback e preserva o planejamento
+anterior como histórico. Datas/prioridades das quatro tarefas existentes foram
+mantidas; novas atividades têm prioridade P2 e nenhuma data definida. A sequência
+foi documentada por links nas descrições, antes da preparação da versão/guia.
+
+**Verificação:** releitura pelo conector confirmou seis tarefas abertas, descrições,
+seção, prioridades, datas preservadas e atualização do projeto. Nenhuma tarefa foi
+concluída. Arquivo alterado nesta tarefa: somente este estado; código e mudanças
+locais anteriores preservados. Não há comando de execução adicional para esta
+atualização de planejamento. Testes da aplicação/PDF e acesso a bancos não foram
+executados; a funcionalidade ainda será implementada e conferida em tarefa própria.
+
+**Pendências e validação:** Matheus confere implementação e testes; Talita revisa
+clareza e uso do relatório e da seção; Matheus/responsável institucional revisam a
+identidade visual. Sem bloqueio para registrar o planejamento. Esforço e datas das
+novas atividades permanecem em aberto; DSI/DBA seguem responsáveis pelas validações
+institucionais já previstas para a etapa final. Sem avanço de fase ou publicação.
 
 ## Correção do deploy no Streamlit Community Cloud — 05/11/2026
 

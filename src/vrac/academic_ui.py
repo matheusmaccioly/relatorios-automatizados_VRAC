@@ -23,6 +23,7 @@ from vrac.analyses.academic_export import report_zip, result_context, summary_ta
 from vrac.analyses.academic_quality import inspect_source
 from vrac.analyses.export import _write, detail_csv, summary_csv
 from vrac.analyses.faculty_overview import OverviewFilters, compute_overview, filter_options
+from vrac.analyses.pdf_export import report_pdf
 from vrac.analyses.verification import (
     IDENTITY,
     RULE_ID,
@@ -571,6 +572,12 @@ def _render_overview(
     }
 
 
+def _request_complete_report() -> None:
+    st.session_state["suite_analysis"] = ALL_ANALYSES
+    st.session_state.pop("suite_pdf_analyses", None)
+    st.session_state["suite_auto_run"] = True
+
+
 def workbench(settings: Settings, branding: Branding, options: DemoOptions) -> None:
     names = analysis_names()
     with st.container(key="vrac-panel-suite-filters"):
@@ -658,7 +665,7 @@ def workbench(settings: Settings, branding: Branding, options: DemoOptions) -> N
             "Referência inicial": filters.first_period,
             "Referência final": filters.last_period,
             "Semestre da carga": filters.workload_period,
-            "Grupo QP simulado": ", ".join(filters.qp_cadres) or "Não selecionado",
+            "Grupo QP selecionado": ", ".join(filters.qp_cadres) or "Não selecionado",
             "Quadros": ", ".join(filters.cadres) or "Todos",
             "Categorias": ", ".join(filters.categories) or "Todas",
             "Cursos": ", ".join(filters.courses) or "Todos",
@@ -702,6 +709,13 @@ def workbench(settings: Settings, branding: Branding, options: DemoOptions) -> N
             _clear()
         with st.container(horizontal=True, vertical_alignment="center"):
             run = st.button("Calcular análises selecionadas", type="primary", key="suite_run")
+            st.button(
+                "Preparar relatório completo (R01–R06)",
+                key="suite_complete_report",
+                on_click=_request_complete_report,
+                help="Calcula todos os roteiros com os filtros da visão conjunta.",
+            )
+            run = st.session_state.pop("suite_auto_run", False) or run
             st.button(
                 "Limpar filtros",
                 key="suite_reset_filters",
@@ -789,18 +803,62 @@ def workbench(settings: Settings, branding: Branding, options: DemoOptions) -> N
                 _render_result(result, branding, generated_at, export_context=export_context)
             )
 
-    def package() -> bytes:
+    def package(include: tuple[str, ...] | None = None) -> bytes:
         """Montado no clique: desenha os gráficos só para quem pedir o pacote."""
+
+        def included(name: str) -> bool:
+            return include is None or name.split("/")[0] in include
+
         return report_zip(
-            results,
+            tuple(r for r in results if include is None or r.kind in include),
             generated_at,
-            {name: build() for name, build in images.items()},
-            {name: data() if callable(data) else data for name, data in files.items()},
+            {name: build() for name, build in images.items() if included(name)},
+            {
+                name: data() if callable(data) else data
+                for name, data in files.items()
+                if included(name)
+            },
             export_context,
-            additional_analyses=(overview_manifest,) if overview_manifest else (),
+            additional_analyses=(overview_manifest,)
+            if overview_manifest and (include is None or "R01" in include)
+            else (),
         )
 
     with panel:
+        available = (["R01"] if show_overview else []) + [str(r.kind) for r in results]
+        if "suite_pdf_analyses" in st.session_state:
+            st.session_state["suite_pdf_analyses"] = [
+                k for k in st.session_state["suite_pdf_analyses"] if k in available
+            ]
+        chosen = tuple(
+            st.multiselect(
+                "Análises que entram no PDF",
+                available,
+                default=None if "suite_pdf_analyses" in st.session_state else available,
+                format_func=lambda k: f"{k} · {TITLES.get(k, 'Situação geral do departamento')}",
+                key="suite_pdf_analyses",
+                help="Marque apenas as análises desejadas. Para disponibilizar as seis, use "
+                "Preparar relatório completo (R01–R06). O ZIP mantém as análises calculadas.",
+            )
+        )
+        if chosen:
+            st.caption(
+                "PDF visual: resultados consolidados e gráficos, em formato de apresentação. "
+                "As tabelas detalhadas permanecem na tela e no pacote ZIP."
+            )
+            complete = len(chosen) == 6
+            download_button(
+                "Baixar relatório completo (PDF)"
+                if complete
+                else "Baixar relatório das análises selecionadas (PDF)",
+                lambda: report_pdf(package(chosen), branding, selected=chosen),
+                file_name=f"vrac-{'-'.join(chosen)}-{generated_at:%Y%m%d-%H%M%S}.pdf",
+                mime="application/pdf",
+                key="suite_download_pdf_" + "_".join(chosen),
+                on_click="ignore",
+            )
+        else:
+            st.info("Selecione pelo menos uma análise para baixar o PDF.")
         download_button(
             "Baixar pacote das análises (ZIP)",
             package,

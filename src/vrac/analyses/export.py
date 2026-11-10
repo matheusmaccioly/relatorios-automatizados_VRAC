@@ -94,7 +94,7 @@ DETAIL_COLUMNS = (
     ("weekly_hours", "Carga horária semanal"),
     ("real_hours", "Horas Reais (semestre atual)"),
     ("real_hours_semester", "Semestre das Horas Reais"),
-    ("indicator", "Indicador de carga (regra do painel)"),
+    ("indicator", "Resultado de carga (regra do painel)"),
     ("degree", "Titulação"),
     ("tenure_years", "Tempo de casa (anos)"),
     ("dual_role", "Dupla função"),

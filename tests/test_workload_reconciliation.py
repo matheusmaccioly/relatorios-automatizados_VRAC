@@ -97,7 +97,7 @@ def test_null_contract_policy_and_coverage_are_independent():
     source = replace(source, workloads=rows)
     result = calculate(AnalysisKind.WORKLOAD, source, FILTERS)
     values = detail(result)
-    assert values["V1"][4:10] == (10, 20, -10, 50, "Indicadores distintos", "Parcial")
+    assert values["V1"][4:10] == (10, 20, -10, 50, "Resultados distintos", "Parcial")
     assert values["V2"][4] is None and values["V2"][9] == "Nulo na fonte"
     assert values["V3"][6:8] == (4, None)
     assert values["V4"][5:8] == (None, None, None)

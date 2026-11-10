@@ -56,6 +56,10 @@ REAL_HOURS = (
 
 
 def load_fixture(department: str) -> FacultySource:
+    if department == "DEMO — Departamento exemplo":
+        from vrac.analyses.presentation_fixture import load_presentation
+
+        return load_presentation().faculty
     if department not in DEPARTMENTS:
         raise ValueError("Departamento indisponível na demonstração.")
     register = tuple(row for row in REGISTER if row.department == department)

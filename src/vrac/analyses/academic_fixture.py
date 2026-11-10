@@ -37,6 +37,10 @@ COMPONENTS = frozenset(
 
 
 def load_fixture(department: str) -> AcademicSource:
+    if department == "DEMO — Departamento exemplo":
+        from vrac.analyses.presentation_fixture import load_presentation
+
+        return load_presentation()
     if department not in (*DEPARTMENTS, ALL_DEPARTMENTS):
         raise ValueError("Departamento indisponível na simulação.")
     register = tuple(
@@ -166,7 +170,7 @@ def load_fixture(department: str) -> AcademicSource:
         "Memória",
         "academic-memory-v1",
     )
-    return AcademicSource(
+    source = AcademicSource(
         department,
         faculty,
         PERIODS,
@@ -181,3 +185,5 @@ def load_fixture(department: str) -> AcademicSource:
         SimulationPolicy("h/semana (simulação)", "h/semana (simulação)", True, True),
         COMPONENTS,
     )
+
+    return source

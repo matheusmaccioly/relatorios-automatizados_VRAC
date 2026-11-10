@@ -218,12 +218,16 @@ def calculate_qp(source: AcademicSource, filters: AnalysisFilters) -> Calculated
     metrics = [Metric("Geral", len(general), "matrículas funcionais distintas")]
     metrics += [
         Metric(
-            "Grupo QP simulado",
+            "Grupo QP selecionado",
             len(qp) if selected else None,
             "matrículas funcionais",
             "Simulação" if selected else "Grupo não selecionado",
         ),
-        Metric("Classificação ausente", len(unknown), "matrículas funcionais"),
+        *(
+            [Metric("Classificação ausente", len(unknown), "matrículas funcionais")]
+            if unknown
+            else []
+        ),
         Metric(
             "Demais",
             len(others) if complete else None,
@@ -242,7 +246,7 @@ def calculate_qp(source: AcademicSource, filters: AnalysisFilters) -> Calculated
         "Geral e grupo comparado",
         ("Resultado", "Quantidade", "Situação"),
         tuple((m.label, m.value, m.status) for m in metrics),
-        "por indicador",
+        "por resultado",
     )
     bars = ResultTable(
         "groups",
@@ -251,7 +255,7 @@ def calculate_qp(source: AcademicSource, filters: AnalysisFilters) -> Calculated
         (
             ("Grupo selecionado", len(qp) if selected else None),
             ("Demais classificados", len(others) if selected else None),
-            ("Quadro ausente", len(unknown)),
+            *(([("Quadro ausente", len(unknown))]) if unknown else []),
         ),
         "matrículas funcionais distintas",
     )
@@ -280,7 +284,7 @@ def calculate_qp(source: AcademicSource, filters: AnalysisFilters) -> Calculated
         (
             "Departamento",
             "Geral",
-            "Grupo QP simulado",
+            "Grupo QP selecionado",
             "Classificação ausente",
             "Demais",
             PARTICIPATION,
@@ -303,12 +307,12 @@ def calculate_qp(source: AcademicSource, filters: AnalysisFilters) -> Calculated
         [table, bars, department_table],
         notes,
         [
-            ChartSpec("groups", "Composição do grupo simulado", "Grupo", ("Matrículas",), "bar"),
+            ChartSpec("groups", "Composição do corpo docente", "Grupo", ("Matrículas",), "bar"),
             ChartSpec(
                 "departments",
                 "Geral e QP por departamento",
                 "Departamento",
-                ("Geral", "Grupo QP simulado"),
+                ("Geral", "Grupo QP selecionado"),
                 "grouped_bar",
             ),
             # Em um departamento só, a participação já é o número do cartão.
@@ -316,7 +320,7 @@ def calculate_qp(source: AcademicSource, filters: AnalysisFilters) -> Calculated
                 [
                     ChartSpec(
                         "departments",
-                        "Participação do grupo simulado por departamento",
+                        "Participação do grupo selecionado por departamento",
                         "Departamento",
                         (PARTICIPATION,),
                         "bar",
@@ -572,7 +576,7 @@ def calculate_workload(source: AcademicSource, filters: AnalysisFilters) -> Calc
         ),
         (
             "Detalhamento de disciplinas preserva compartilhamentos, vagas "
-            "zero e ausentes; não altera o indicador oficial."
+            "zero e ausentes; não altera o resultado oficial."
         ),
         "Categoria vem do cadastro atual; não comprova categoria histórica.",
         "Vagas preenchidas não são alunos únicos. Vagas zero exigem conferência; "
@@ -600,7 +604,7 @@ def calculate_workload(source: AcademicSource, filters: AnalysisFilters) -> Calc
         contracts = {r.contracted_hours for r in rows if r.contracted_hours is not None}
         contracted = next(iter(contracts)) if len(contracts) == 1 else None
         statuses = {semaphore_status(r.real_hours, r.cadre) for r in rows}
-        indicator = next(iter(statuses)) if len(statuses) == 1 else "Indicadores distintos"
+        indicator = next(iter(statuses)) if len(statuses) == 1 else "Resultados distintos"
         missing = sum(r.real_hours is None for r in rows)
         partial_hours |= missing > 0
         distribution[indicator] += 1
@@ -653,7 +657,7 @@ def calculate_workload(source: AcademicSource, filters: AnalysisFilters) -> Calc
             "Carga contratada",
             "Diferença (simulação)",
             "Razão % (simulação)",
-            "Indicador do painel",
+            "Resultado do painel",
             "Cobertura",
         ),
         tuple(detail),
@@ -712,8 +716,8 @@ def calculate_workload(source: AcademicSource, filters: AnalysisFilters) -> Calc
         ),
         ResultTable(
             "indicators",
-            "Indicadores conforme o painel",
-            ("Indicador", "Vínculos"),
+            "Resultados conforme o painel",
+            ("Resultado", "Vínculos"),
             tuple(sorted(distribution.items(), key=lambda item: indicator_rank(item[0]))),
             "vínculos",
         ),
@@ -747,7 +751,7 @@ def calculate_workload(source: AcademicSource, filters: AnalysisFilters) -> Calc
         notes,
         [
             ChartSpec(
-                "indicators", "Indicador de carga por vínculo", "Indicador", ("Vínculos",), "bar"
+                "indicators", "Resultado de carga por vínculo", "Resultado", ("Vínculos",), "bar"
             ),
             ChartSpec(
                 "real_distribution", "Distribuição de Horas Reais", "Carga", ("Vínculos",), "bar"
@@ -853,7 +857,7 @@ def calculate_functions(source: AcademicSource, filters: AnalysisFilters) -> Cal
             "comprovam exercício simultâneo."
         ),
         (
-            "O indicador de dupla função refere-se ao cadastro atual; eventos "
+            "O resultado de dupla função refere-se ao cadastro atual; eventos "
             "e vigências usam o intervalo selecionado."
         ),
     ]

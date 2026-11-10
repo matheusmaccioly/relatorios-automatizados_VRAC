@@ -73,7 +73,7 @@ def load_faculty_departments(settings: Settings) -> tuple[str, ...]:
         from vrac.db.synthetic_postgres import load_faculty_departments as load
 
         return load(settings)
-    return faculty_overview_fixture.DEPARTMENTS
+    return (*faculty_overview_fixture.DEPARTMENTS, "DEMO — Departamento exemplo")
 
 
 def load_department_hierarchy(settings: Settings) -> DepartmentHierarchy:
@@ -116,14 +116,17 @@ def load_faculty_source(
         if departments is None:
             return load(settings, department=department)
         return load(settings, department=department, departments=departments)
+    if department == "DEMO — Departamento exemplo":
+        from vrac.analyses.presentation_fixture import load_presentation
+
+        if departments is not None and departments != (department,):
+            raise DemoDataError("Selecione o exemplo de apresentação isoladamente.")
+        return load_presentation().faculty
     try:
-        selected = resolve_departments(
-            faculty_overview_fixture.DEPARTMENTS, department, departments
-        )
+        selected = resolve_departments(load_faculty_departments(settings), department, departments)
         if departments is not None or department == ALL_DEPARTMENTS:
             parts = [
-                faculty_overview_fixture.load_fixture(d)
-                for d in faculty_overview_fixture.DEPARTMENTS
+                faculty_overview_fixture.load_fixture(d) for d in load_faculty_departments(settings)
             ]
             source = FacultySource(
                 department,
@@ -155,13 +158,41 @@ def load_academic_source(
         return load(settings, department=department, departments=departments)
     from vrac.analyses.academic_fixture import load_fixture
 
+    if department == "DEMO — Departamento exemplo":
+        from vrac.analyses.presentation_fixture import load_presentation
+
+        if departments is not None and departments != (department,):
+            raise DemoDataError("Selecione o exemplo de apresentação isoladamente.")
+        return load_presentation()
     try:
-        selected = resolve_departments(
-            faculty_overview_fixture.DEPARTMENTS, department, departments
-        )
-        if departments is None:
+        selected = resolve_departments(load_faculty_departments(settings), department, departments)
+        if departments is None and department != ALL_DEPARTMENTS:
             return load_fixture(department)
+        from vrac.analyses.presentation_fixture import load_presentation
+
         source = load_fixture(ALL_DEPARTMENTS)
+        demo = load_presentation()
+        source = replace(
+            source,
+            faculty=replace(
+                source.faculty,
+                register=source.faculty.register + demo.faculty.register,
+                real_hours=source.faculty.real_hours + demo.faculty.real_hours,
+            ),
+            **{
+                key: getattr(source, key) + getattr(demo, key)
+                for key in (
+                    "history",
+                    "workloads",
+                    "allocations",
+                    "functions",
+                    "appointments",
+                    "students",
+                    "student_history",
+                    "scholarships",
+                )
+            },
+        )
         students = tuple(row for row in source.students if row.department in selected)
         student_history = tuple(row for row in source.student_history if row.department in selected)
         registrations = {row.registration for row in (*students, *student_history)}

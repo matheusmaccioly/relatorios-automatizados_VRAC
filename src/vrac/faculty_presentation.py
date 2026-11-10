@@ -53,7 +53,7 @@ def _composition_chart(
     export_context: Mapping[str, str] | None = None,
     indicator: bool = False,
 ) -> Callable[[], bytes] | None:
-    # O indicador segue a ordem de leitura, com símbolos só na tela: o PNG usa o texto.
+    # O resultado segue a ordem de leitura, com símbolos só na tela: o PNG usa o texto.
     shown = [(indicator_label(key), value) for key, value in items] if indicator else items
     with st.container(border=True):
         card_title(title, f"Unidade: {unit}")
@@ -150,9 +150,9 @@ def render_composition(
             "horizontal",
         ),
         (
-            "indicador",
-            "Indicador de carga dos professores",
-            "Indicador de carga",
+            "resultado",
+            "Resultado de carga dos professores",
+            "Resultado de carga",
             indicator_distribution(row.indicator for row in overview.detail),
             "linhas do cadastro",
             "horizontal",
@@ -177,7 +177,7 @@ def render_composition(
                 branding=branding,
                 prefix=prefix,
                 context=f"{overview.department} | Cadastro atual | {overview.fingerprint[:12]}",
-                indicator=name == "indicador",
+                indicator=name == "resultado",
                 export_context=dict(export_context or {})
                 | {
                     "Análise": "R01",
@@ -193,7 +193,7 @@ def render_composition(
         "vezes para limpar. O destaque não altera filtros, resultados ou arquivos. "
         "Por quadro conta matrículas funcionais distintas; por categoria e departamento "
         "conta linhas do cadastro com matrícula. Não some as barras para reconstruir o total. "
-        "O indicador de carga reproduz a regra do painel e não avalia produtividade."
+        "O resultado de carga reproduz a regra do painel e não avalia produtividade."
     )
     return files
 
@@ -260,5 +260,5 @@ def render_faculty_details(overview: FacultyOverview) -> None:
             "A unidade institucional das Horas Reais permanece não confirmada. "
             "Zero é um valor informado; ausente pode indicar nulo na fonte, falta de registro "
             "ou fonte indisponível, conforme Estado das Horas Reais. "
-            "O indicador reproduz a regra documentada e não avalia produtividade."
+            "O resultado reproduz a regra documentada e não avalia produtividade."
         )

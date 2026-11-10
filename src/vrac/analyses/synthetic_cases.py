@@ -1,4 +1,4 @@
-"""Exemplos fixos de contratos, sem cálculo ou validação de indicador institucional."""
+"""Exemplos fixos de contratos, sem cálculo ou validação de resultado institucional."""
 
 from dataclasses import dataclass, replace
 from datetime import UTC, date, datetime

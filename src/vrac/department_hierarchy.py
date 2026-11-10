@@ -38,9 +38,12 @@ class DepartmentHierarchy:
             raise ValueError("Selecione um centro disponível na demonstração.")
         return tuple(
             sorted(
-                row.department
-                for row in self.relations
-                if center == ALL_CENTERS or row.center == center
+                (
+                    row.department
+                    for row in self.relations
+                    if center == ALL_CENTERS or row.center == center
+                ),
+                key=lambda name: (name.startswith("DEMO"), name),
             )
         )
 
@@ -53,6 +56,7 @@ def hierarchy_for_departments(
         "SINT-A": "Centro sintético 1",
         "SINT-VAZIO": "Centro sintético 1",
         "SINT-B": "Centro sintético 2",
+        "DEMO — Departamento exemplo": "Exemplo de apresentação",
     }
     return DepartmentHierarchy(
         tuple(

@@ -1,3 +1,56 @@
+## Extração individual pseudonimizada — 10/11/2026
+
+Matheus solicitou identificadores fictícios consistentes entre consultas, preservando
+linhas individuais para teste. Preparado pacote SQL local de leitura com HMAC e chave
+privada preenchida apenas pelo operador fora do workspace. Pessoas e vínculos têm
+IDs separados; nomes/identificadores diretos e dados pessoais desnecessários removidos.
+Oferta compartilhada preservada; atributos analíticos restantes continuam restritos,
+sem alegação de anonimização. Lista de pessoas e cadastro por vínculo separados.
+[Pacote, execução e limites](operations/departamentos.local/pseudonimos/LEIA_ME.md).
+Cinco testes offline passaram com dados sintéticos e primitivas de referência;
+SQL Server, desempenho e integração não executados. App inalterado, sem conexão,
+publicação ou avanço de fase. Não existe chave real no pacote nem dados reais lidos.
+
+## Restrição de saída e conferência IND — 10/11/2026
+
+Matheus informou que a consulta de cadastro mostra todos os docentes esperados
+em IND. Confirmação humana de presença; não comprova exclusividade, unicidade,
+horas ou outros departamentos. Solicitou saída sem dados sensíveis.
+Preparado resumo local somente com total de vínculos distintos, sem registros
+individuais. O pacote detalhado anterior contém dados pessoais e não atende à
+restrição de compartilhamento; não enviar suas saídas ao agente. Hash de CPF não
+é anonimização. Nenhum resultado individual foi recebido ou armazenado.
+App e consultas detalhadas não foram alterados; nenhuma execução SQL Server.
+
+## Unidades compartilhadas de oferta — 10/11/2026
+
+Matheus informou que CPE e UCB oferecem disciplinas para vários cursos com docentes
+de diferentes departamentos do CTC. Mantida seleção pela alocação atual do docente;
+oferta compartilhada não muda sua unidade de seleção. As consultas locais de turmas
+e horários já preservam oferta externa por vínculo. Documentados execução no SSMS,
+parâmetros e conferência de turmas compartilhadas no guia local da matriz. Códigos
+na fonte e inclusão dessas atividades nas Horas Reais ainda exigem conferência.
+Somente documentação alterada; SQL/app inalterados, sem conexão ou avanço de fase.
+Testes não repetidos nesta complementação; conferência estática dos blocos 06/10.
+
+## Matriz e consultas comuns — 10/11/2026
+
+Matheus definiu departamento pela alocação do docente e solicitou consultas iguais
+para IND, Economia, Direito, Letras, Engenharia Elétrica e Informática. Preparados
+matriz e SQL de leitura locais a partir do modelo fornecido em base, usando a
+alocação atual e o recorte inicial de quadros/situações da extração IND anterior.
+Cobertura desse recorte nos outros departamentos e seus códigos ainda precisam
+ser conferidos. Histórico passa a representar a coorte atual neste pacote; o app
+não foi alterado. Matrículas acadêmicas não têm fonte/relação suficiente no modelo
+fornecido; vigências administrativas requerem evidência e classificação próprias.
+[Entrega local, parâmetros e validação](operations/departamentos.local/MATRIZ.md).
+Nenhuma conexão, execução SQL Server, integração, avanço de fase ou publicação.
+
+**Feedback do PDF — 09/11/2026:** revisão de vocabulário, data em Brasília,
+funis de carga, notas resumidas e cenário local de apresentação com 14 docentes.
+Fixtures de teste preservadas; sem alteração de banco remoto, avanço de fase ou
+publicação. [Entrega, comandos e pendências](guides/FEEDBACK_PDF.md).
+
 # Plano de desenvolvimento
 
 ## Migração sintética e autenticação Supabase — 05/11/2026

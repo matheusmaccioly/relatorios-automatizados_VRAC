@@ -49,7 +49,7 @@ def test_qp_simulation_keeps_general_denominator_and_unknown_classification() ->
     result = calculate(AnalysisKind.QP, source, FILTERS)
     metrics = {m.label: m.value for m in result.metrics}
     assert metrics["Geral"] == 5
-    assert metrics["Grupo QP simulado"] == 1
+    assert metrics["Grupo QP selecionado"] == 1
     assert metrics["Classificação ausente"] == 1
     assert metrics["Demais"] is None and metrics["Participação do grupo"] is None
     known = replace(
@@ -60,7 +60,7 @@ def test_qp_simulation_keeps_general_denominator_and_unknown_classification() ->
     )
     result = calculate(AnalysisKind.QP, known, FILTERS)
     metrics = {m.label: m.value for m in result.metrics}
-    assert metrics["Geral"] == 4 and metrics["Grupo QP simulado"] == 1
+    assert metrics["Geral"] == 4 and metrics["Grupo QP selecionado"] == 1
     assert metrics["Demais"] == 3 and metrics["Participação do grupo"] == 25
     other = calculate(AnalysisKind.QP, known, replace(FILTERS, qp_cadres=("PROF HORISTA",)))
     assert other.metrics[0].value == 4
