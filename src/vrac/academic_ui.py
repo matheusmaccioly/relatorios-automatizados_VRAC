@@ -49,6 +49,7 @@ from vrac.feedback_ui import render_feedback
 from vrac.indicators import change_label
 from vrac.navigation import ALL_FACULTY, COMPLETE_CODES, FACULTY, FACULTY_PICKER, VIEW_KEY
 from vrac.organisation_ui import OrganisationScope, organisation_filters
+from vrac.provenance import nature
 from vrac.settings import DemoSource, Settings
 from vrac.ui_kit import card_title, data_table, download_button, scroll_to, show_chart, step
 from vrac.web_charts import interactive_chart
@@ -111,7 +112,7 @@ FILTER_WIDGET_KEYS = (
 )
 
 # Códigos e datas são inteiros na tabela, mas não são quantidades.
-NOT_QUANTITIES = {"Matrícula fictícia", "Ano", "Mês"}
+NOT_QUANTITIES = {"Vínculo pseudonimizado", "Matrícula fictícia", "Ano", "Mês"}
 CHANGE_COLUMN = "Variação %"
 
 
@@ -513,11 +514,7 @@ def _render_overview(
     if "register" not in source.available:
         st.error("R01 indisponível: o cadastro docente não pôde ser consultado neste snapshot.")
         return (
-            {
-                "R01/indisponivel.txt": (
-                    b"DEMONSTRACAO: cadastro docente indisponivel; sem resultado."
-                )
-            },
+            {"R01/indisponivel.txt": (b"Cadastro docente indisponivel; sem resultado.")},
             {"kind": "R01", "status": "indisponível"},
         )
     requested = OverviewFilters(
@@ -643,7 +640,7 @@ def export_box(
             download_button(
                 "Baixar pacote (ZIP)",
                 package,
-                file_name=f"vrac-analises-sinteticas-{stamp}.zip",
+                file_name=f"vrac-analises-{stamp}.zip",
                 mime="application/zip",
                 key=f"{prefix}_download_all",
                 on_click="ignore",
@@ -689,13 +686,13 @@ def workbench(
             hierarchy, prefix=prefix, department_label="Departamento das análises"
         )
         department = scope.department
-        source_key = (settings.demo_source, scope)
+        source_key = (settings.data_mode, settings.demo_source, scope)
         if st.session_state.get(f"{prefix}_source_key") != source_key:
             _clear(source=True, prefix=prefix)
             st.session_state[f"{prefix}_source_key"] = source_key
         if active and f"{prefix}_source" not in st.session_state:
             try:
-                with st.spinner("Lendo as fontes sintéticas..."):
+                with st.spinner("Lendo as fontes autorizadas..."):
                     st.session_state[f"{prefix}_source"] = load_academic_source(
                         settings, **scope.source_arguments
                     )
@@ -708,7 +705,7 @@ def workbench(
             return
         loaded_at = st.session_state[f"{prefix}_loaded_at"]
         with st.container(horizontal=True, vertical_alignment="center"):
-            st.caption(f"Dados sintéticos lidos em {loaded_at:%d/%m/%Y %H:%M:%S} UTC.")
+            st.caption(f"Dados da origem selecionada lidos em {loaded_at:%d/%m/%Y %H:%M:%S} UTC.")
             # O clique descarta a base; a aba aberta lê de novo na mesma execução.
             st.button(
                 "Atualizar dados",
@@ -717,7 +714,7 @@ def workbench(
                 on_click=_clear,
                 kwargs={"source": True, "prefix": prefix},
                 help=(
-                    "Lê novamente somente a origem sintética selecionada. "
+                    "Lê novamente somente a origem selecionada. "
                     "Uma atualização remove o cálculo anterior."
                 ),
             )
@@ -851,7 +848,7 @@ def workbench(
         + [[]]
         + [["Natureza", "Snapshot", *quality_rows[0]]]
         + [
-            ["DEMONSTRAÇÃO — dados sintéticos", source.fingerprint, *row.values()]
+            [nature(source.faculty.source), source.fingerprint, *row.values()]
             for row in quality_rows
         ]
     )

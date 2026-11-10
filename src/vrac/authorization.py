@@ -28,7 +28,9 @@ def authorize_data_access(settings: Settings) -> AccessDecision:
         from vrac.supabase_auth import current_session
 
         try:
-            current_session()
+            session = current_session()
+            if session.data_mode != settings.data_mode:
+                return AccessDecision(False, "Selecione novamente a origem e valide sua sessão.")
         except AccessDenied:
             return AccessDecision(False, "Entre com uma conta autorizada para consultar os dados.")
         return AccessDecision(True, "Acesso autenticado; departamentos limitados pelo banco.")

@@ -78,7 +78,15 @@ def render_slides(
         para(title, 36, 490, 880, 25, True)
         canvas.setStrokeColor(color("line"))
         canvas.line(36, 33, 924, 33)
-        para("DEMONSTRAÇÃO · DADOS SINTÉTICOS · Sem validade institucional", 36, 24, 820, 9)
+        para(
+            "INSTITUCIONAL PSEUDONIMIZADA · Acesso restrito · Validação pendente"
+            if manifest.get("synthetic") is False
+            else "DEMONSTRAÇÃO · DADOS SINTÉTICOS · Sem validade institucional",
+            36,
+            24,
+            820,
+            9,
+        )
         para(f"{page_count:02}", 889, 24, 35, 10, True)
 
     def paragraphs(values: list[str], heading: str, kicker: str, top: float = 430) -> None:

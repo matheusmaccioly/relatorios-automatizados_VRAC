@@ -58,7 +58,8 @@ from vrac.navigation import (
     codes_for,
 )
 from vrac.organisation_ui import organisation_filters
-from vrac.settings import ConfigurationError, DemoSource, Settings, load_settings
+from vrac.provenance import INSTITUTIONAL_SOURCE, nature
+from vrac.settings import ConfigurationError, DataMode, DemoSource, Settings, load_settings
 from vrac.ui_kit import data_table, download_button, scroll_to, step
 from vrac.web_charts import warm_up
 
@@ -351,8 +352,22 @@ def _content(branding: Branding, notice) -> None:
         from vrac.auth_ui import require_login
         from vrac.supabase_auth import session_scope
 
+        if settings.data_mode == DataMode.REAL:
+            st.error(authorize_data_access(settings).reason)
+            st.stop()
+        choices = {
+            "Demonstração sintética": DataMode.SYNTHETIC,
+            "Institucional pseudonimizada · professores": DataMode.PSEUDONYMIZED,
+        }
+        selected_origin = st.selectbox(
+            "Origem dos dados",
+            tuple(choices),
+            key="vrac_data_origin",
+            index=1 if settings.data_mode == DataMode.PSEUDONYMIZED else 0,
+        )
+        settings = replace(settings, data_mode=choices[selected_origin])
         try:
-            session = require_login()
+            session = require_login(settings.data_mode)
         except ConfigurationError as error:
             _clear_all_results()
             st.error(str(error))
@@ -365,6 +380,10 @@ def _content(branding: Branding, notice) -> None:
 
 def _authorized_content(settings: Settings, branding: Branding, notice) -> None:
     origin_key = (settings.data_mode, settings.demo_source)
+    if settings.data_mode == DataMode.PSEUDONYMIZED:
+        from vrac.supabase_auth import current_session
+
+        origin_key += (current_session().batch, current_session().departments)
     if st.session_state.get("ui_origin_key") != origin_key:
         _clear_all_results()
         st.session_state["ui_origin_key"] = origin_key
@@ -378,13 +397,12 @@ def _authorized_content(settings: Settings, branding: Branding, notice) -> None:
         options = load_demo_options(settings)
     except DemoDataError as error:
         _clear_all_results()
-        notice.warning("**DEMONSTRAÇÃO** · somente dados sintéticos, sem validade institucional.")
+        notice.warning(
+            nature(INSTITUTIONAL_SOURCE if settings.data_mode == DataMode.PSEUDONYMIZED else "")
+        )
         st.error(str(error))
         st.stop()
-    notice.warning(
-        "**DEMONSTRAÇÃO** · somente dados sintéticos, sem validade institucional · "
-        f"Origem dos dados: {options.source}"
-    )
+    notice.warning(nature(options.source) + f" · Origem dos dados: {options.source}")
 
     # Todas as abas são executadas para preservar os filtros ao navegar entre elas;
     # a base de cada área só é lida enquanto a sua aba está aberta.
@@ -402,8 +420,9 @@ def _authorized_content(settings: Settings, branding: Branding, notice) -> None:
         with tab:
             _coming_soon(area)
     # Apoio à conferência, fora do menu: fica recolhido no fim de todas as telas.
-    with st.container(key="vrac-conferencia"), st.expander(RECORDS_TITLE):
-        _records(settings, options)
+    if settings.data_mode != DataMode.PSEUDONYMIZED:
+        with st.container(key="vrac-conferencia"), st.expander(RECORDS_TITLE):
+            _records(settings, options)
 
 
 def _records(settings: Settings, options) -> None:
@@ -618,7 +637,7 @@ def _faculty_overview(settings: Settings, branding: Branding, demo_options: Demo
             st.caption("Filtros adicionais ativos · " + " · ".join(active_filters))
         st.caption(
             f"Composição: cadastro atual, em {UNIT_LABEL}. Histórico: pessoas ativas em cada "
-            "mês, com quadro e categoria próprios do mês. Os dados são fictícios."
+            "mês, com quadro e categoria próprios do mês. " + nature(source.source)
         )
         digest = hashlib.sha256(json.dumps(asdict(source), sort_keys=True).encode()).hexdigest()
         key = (settings.demo_source, scope, filters, digest, first_period, last_period)
@@ -677,6 +696,7 @@ def _faculty_overview(settings: Settings, branding: Branding, demo_options: Demo
     generated_at = st.session_state["overview_generated"]
     export_context = {
         "Execução": st.session_state["overview_execution_id"],
+        "Origem": source.source,
         "Centro": scope.center,
         "Departamento": scope.department,
         "Departamentos efetivos": ", ".join(scope.departments),
@@ -830,7 +850,8 @@ def _overview_provenance(overview: FacultyOverview, generated_at: datetime, cent
             )
         )
         st.caption(
-            f"Dados fictícios · versão {overview.version} · snapshot {overview.fingerprint[:12]} · "
+            f"{nature(overview.source)} · versão {overview.version} · "
+            f"snapshot {overview.fingerprint[:12]} · "
             f"cálculo {generated_at:%d/%m/%Y %H:%M:%S} UTC · extração: horário não registrado · "
             "atualização institucional: não disponível"
         )

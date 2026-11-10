@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING
 from urllib.parse import urlsplit
 
 from vrac.authorization import AccessDenied
-from vrac.settings import ConfigurationError
+from vrac.settings import ConfigurationError, DataMode
 
 if TYPE_CHECKING:
     from supabase import Client
@@ -76,6 +76,8 @@ class SupabaseSession:
     departments: tuple[str, ...] = ()
     verified_until: float = 0
     project_url: str = ""
+    data_mode: DataMode = DataMode.SYNTHETIC
+    batch: str = ""
 
 
 _SESSION: ContextVar[SupabaseSession | None] = ContextVar("vrac_supabase_session", default=None)
@@ -123,7 +125,9 @@ def _client(config: SupabaseConfig) -> "Client":
         raise AuthenticationError("Não foi possível iniciar o acesso seguro ao Supabase.") from None
 
 
-def sign_in(config: SupabaseConfig, email: str, password: str) -> SupabaseSession:
+def sign_in(
+    config: SupabaseConfig, email: str, password: str, *, data_mode: DataMode = DataMode.SYNTHETIC
+) -> SupabaseSession:
     if not email.strip() or not password:
         raise AuthenticationError("Informe seu e-mail e sua senha.")
     client = _client(config)
@@ -138,6 +142,7 @@ def sign_in(config: SupabaseConfig, email: str, password: str) -> SupabaseSessio
             response.session.refresh_token,
             response.session.expires_at or 0,
             project_url=config.url,
+            data_mode=data_mode,
         )
         verify_session(session)
         return session
@@ -167,9 +172,22 @@ def verify_session(session: SupabaseSession) -> None:
         if getattr(response.user, "is_anonymous", False):
             raise ValueError
         session.client.postgrest.auth(session.access_token)
-        options = session.client.rpc("vrac_options").execute().data
-        if not isinstance(options, dict) or options.get("synthetic") is not True:
+        institutional = session.data_mode == DataMode.PSEUDONYMIZED
+        options = (
+            session.client.rpc("vrac_docentes_options" if institutional else "vrac_options")
+            .execute()
+            .data
+        )
+        if not isinstance(options, dict) or options.get("synthetic") is not (not institutional):
             raise ValueError
+        if institutional:
+            from uuid import UUID
+
+            if options.get("origin") != "institucional_pseudonimizada":
+                raise ValueError
+            session.batch = str(UUID(options["batch"])) if options.get("batch") else ""
+        else:
+            session.batch = ""
         departments = options.get("departments")
         if (
             not isinstance(departments, list)
@@ -180,6 +198,8 @@ def verify_session(session: SupabaseSession) -> None:
                 "Conta autenticada sem departamentos liberados. Solicite acesso ao responsável."
             )
         session.departments = tuple(departments)
+        if institutional and not session.batch:
+            raise AuthenticationError("Nenhuma carga institucional liberada para consulta.")
         session.verified_until = min(time.time() + 900, session.expires_at)
     except AuthenticationError:
         raise

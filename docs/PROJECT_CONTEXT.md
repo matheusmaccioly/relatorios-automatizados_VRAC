@@ -341,3 +341,19 @@ Credenciais, dumps e dados pessoais ficam fora do workspace do agente e do Git. 
 A aplicação real dependerá de autenticação e autorização institucionais, conta técnica de leitura com escopo confirmado pelo DBA, TLS e validação de certificado. Demonstração sintética não libera modo real. Falhas de configuração ou de dados não podem ativar dados fictícios silenciosamente.
 
 Consulte o [plano](PLAN.md), a [arquitetura](ARCHITECTURE.md), as [decisões](DECISIONS.md) e as [solicitações para a DSI](operations/DSI_REQUESTS.md).
+
+
+## 2026-11-10 — Conciliação da navegação com a origem institucional
+
+A pedido de Matheus, integrada à navegação por áreas da main a origem docente
+institucional pseudonimizada, com seletor explícito, autenticação e autorização
+própria. A demonstração sintética continua separada. Trocar a origem limpa os
+resultados e arquivos da sessão; falhas não acionam dados fictícios.
+Exportações identificam a natureza dos dados. Análises sem fontes permanecem
+bloqueadas, inclusive R06 na origem docente. Não há avanço de fase ou homologação.
+
+Publicação web autorizada explicitamente nesta tarefa. CSVs, materiais de origem
+e registros operacionais individuais permanecem locais. Mudanças locais anteriores
+foram preservadas e há uma cópia recuperável no stash. Ver
+[guia de origens e publicação](guides/ORIGENS_E_PUBLICACAO.md) para uso e comandos.
+Validação analítica segue pendente com Matheus/Talita; acesso e operação com DSI/DBA.

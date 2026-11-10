@@ -2,7 +2,7 @@
 
 import re
 from collections import Counter, defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date, timedelta
 from enum import StrEnum
 from itertools import combinations
@@ -10,6 +10,7 @@ from itertools import combinations
 from vrac.analyses.academic_data import AcademicSource, StudentRow
 from vrac.analyses.faculty_overview import NOT_INFORMED, semaphore_status
 from vrac.indicators import indicator_rank
+from vrac.provenance import is_institutional
 
 type Scalar = str | int | float | bool | None
 HISTORICAL_CADRES = frozenset(
@@ -153,6 +154,21 @@ def _result(
     status: str = "Calculado",
     narrative: str = "",
 ) -> CalculatedAnalysis:
+    if is_institutional(source.faculty.source):
+        tables = [
+            replace(
+                t,
+                columns=tuple(
+                    "Vínculo pseudonimizado" if c == "Matrícula fictícia" else c for c in t.columns
+                ),
+            )
+            for t in tables
+        ]
+        notes = [
+            n.replace("Lotação histórica.", "Alocação atual; coorte do cadastro exportado.")
+            for n in notes
+        ]
+        notes.extend(source.errors)
     return CalculatedAnalysis(
         kind,
         TITLES[kind],

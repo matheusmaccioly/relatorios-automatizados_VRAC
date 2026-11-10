@@ -61,6 +61,7 @@ class RegisterRow:
     weekly_hours: float | None
     tenure_years: float | None
     degree: str | None
+    link_key: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -69,6 +70,7 @@ class RealHoursRow:
     semester: int | None
     hours: float | None
     cadre: str | None
+    link_key: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -81,6 +83,7 @@ class FacultySource:
     source: str
     version: str
     real_hours_available: bool = True
+    notes: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -179,15 +182,21 @@ def semaphore_status(hours: float | None, cadre: str | None) -> str:
     return "Dentro do esperado"
 
 
+def _link_key(row: RegisterRow | RealHoursRow) -> int | str | None:
+    """Identidade opaca institucional ou matrícula numérica da origem sintética."""
+    return row.link_key if row.link_key is not None else row.registration_int
+
+
 def current_real_hours(
     rows: Iterable[RealHoursRow],
-) -> dict[int, tuple[float | None, int, str | None]]:
+) -> dict[int | str, tuple[float | None, int, str | None]]:
     """Por matrícula: (Horas Reais do semestre atual, semestre, Resultado CH Texto)."""
-    by_registration: dict[int, list[RealHoursRow]] = defaultdict(list)
+    by_registration: dict[int | str, list[RealHoursRow]] = defaultdict(list)
     for row in rows:
-        if row.registration_int is not None and row.semester is not None:
-            by_registration[row.registration_int].append(row)
-    result: dict[int, tuple[float | None, int, str | None]] = {}
+        key = _link_key(row)
+        if key is not None and row.semester is not None:
+            by_registration[key].append(row)
+    result: dict[int | str, tuple[float | None, int, str | None]] = {}
     for registration, items in by_registration.items():
         semester = max(item.semester for item in items if item.semester is not None)
         current = [item for item in items if item.semester == semester]
@@ -280,7 +289,7 @@ def compute_overview(source: FacultySource, filters: OverviewFilters) -> Faculty
             "Ausência de registros não significa zero.",
         )
 
-    warnings: list[str] = [CADRE_FILTER_GAP]
+    warnings: list[str] = [CADRE_FILTER_GAP, *source.notes]
     with_registration = [row for row in eligible if row.registration not in (None, "")]
     missing_registration = len(eligible) - len(with_registration)
     if missing_registration:
@@ -333,9 +342,7 @@ def compute_overview(source: FacultySource, filters: OverviewFilters) -> Faculty
             row.cadre,
             row.category,
             row.weekly_hours,
-            *_hours_columns(
-                None if row.registration_int is None else hours.get(row.registration_int)
-            ),
+            *_hours_columns(None if _link_key(row) is None else hours.get(_link_key(row))),
             row.degree,
             row.tenure_years,
             row.dual_role,
@@ -343,9 +350,9 @@ def compute_overview(source: FacultySource, filters: OverviewFilters) -> Faculty
             "Fonte indisponível"
             if not source.real_hours_available
             else "Sem registro"
-            if row.registration_int not in hours
+            if _link_key(row) not in hours
             else "Nulo na fonte"
-            if hours[row.registration_int][0] is None
+            if hours[_link_key(row)][0] is None
             else "Valor informado",
         )
         for row in sorted(eligible, key=lambda r: (r.registration or "", r.name or ""))
@@ -357,7 +364,7 @@ def compute_overview(source: FacultySource, filters: OverviewFilters) -> Faculty
             "nomes de quadro não recebem faixa. Nenhuma equivalência foi presumida. O "
             "resultado não avalia produtividade."
         )
-    if any(row.registration_int not in hours for row in eligible):
+    if any(_link_key(row) not in hours for row in eligible):
         warnings.append(
             "Há vínculos sem registro na fonte de Horas Reais; essas células aparecem como "
             "ausentes, não como zero."

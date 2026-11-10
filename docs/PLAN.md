@@ -390,3 +390,25 @@ Cada análise deve ser testável sem Streamlit. A suíte padrão permanece offli
 | Canal de suporte, operador e autorização de publicação | DSI + responsável pelo piloto | Fases 6 e 7 |
 
 As [solicitações para a DSI](operations/DSI_REQUESTS.md) são um roteiro preparado para Matheus. Sua existência não registra envio, aprovação ou provisionamento.
+
+
+## 2026-11-10 — Conciliação da navegação com a origem institucional
+
+A pedido de Matheus, integrada à navegação por áreas da main a origem docente
+institucional pseudonimizada, com seletor explícito, autenticação e autorização
+própria. A demonstração sintética continua separada. Trocar a origem limpa os
+resultados e arquivos da sessão; falhas não acionam dados fictícios.
+Exportações identificam a natureza dos dados. Análises sem fontes permanecem
+bloqueadas, inclusive R06 na origem docente. Não há avanço de fase ou homologação.
+
+Publicação web autorizada explicitamente nesta tarefa. CSVs, materiais de origem
+e registros operacionais individuais permanecem locais. Mudanças locais anteriores
+foram preservadas e há uma cópia recuperável no stash. Ver
+[guia de origens e publicação](guides/ORIGENS_E_PUBLICACAO.md) para uso e comandos.
+Validação analítica segue pendente com Matheus/Talita; acesso e operação com DSI/DBA.
+
+Validação desta conciliação: 593 testes offline passaram, 1 teste de integração
+excluído; Ruff e formatação aprovados. A primeira execução foi interrompida por
+permissões na pasta temporária padrão do Windows; a execução completa em pasta
+própria passou. Porta local 8530 reiniciada e conferida com seletor institucional
+e login. Testes de banco não foram repetidos nesta conciliação de front.

@@ -2266,3 +2266,25 @@ A pedido de Matheus, PostgreSQL sintético iniciado com verificações aprovadas
 Novos arquivos YAML, YML e TOML são ignorados por padrão, com exceções para
 exemplos e configurações essenciais do projeto. Arquivos já rastreados continuam
 versionados; o `.gitignore` não remove arquivos do histórico nem protege segredos.
+
+
+## 2026-11-10 — Conciliação da navegação com a origem institucional
+
+A pedido de Matheus, integrada à navegação por áreas da main a origem docente
+institucional pseudonimizada, com seletor explícito, autenticação e autorização
+própria. A demonstração sintética continua separada. Trocar a origem limpa os
+resultados e arquivos da sessão; falhas não acionam dados fictícios.
+Exportações identificam a natureza dos dados. Análises sem fontes permanecem
+bloqueadas, inclusive R06 na origem docente. Não há avanço de fase ou homologação.
+
+Publicação web autorizada explicitamente nesta tarefa. CSVs, materiais de origem
+e registros operacionais individuais permanecem locais. Mudanças locais anteriores
+foram preservadas e há uma cópia recuperável no stash. Ver
+[guia de origens e publicação](guides/ORIGENS_E_PUBLICACAO.md) para uso e comandos.
+Validação analítica segue pendente com Matheus/Talita; acesso e operação com DSI/DBA.
+
+Validação desta conciliação: 593 testes offline passaram, 1 teste de integração
+excluído; Ruff e formatação aprovados. A primeira execução foi interrompida por
+permissões na pasta temporária padrão do Windows; a execução completa em pasta
+própria passou. Porta local 8530 reiniciada e conferida com seletor institucional
+e login. Testes de banco não foram repetidos nesta conciliação de front.

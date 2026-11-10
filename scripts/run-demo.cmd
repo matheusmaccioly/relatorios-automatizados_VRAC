@@ -47,7 +47,7 @@ if not exist "%VRAC_PYTHON%" (
     echo Ambiente ausente. Siga a instalacao descrita no README.md.
     exit /b 1
 )
-echo DEMONSTRACAO: somente dados sinteticos em acesso local.
+echo POC LOCAL: escolha a origem na tela. Supabase exige conta e departamentos autorizados.
 "%VRAC_PYTHON%" -m streamlit run app.py --server.address 127.0.0.1 --server.port %VRAC_PORT% --server.headless true --server.fileWatcherType none --browser.gatherUsageStats false
 if errorlevel 1 exit /b 1
 exit /b 0

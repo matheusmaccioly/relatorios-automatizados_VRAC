@@ -18,6 +18,7 @@ class Environment(StrEnum):
 
 class DataMode(StrEnum):
     SYNTHETIC = "synthetic"
+    PSEUDONYMIZED = "pseudonymized"
     REAL = "real"
 
 
@@ -40,6 +41,8 @@ class Settings:
             or not isinstance(self.demo_source, DemoSource)
         ):
             raise ConfigurationError("Ambiente ou modo de dados inválido.")
+        if self.data_mode == DataMode.PSEUDONYMIZED and self.demo_source != DemoSource.SUPABASE:
+            raise ConfigurationError("A origem pseudonimizada exige Supabase autenticado.")
         if (
             self.environment == Environment.PRODUCTION
             and self.data_mode == DataMode.SYNTHETIC

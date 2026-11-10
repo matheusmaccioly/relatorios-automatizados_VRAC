@@ -8,6 +8,8 @@ from typing import TYPE_CHECKING
 
 import matplotlib
 
+from vrac.provenance import is_institutional, nature
+
 matplotlib.use("Agg")
 
 from matplotlib import font_manager  # noqa: E402
@@ -125,6 +127,7 @@ def academic_chart(
     if specification.table in {"real_distribution", "contract_distribution"}:
         items = sorted(table.rows, key=lambda row: -row[1])
         figure, axis = plt.subplots(figsize=(9.5, 4.7), dpi=140)
+        figure.set_label(result.source)
         values = [row[1] for row in items]
         axis.barh(
             range(len(items)),
@@ -148,7 +151,7 @@ def academic_chart(
             spine.set_visible(False)
         axis.set_title(specification.title, family=family, loc="left", pad=20)
         axis.set_xlabel("Quantidade de vínculos por carga horária", family=family)
-        figure.text(0.02, 0.015, "DEMONSTRAÇÃO — DADOS SINTÉTICOS", family=family, fontsize=7)
+        figure.text(0.02, 0.015, nature(result.source), family=family, fontsize=7)
         figure.tight_layout(rect=(0, 0.045, 1, 1))
         return figure
     xi = table.columns.index(specification.x)
@@ -157,6 +160,7 @@ def academic_chart(
     figure, axis = plt.subplots(
         figsize=(max(9.5, len(labels) * 0.25) if monthly else 9.5, 4.7), dpi=140
     )
+    figure.set_label(result.source)
     figure.patch.set_facecolor(colors["white"])
     axis.set_facecolor(colors["white"])
     palette = list(branding.series)
@@ -269,7 +273,7 @@ def academic_chart(
     figure.text(
         0.02,
         0.015,
-        f"DEMONSTRAÇÃO — DADOS SINTÉTICOS | {result.department} | "
+        f"{nature(result.source)} | {result.department} | "
         f"{result.filters.first_period} a {result.filters.last_period}",
         family=family,
         color=colors["black"],
@@ -291,13 +295,16 @@ def render_png(build: Callable[[], Figure], context: Mapping[str, str] | None = 
 
 def figure_png(figure: Figure, context: Mapping[str, str] | None = None) -> bytes:
     stream = io.BytesIO()
+    source = figure.get_label() or (context or {}).get("Origem", "")
     figure.savefig(
         stream,
         format="png",
         dpi=150,
         facecolor=figure.get_facecolor(),
         metadata={
-            "Description": "DEMONSTRAÇÃO — DADOS TOTALMENTE SINTÉTICOS",
+            "Description": nature(source)
+            if is_institutional(source)
+            else "DEMONSTRAÇÃO — DADOS TOTALMENTE SINTÉTICOS",
             "Contexto": json.dumps(dict(context or {}), ensure_ascii=False),
         },
     )

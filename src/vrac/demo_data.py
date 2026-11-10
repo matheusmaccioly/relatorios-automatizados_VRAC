@@ -11,7 +11,7 @@ from vrac.department_hierarchy import (
     hierarchy_for_departments,
     resolve_departments,
 )
-from vrac.settings import DemoSource, Settings
+from vrac.settings import DataMode, DemoSource, Settings
 from vrac.synthetic import DEPARTMENTS, PERIODS, SyntheticDataset, load_demo_data, select_demo_data
 
 
@@ -31,6 +31,9 @@ def load_demo_options(settings: Settings) -> DemoOptions:
     require_data_access(settings)
     if settings.demo_source == DemoSource.SUPABASE:
         from vrac.db.supabase_reader import load_options
+
+        if settings.data_mode == DataMode.PSEUDONYMIZED:
+            from vrac.db.institutional_faculty import load_options
 
         return load_options(settings)
     if settings.demo_source == DemoSource.POSTGRES:
@@ -53,6 +56,8 @@ def faculty_history_periods(settings: Settings, options: DemoOptions) -> tuple[s
 def load_selected_demo(settings: Settings, *, department: str, period: str) -> SyntheticDataset:
     require_data_access(settings)
     if settings.demo_source == DemoSource.SUPABASE:
+        if settings.data_mode == DataMode.PSEUDONYMIZED:
+            raise DemoDataError("Conferência sintética indisponível nesta origem.")
         from vrac.db.supabase_reader import load_selected
 
         return load_selected(settings, department=department, period=period)
@@ -67,6 +72,9 @@ def load_faculty_departments(settings: Settings) -> tuple[str, ...]:
     require_data_access(settings)
     if settings.demo_source == DemoSource.SUPABASE:
         from vrac.db.supabase_reader import load_faculty_departments as load
+
+        if settings.data_mode == DataMode.PSEUDONYMIZED:
+            from vrac.db.institutional_faculty import load_faculty_departments as load
 
         return load(settings)
     if settings.demo_source == DemoSource.POSTGRES:
@@ -109,6 +117,9 @@ def load_faculty_source(
     if settings.demo_source == DemoSource.SUPABASE:
         from vrac.db.supabase_reader import load_faculty_source as load
 
+        if settings.data_mode == DataMode.PSEUDONYMIZED:
+            from vrac.db.institutional_faculty import load_faculty_source as load
+
         return load(settings, department=department, departments=departments)
     if settings.demo_source == DemoSource.POSTGRES:
         from vrac.db.synthetic_postgres import load_faculty_source as load
@@ -148,6 +159,9 @@ def load_academic_source(
     require_data_access(settings)
     if settings.demo_source == DemoSource.SUPABASE:
         from vrac.db.supabase_reader import load_academic_source as load
+
+        if settings.data_mode == DataMode.PSEUDONYMIZED:
+            from vrac.db.institutional_faculty import load_academic_source as load
 
         return load(settings, department=department, departments=departments)
     if settings.demo_source == DemoSource.POSTGRES:

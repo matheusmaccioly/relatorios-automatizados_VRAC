@@ -39,9 +39,15 @@ def report_pdf(
         or len(set(requested)) != len(requested)
         or not set(requested) <= set(APPLICABLE)
         or not set(requested) <= set(analyses)
-        or not manifest.get("synthetic")
+        or not (
+            manifest.get("synthetic") is True
+            or (
+                manifest.get("synthetic") is False
+                and manifest.get("origin") == "institucional_pseudonimizada"
+            )
+        )
     ):
-        raise ValueError("Selecione análises disponíveis de R01–R06, com identificação sintética.")
+        raise ValueError("Selecione análises disponíveis de R01–R06, com identificação de origem.")
     included = tuple(kind for kind in APPLICABLE if kind in requested)
     from vrac.analyses.pdf_slides import render_slides
 

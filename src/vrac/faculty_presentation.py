@@ -12,6 +12,7 @@ from vrac.analyses.faculty_overview import UNIT_LABEL, FacultyOverview
 from vrac.branding import Branding
 from vrac.charts import distribution_bars, render_png
 from vrac.indicators import indicator_distribution, indicator_label
+from vrac.provenance import is_institutional, nature
 from vrac.ui_kit import card_title, data_table, download_button, show_chart, single_value
 from vrac.web_charts import interactive_bars
 
@@ -89,7 +90,7 @@ def _composition_chart(
             drawn.text(
                 0.01,
                 0.01,
-                f"DEMONSTRAÇÃO — DADOS SINTÉTICOS | {context}",
+                f"{nature((export_context or {}).get('Origem', ''))} | {context}",
                 fontsize=7,
                 family=branding.tokens["typography"]["body_family"],
             )
@@ -123,6 +124,7 @@ def render_composition(
 
     Devolve geradores de PNG: o arquivo só é desenhado quando alguém o baixa.
     """
+    export_context = dict(export_context or {}) | {"Origem": overview.source}
     files: dict[str, Callable[[], bytes]] = {}
     charts = (
         (
@@ -205,6 +207,8 @@ def _detail_frames(overview: FacultyOverview) -> tuple[pd.DataFrame, pd.DataFram
         key=lambda row: ((row.name or "").casefold(), row.registration or ""),
     )
     labels = dict(DETAIL_COLUMNS) | {"weekly_hours": "CH contratada"}
+    if is_institutional(overview.source):
+        labels["registration"] = "Vínculo pseudonimizado"
     general = tuple(key for key, _ in DETAIL_COLUMNS[:5])
     workload = (
         "real_hours_semester",
@@ -244,7 +248,7 @@ def render_faculty_details(overview: FacultyOverview) -> None:
         else:
             data_table(general)
         st.caption(
-            "Dados fictícios do cadastro atual, ordenados por nome. "
+            "Dados do cadastro atual, ordenados por nome. "
             "Cada linha é um registro do cadastro; não representa necessariamente uma pessoa única."
         )
     with workload_tab:
@@ -254,7 +258,7 @@ def render_faculty_details(overview: FacultyOverview) -> None:
         else:
             data_table(workload, numeric=QUANTITY_COLUMNS)
         st.caption(
-            "Dados fictícios. Horas Reais: soma da fonte dedicada no maior semestre "
+            "Horas Reais: soma da fonte dedicada no maior semestre "
             "de cada matrícula, indicado na tabela; não são reconstruídas pelas disciplinas. "
             "CH contratada corresponde à carga semanal do cadastro. "
             "A unidade institucional das Horas Reais permanece não confirmada. "

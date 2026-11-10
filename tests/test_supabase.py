@@ -274,7 +274,7 @@ def test_login_and_logout_clear_previous_results_and_files(monkeypatch):
     identity = session()
     identity.client.payload = payload()
     monkeypatch.setattr("vrac.auth_ui.load_supabase_config", lambda: CONFIG)
-    monkeypatch.setattr("vrac.auth_ui.sign_in", lambda *args: identity)
+    monkeypatch.setattr("vrac.auth_ui.sign_in", lambda *args, **kwargs: identity)
     monkeypatch.setattr("vrac.auth_ui.verify_session", lambda s: None)
     app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "app.py")).run()
     app.text_input(key="vrac_login_email").set_value("test@example.invalid")

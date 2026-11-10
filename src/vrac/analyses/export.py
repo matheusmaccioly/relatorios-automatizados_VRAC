@@ -11,6 +11,7 @@ from vrac.analyses.faculty_overview import (
     OverviewStatus,
     describe_filters,
 )
+from vrac.provenance import is_institutional, nature
 
 # Planilhas executam células iniciadas por estes caracteres como fórmulas.
 _FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
@@ -48,7 +49,7 @@ def _header(
         [
             "Identificação",
             "Natureza",
-            "DEMONSTRAÇÃO — dados sintéticos, sem validade institucional",
+            nature(overview.source),
         ],
         ["Identificação", "Análise", "R01 Situação geral do departamento"],
         ["Identificação", "Departamento", overview.department],
@@ -108,6 +109,13 @@ def detail_csv(
 ) -> bytes:
     rows = _header(overview, generated_at, context)
     rows.append([])
-    rows.append([label for _, label in DETAIL_COLUMNS])
+    rows.append(
+        [
+            "Vínculo pseudonimizado"
+            if key == "registration" and is_institutional(overview.source)
+            else label
+            for key, label in DETAIL_COLUMNS
+        ]
+    )
     rows += [[getattr(item, key) for key, _ in DETAIL_COLUMNS] for item in overview.detail]
     return _write(rows)

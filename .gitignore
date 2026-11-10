@@ -130,3 +130,8 @@ sql/Report1.txt
 # Modelo fornecido e pacote SQL interno; revisão local autorizada, sem publicação.
 /base/
 /docs/operations/departamentos.local/
+
+# Registros locais de carga e liberação institucional; não publicar.
+/docs/guides/DOCENTES_INSTITUCIONAIS.md
+/docs/operations/SUPABASE_DOCENTES_CSV.md
+/sql/release_faculty_poc.sql

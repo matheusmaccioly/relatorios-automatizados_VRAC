@@ -10,6 +10,7 @@ from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 from vrac.analyses.academic import CalculatedAnalysis, ResultTable
 from vrac.analyses.export import safe_cell
+from vrac.provenance import INSTITUTIONAL_SOURCE, is_institutional, nature
 
 FILTER_LABELS = {
     "first_period": "Semestre inicial",
@@ -44,7 +45,7 @@ def table_csv(
     stream = io.StringIO()
     writer = csv.writer(stream, delimiter=";", lineterminator="\r\n")
     metadata = [
-        ("Identificação", "DEMONSTRAÇÃO — DADOS SINTÉTICOS, sem validade institucional"),
+        ("Identificação", nature(result.source)),
         ("Análise", f"{result.kind}: {result.title}"),
         ("Tabela", table.title),
         ("Departamento", result.department),
@@ -101,9 +102,21 @@ def report_zip(
             info.compress_type = ZIP_DEFLATED
             archive.writestr(info, data)
 
+        origins = {r.source for r in results} | {
+            item.get("source", "") for item in additional_analyses
+        }
+        origins.add((context or {}).get("Origem", ""))
+        origins.discard("")
+        if any(is_institutional(o) for o in origins) and any(
+            not is_institutional(o) for o in origins
+        ):
+            raise ValueError("Origens não podem ser misturadas no mesmo pacote.")
+        institutional = any(is_institutional(o) for o in origins)
+        source_label = INSTITUTIONAL_SOURCE if institutional else ""
         manifest = {
-            "synthetic": True,
-            "validity": "DEMONSTRAÇÃO SEM VALIDADE INSTITUCIONAL",
+            "synthetic": not institutional,
+            "origin": "institucional_pseudonimizada" if institutional else "synthetic",
+            "validity": nature(source_label),
             "generated_at_utc": generated_at.isoformat(),
             "context": dict(context or {}),
             "analyses": [asdict(r) for r in results],
@@ -113,11 +126,12 @@ def report_zip(
         write(
             "LEIA-ME.txt",
             (
-                "DEMONSTRAÇÃO — DADOS TOTALMENTE SINTÉTICOS.\n"
-                "Cada CSV inclui filtros, unidades, avisos e identificação do snapshot.\n"
+                nature(source_label)
+                + "\n"
+                + "Cada CSV inclui filtros, unidades, avisos e identificação do snapshot.\n"
                 "Ausente não é zero. Estoques acadêmicos e contagens mensais não são somados.\n"
-                "QP, unidades comparáveis e comprovações administrativas "
-                "são simulações explícitas.\n"
+                "QP é comparação exploratória; unidades e vigências "
+                "dependem das evidências da origem.\n"
                 "Nenhum resultado recomenda contratação, avalia produtividade "
                 "ou confirma regra institucional.\n"
             ).encode(),

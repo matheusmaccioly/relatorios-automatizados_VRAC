@@ -2,6 +2,7 @@
 
 import streamlit as st
 
+from vrac.settings import DataMode
 from vrac.supabase_auth import (
     AuthenticationError,
     SupabaseSession,
@@ -16,10 +17,13 @@ SESSION_KEY = "vrac_auth_session"
 
 def _clear() -> None:
     """Remover dados, arquivos, feedback, widgets e credenciais da sessão anterior."""
+    origin = st.session_state.get("vrac_data_origin")
     st.session_state.clear()
+    if origin is not None:
+        st.session_state["vrac_data_origin"] = origin
 
 
-def require_login() -> SupabaseSession:
+def require_login(data_mode: DataMode = DataMode.SYNTHETIC) -> SupabaseSession:
     config = load_supabase_config()
     session = st.session_state.get(SESSION_KEY)
     if session is not None and session.project_url != config.url:
@@ -27,7 +31,8 @@ def require_login() -> SupabaseSession:
         _clear()
         session = None
     if session is not None:
-        previous_departments = session.departments
+        previous_scope = (session.data_mode, session.departments, session.batch)
+        session.data_mode = data_mode
         try:
             verify_session(session)
         except AuthenticationError as error:
@@ -35,7 +40,7 @@ def require_login() -> SupabaseSession:
             _clear()
             st.error(str(error))
             st.stop()
-        if previous_departments != session.departments:
+        if previous_scope != (session.data_mode, session.departments, session.batch):
             _clear()
             st.session_state[SESSION_KEY] = session
         with st.container(key="vrac-auth-status"):
@@ -56,7 +61,7 @@ def require_login() -> SupabaseSession:
         submitted = st.form_submit_button("Entrar", type="primary")
     if submitted:
         try:
-            session = sign_in(config, email, password)
+            session = sign_in(config, email, password, data_mode=data_mode)
             _clear()
             st.session_state[SESSION_KEY] = session
             st.rerun()
