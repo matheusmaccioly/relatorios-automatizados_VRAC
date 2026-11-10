@@ -53,3 +53,18 @@ schema; publicar o código não deve executar novamente a importação.
 Matheus e Talita ainda devem validar os resultados contra as fontes aprovadas;
 DSI/DBA validam acesso, retenção e operação. Publicação não significa homologação
 analítica ou visual.
+
+
+### Atualizações do código na hospedagem
+
+A configuração compartilhada usa `server.fileWatcherType=auto`, para observar
+mudanças nos módulos importados. Os atalhos locais podem continuar desativando
+essa observação por argumento de linha de comando. A versão do pacote nesta
+entrega é `0.1.1`, consistente em `pyproject.toml` e `uv.lock`.
+
+A [documentação de configuração do Streamlit](https://docs.streamlit.io/develop/api-reference/configuration/config.toml)
+explica que `none` desativa a observação de arquivos. A mudança no arquivo de
+dependências aciona a resolução do ambiente conforme a
+[documentação do Community Cloud](https://docs.streamlit.io/deploy/streamlit-community-cloud/manage-your-app/upgrade-streamlit).
+Conferir o resultado no navegador; um push aceito sozinho não comprova atualização
+do aplicativo em execução.

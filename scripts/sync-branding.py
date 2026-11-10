@@ -27,7 +27,7 @@ def main() -> None:
         "[server]",
         'address = "127.0.0.1"',
         "headless = true",
-        'fileWatcherType = "none"',
+        'fileWatcherType = "auto"',
         "enableStaticServing = true",
         "",
         "[client]",
