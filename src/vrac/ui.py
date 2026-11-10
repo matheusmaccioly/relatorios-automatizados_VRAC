@@ -10,9 +10,10 @@ from uuid import uuid4
 import pandas as pd
 import streamlit as st
 
-from vrac.academic_ui import _clear, _render_result, workbench
+from vrac.academic_ui import _clear, _render_result, export_box, workbench
 from vrac.analyses.academic import AnalysisFilters, AnalysisKind, calculate
 from vrac.analyses.academic_data import ALL_DEPARTMENTS
+from vrac.analyses.academic_export import report_zip
 from vrac.analyses.export import detail_csv, summary_csv
 from vrac.analyses.faculty_overview import (
     UNIT_LABEL,
@@ -171,6 +172,11 @@ def _quick_start() -> None:
     _open_analysis(st.session_state["home_analysis"], st.session_state["home_department"], run=True)
 
 
+def _complete_report() -> None:
+    st.session_state.pop("suite_pdf_analyses", None)
+    _open_analysis(ALL_FACULTY, st.session_state["home_department"], run=True)
+
+
 def _go_home() -> None:
     st.session_state[VIEW_KEY] = VIEW_HOME
 
@@ -216,6 +222,15 @@ def _home(settings: Settings) -> None:
                     width="stretch",
                     key="home_start",
                     on_click=_quick_start,
+                )
+                st.html('<p class="vrac-start-ou">ou</p>')
+                st.button(
+                    "Gerar relatório completo (R01–R06)",
+                    width="stretch",
+                    key="home_complete",
+                    on_click=_complete_report,
+                    help="Calcula as seis análises do departamento escolhido e libera o PDF "
+                    "completo em Docentes › Relatório completo.",
                 )
     st.html(
         '<div class="vrac-section-title"><h2>Explore por área</h2>'
@@ -674,7 +689,7 @@ def _faculty_overview(settings: Settings, branding: Branding, demo_options: Demo
         "Versão dos dados": overview.version,
         "Snapshot": overview.fingerprint,
     }
-    _overview_results(
+    export_slot, r01_charts = _overview_results(
         overview,
         branding,
         generated_at,
@@ -682,23 +697,54 @@ def _faculty_overview(settings: Settings, branding: Branding, demo_options: Demo
         departments=scope.departments,
         export_context=export_context,
     )
+    history, history_images = None, {}
     if overview_history := st.session_state.get("overview_history"):
+        # O PDF leva o histórico como aparece na tela: só a série mensal, sem métricas.
+        history = replace(
+            overview_history,
+            metrics=(),
+            charts=tuple(c for c in overview_history.charts if c.table == "monthly_history"),
+        )
         with st.container(key="vrac-panel-overview-history"):
-            _render_result(
-                replace(
-                    overview_history,
-                    metrics=(),
-                    charts=tuple(
-                        chart
-                        for chart in overview_history.charts
-                        if chart.table == "monthly_history"
-                    ),
-                ),
-                branding,
-                generated_at,
-                prefix="overview",
-                export_context=export_context,
+            history_images = _render_result(
+                history, branding, generated_at, prefix="overview", export_context=export_context
             )
+    if export_slot is not None:
+        r01_files = {
+            "R01/resumo.csv": summary_csv(overview, generated_at, export_context),
+            "R01/lista-conferencia.csv": detail_csv(overview, generated_at, export_context),
+            **r01_charts,
+        }
+        r01_manifest = {
+            "kind": "R01",
+            "status": OVERVIEW_STATUS[overview.status],
+            "source": overview.source,
+            "version": overview.version,
+            "fingerprint": overview.fingerprint,
+        }
+
+        def package(include: tuple[str, ...] | None = None) -> bytes:
+            include = include or ("R01", "R03")
+            with_history = history is not None and "R03" in include
+            return report_zip(
+                (history,) if with_history else (),
+                generated_at,
+                {n: build() for n, build in history_images.items()} if with_history else {},
+                {n: d() if callable(d) else d for n, d in r01_files.items()}
+                if "R01" in include
+                else {},
+                export_context,
+                additional_analyses=(r01_manifest,) if "R01" in include else (),
+            )
+
+        export_box(
+            export_slot,
+            prefix="overview",
+            available=("R01", "R03") if history is not None else ("R01",),
+            package=package,
+            branding=branding,
+            generated_at=generated_at,
+        )
     if history_error := st.session_state.get("overview_history_error"):
         st.warning(f"Histórico indisponível: {history_error}")
     if run:
@@ -720,14 +766,16 @@ def _overview_results(
     center: str,
     departments: tuple[str, ...],
     export_context: dict[str, str],
-) -> None:
+) -> tuple[object | None, dict]:
+    """Devolve o espaço do bloco de exportação e os geradores dos gráficos da R01."""
     with st.container(key="vrac-panel-overview-results"):
         st.subheader("Resultados calculados")
         st.caption(f"Centro: {center} · Departamentos efetivos: {', '.join(departments)}")
         if overview.status not in {OverviewStatus.VALID, OverviewStatus.PARTIAL}:
             _overview_provenance(overview, generated_at, center)
             st.info(overview.narrative)
-            return
+            return None, {}
+        export_slot = st.container()
         if overview.status == OverviewStatus.PARTIAL:
             st.warning("Parcial — composição calculada; fonte de Horas Reais indisponível.")
 
@@ -754,12 +802,15 @@ def _overview_results(
                 key="overview_download_detail",
             )
 
-        render_composition(overview, branding, prefix="overview", export_context=export_context)
+        charts = render_composition(
+            overview, branding, prefix="overview", export_context=export_context
+        )
         render_faculty_details(overview)
         with st.expander(f"Avisos e limitações · {len(overview.warnings)}", expanded=False):
             for text in overview.warnings:
                 st.warning(text)
         _overview_provenance(overview, generated_at, center)
+    return export_slot, charts
 
 
 def _overview_provenance(overview: FacultyOverview, generated_at: datetime, center: str) -> None:

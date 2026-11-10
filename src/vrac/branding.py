@@ -114,6 +114,8 @@ html {scroll-behavior: smooth;}
 .vrac-card-body p {color: $ink_soft; font-size: .95rem; margin: 0;}
 .st-key-vrac-home-start {background: $yellow; border-radius: 3px; padding: 1.25rem 1.5rem;}
 .st-key-vrac-home-start label p {color: $black; font-weight: 600;}
+.vrac-start-ou {text-align: center; color: $black; font-size: .85rem; margin: -.25rem 0;}
+[class*="st-key-vrac-export-"] {background: $yellow_soft; border-color: $yellow !important;}
 .vrac-start-title {font-family: "$heading_family", sans-serif; font-weight: 700;
   font-size: 1.35rem; color: $black; margin: 0;}
 [class*="st-key-vrac-area-"] {gap: .15rem;}

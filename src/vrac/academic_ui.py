@@ -47,7 +47,7 @@ from vrac.faculty_presentation import (
 from vrac.feedback import OVERVIEW_STATUS
 from vrac.feedback_ui import render_feedback
 from vrac.indicators import change_label
-from vrac.navigation import ALL_FACULTY, FACULTY, FACULTY_PICKER, VIEW_KEY
+from vrac.navigation import ALL_FACULTY, COMPLETE_CODES, FACULTY, FACULTY_PICKER, VIEW_KEY
 from vrac.organisation_ui import OrganisationScope, organisation_filters
 from vrac.settings import DemoSource, Settings
 from vrac.ui_kit import card_title, data_table, download_button, scroll_to, show_chart, step
@@ -593,6 +593,74 @@ def _request_complete_report() -> None:
     st.session_state["suite_autorun"] = True
 
 
+def export_box(
+    target,
+    *,
+    prefix: str,
+    available: tuple[str, ...],
+    package: Callable[[tuple[str, ...] | None], bytes],
+    branding: Branding,
+    generated_at: datetime,
+) -> None:
+    """Bloco único de exportação, no topo dos resultados de todas as telas.
+
+    PDF e ZIP são montados só no clique, a partir do mesmo pacote.
+    """
+    pdf_key = f"{prefix}_pdf_analyses"
+    if pdf_key in st.session_state:
+        st.session_state[pdf_key] = [k for k in st.session_state[pdf_key] if k in available]
+    stamp = f"{generated_at:%Y%m%d-%H%M%S}"
+    with target, st.container(border=True, key=f"vrac-export-{prefix}"):
+        card_title(
+            "Baixar relatório",
+            "PDF em formato de apresentação, com resultados e gráficos. "
+            "ZIP com todas as tabelas, gráficos e conferências.",
+        )
+        chosen = tuple(
+            st.multiselect(
+                "Análises incluídas no PDF",
+                available,
+                default=None if pdf_key in st.session_state else available,
+                format_func=lambda k: f"{k} · {TITLES.get(k, 'Situação geral do departamento')}",
+                key=pdf_key,
+                placeholder="Escolha ao menos uma análise",
+            )
+        )
+        with st.container(horizontal=True, vertical_alignment="center"):
+            if chosen:
+                complete = len(chosen) == len(COMPLETE_CODES)
+                download_button(
+                    "Baixar relatório completo (PDF)"
+                    if complete
+                    else "Baixar relatório das análises selecionadas (PDF)",
+                    lambda: report_pdf(package(chosen), branding, selected=chosen),
+                    file_name=f"vrac-{'-'.join(chosen)}-{stamp}.pdf",
+                    mime="application/pdf",
+                    key=f"{prefix}_download_pdf_" + "_".join(chosen),
+                    type="primary",
+                    on_click="ignore",
+                )
+            download_button(
+                "Baixar pacote (ZIP)",
+                package,
+                file_name=f"vrac-analises-sinteticas-{stamp}.zip",
+                mime="application/zip",
+                key=f"{prefix}_download_all",
+                on_click="ignore",
+            )
+            if set(available) != set(COMPLETE_CODES):
+                st.button(
+                    "Preparar relatório completo (R01–R06)",
+                    key=f"{prefix}_complete_report",
+                    type="tertiary",
+                    on_click=_request_complete_report,
+                    help="Abre Docentes › Relatório completo e calcula os seis roteiros "
+                    "com o recorte de Docentes.",
+                )
+        if not chosen:
+            st.caption("Escolha ao menos uma análise para liberar o PDF; o ZIP segue disponível.")
+
+
 def workbench(
     settings: Settings,
     branding: Branding,
@@ -680,12 +748,6 @@ def workbench(
             _clear(prefix=prefix)
         with st.container(horizontal=True, vertical_alignment="center"):
             run = st.button("Calcular resultados", type="primary", key=f"{prefix}_run")
-            st.button(
-                "Preparar relatório completo (R01–R06)",
-                key=f"{prefix}_complete_report",
-                on_click=_request_complete_report,
-                help="Abre Docentes › Relatório completo e calcula os seis roteiros.",
-            )
             st.button(
                 "Limpar filtros",
                 key=f"{prefix}_reset_filters",
@@ -775,6 +837,7 @@ def workbench(
         "Snapshot acadêmico": source.fingerprint,
         "Atualização da fonte": "não disponível",
     }
+    export_slot = panel.container()
     show_overview = "R01" in kinds
     labels = (["R01 · Situação geral"] if show_overview else []) + [
         f"{r.kind} · {r.title}" for r in results
@@ -828,48 +891,14 @@ def workbench(
             else (),
         )
 
-    with panel:
-        available = (["R01"] if show_overview else []) + [str(r.kind) for r in results]
-        pdf_key = f"{prefix}_pdf_analyses"
-        if pdf_key in st.session_state:
-            st.session_state[pdf_key] = [k for k in st.session_state[pdf_key] if k in available]
-        chosen = tuple(
-            st.multiselect(
-                "Análises que entram no PDF",
-                available,
-                default=None if pdf_key in st.session_state else available,
-                format_func=lambda k: f"{k} · {TITLES.get(k, 'Situação geral do departamento')}",
-                key=pdf_key,
-                help="Marque apenas as análises desejadas. Para disponibilizar as seis, use "
-                "Preparar relatório completo (R01–R06). O ZIP mantém as análises calculadas.",
-            )
-        )
-        if chosen:
-            st.caption(
-                "PDF visual: resultados consolidados e gráficos, em formato de apresentação. "
-                "As tabelas detalhadas permanecem na tela e no pacote ZIP."
-            )
-            complete = len(chosen) == 6
-            download_button(
-                "Baixar relatório completo (PDF)"
-                if complete
-                else "Baixar relatório das análises selecionadas (PDF)",
-                lambda: report_pdf(package(chosen), branding, selected=chosen),
-                file_name=f"vrac-{'-'.join(chosen)}-{generated_at:%Y%m%d-%H%M%S}.pdf",
-                mime="application/pdf",
-                key=f"{prefix}_download_pdf_" + "_".join(chosen),
-                on_click="ignore",
-            )
-        else:
-            st.info("Selecione pelo menos uma análise para baixar o PDF.")
-        download_button(
-            "Baixar pacote das análises (ZIP)",
-            package,
-            file_name=f"vrac-analises-sinteticas-{generated_at:%Y%m%d-%H%M%S}.zip",
-            mime="application/zip",
-            key=f"{prefix}_download_all",
-            on_click="ignore",
-        )
+    export_box(
+        export_slot,
+        prefix=prefix,
+        available=(*(("R01",) if show_overview else ()), *(str(r.kind) for r in results)),
+        package=package,
+        branding=branding,
+        generated_at=generated_at,
+    )
     status = "; ".join(
         ([f"R01: {overview_manifest['status']}"] if overview_manifest else [])
         + [f"{r.kind}: {r.status}" for r in results]

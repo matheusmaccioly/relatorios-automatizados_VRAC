@@ -4,6 +4,17 @@ Registro iniciado em 26/10/2026. “Adotada para a fundação” descreve uma de
 
 ## Decisões
 
+**D-038 — exportação do PDF em todas as telas, Matheus, 10/11/2026:** Matheus pediu
+melhor disposição da construção do PDF, presente em todas as páginas, e opção de relatório
+completo na página inicial. Decidido: (1) um único bloco **Baixar relatório** no topo dos
+resultados de cada tela (Panorama, demais análises docentes e Alunos), com a seleção das
+análises do PDF, o PDF, o ZIP e, quando faltam roteiros, o atalho do relatório completo.
+(2) O Panorama passa a exportar PDF/ZIP com R01 e o histórico como exibido na tela (série
+mensal, sem métricas adicionais). (3) A página inicial ganha **Gerar relatório completo
+(R01–R06)**, que usa o departamento escolhido, abre Docentes › Relatório completo e já
+calcula. Financeira e Projetos patrocinados continuam sem dados e sem exportação. O
+conteúdo do PDF e as regras não mudam.
+
 **D-037 — navegação por área e página inicial interativa, Matheus, 10/11/2026:** Matheus
 achou a interface pouco intuitiva e pediu as análises agrupadas nas abas superiores por
 área: Docentes, Alunos, Financeira e Projetos patrocinados, as duas últimas com "em breve".

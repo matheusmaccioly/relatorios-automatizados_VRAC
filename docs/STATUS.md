@@ -1,3 +1,18 @@
+## Exportação do PDF em todas as telas — 10/11/2026
+
+Pedido de Matheus (D-038): bloco único **Baixar relatório** (seleção do PDF, PDF, ZIP e
+atalho do relatório completo) no topo dos resultados do Panorama, das análises docentes e
+de Alunos; botão **Gerar relatório completo (R01–R06)** na página inicial.
+
+| Verificação | Resultado observado |
+|---|---|
+| Suíte offline | **549 aprovados, 5 ignorados** (sqlalchemy ausente no Mac; testes de Windows) |
+| Novos testes | Relatório completo pela página inicial; PDF real do Panorama com R01 e R03 |
+| Navegador headless | Início, bloco no Panorama e relatório completo pela página inicial; PDF de 1,1 MB baixado; sem erros de console |
+
+**A validar:** Matheus e Talita — posição do bloco e se o PDF do Panorama deve incluir o
+histórico mensal. **Não executado:** Supabase/Cloud com login real.
+
 ## Navegação por área e página inicial interativa — 10/11/2026
 
 Matheus achou a interface pouco intuitiva: página inicial só informativa e análises
