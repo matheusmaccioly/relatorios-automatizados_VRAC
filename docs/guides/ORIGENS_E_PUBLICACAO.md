@@ -60,7 +60,7 @@ analítica ou visual.
 A configuração compartilhada usa `server.fileWatcherType=auto`, para observar
 mudanças nos módulos importados. Os atalhos locais podem continuar desativando
 essa observação por argumento de linha de comando. A versão do pacote nesta
-entrega é `0.1.2`, consistente em `pyproject.toml` e `uv.lock`.
+entrega é `0.1.3`, consistente em `pyproject.toml` e `uv.lock`.
 
 A [documentação de configuração do Streamlit](https://docs.streamlit.io/develop/api-reference/configuration/config.toml)
 explica que `none` desativa a observação de arquivos. A mudança no arquivo de
@@ -79,5 +79,30 @@ a identificação JUR ainda requer conferência e não foi convertida em outra s
 
 A publicação não amplia permissões nem recarrega o lote. Validar com Matheus e
 Talita a consulta autenticada, os filtros e as exportações no ambiente web.
-O cabeçalho contém o atributo técnico `data-vrac-release="0.1.2"` para conferir
+O cabeçalho contém o atributo técnico `data-vrac-release="0.1.3"` para conferir
 a versão efetivamente renderizada, sem exibir informações internas.
+
+## Centros e departamentos nas análises institucionais
+
+O cadastro compartilhado em `src/vrac/department_hierarchy.py` associa somente
+os departamentos disponíveis e autorizados ao seu centro atual:
+
+| Centro | Departamentos do recorte |
+|---|---|
+| CCS — Centro de Ciências Sociais | ADM, ECO |
+| CTCH — Centro de Teologia e Ciências Humanas | EDU, FIL |
+| CTC — Centro Técnico Científico | ELE, IND, INF |
+
+Conferido em 11/11/2026 no [diretório oficial de centros da PUC-Rio](https://www.puc-rio.br/english/departaments/centers_departaments.html)
+e nas colunas de centro da fonte de alunos. Não descreve alterações históricas
+de vinculação. Novos departamentos sem cadastro permanecem em “Centro não informado”.
+O cadastro nunca adiciona departamentos ao acesso do usuário.
+
+Direito (DIR/JUR) fica fora dos filtros e dos recortes institucionais de docentes,
+inclusive “Todos os departamentos”, totais, séries e relatório completo. As cargas
+originais e permissões permanecem preservadas. Alunos continuam sem Direito.
+Centro restringe os departamentos nas análises e acompanha os filtros exportados;
+a troca de centro invalida resultados e arquivos do recorte anterior.
+
+Alteração incluída na publicação autorizada da versão 0.1.3. Não exige recarga do Supabase.
+Validar com Matheus/Talita os recortes CCS/CTCH/CTC antes da homologação.

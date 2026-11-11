@@ -196,3 +196,20 @@ def test_full_axis_png_preserves_semesters_and_zero_baseline(session):
         return figure
 
     assert render_png(build).startswith(b"\x89PNG")
+
+
+def test_center_limits_students_and_discards_previous_exports(monkeypatch, session):
+    app = screen(monkeypatch, session)
+    app.button(key="institutional_students_run").click().run()
+    assert app.get("download_button")
+    app.selectbox(key="institutional_students_center").select("CTC").run()
+    assert not app.exception and not app.get("download_button")
+    assert app.multiselect(key="institutional_students_departments").options == ["IND"]
+    app.button(key="institutional_students_run").click().run()
+    assert not app.exception and app.get("download_button")
+    params = [p for name, p in session.client.calls if name == "vrac_alunos_geral"][-1]
+    assert params["p_departamentos"] == ["IND"]
+    assert params["p_filtros"]["sigla_centro"] == ["CTC"]
+    app.selectbox(key="institutional_students_center").select("CCS").run()
+    assert not app.get("download_button")
+    assert app.multiselect(key="institutional_students_departments").value == ["ECO"]

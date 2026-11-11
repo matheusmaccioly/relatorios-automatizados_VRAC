@@ -9,6 +9,7 @@ from vrac.authorization import require_data_access
 from vrac.department_hierarchy import (
     DepartmentHierarchy,
     hierarchy_for_departments,
+    institutional_hierarchy,
     resolve_departments,
 )
 from vrac.settings import DataMode, DemoSource, Settings
@@ -87,6 +88,8 @@ def load_faculty_departments(settings: Settings) -> tuple[str, ...]:
 def load_department_hierarchy(settings: Settings) -> DepartmentHierarchy:
     """Relações da fixture em memória; centro ausente na origem PG é pendência explícita."""
     departments = load_faculty_departments(settings)
+    if settings.data_mode == DataMode.PSEUDONYMIZED:
+        return institutional_hierarchy(departments)
     return hierarchy_for_departments(
         departments,
         source={DemoSource.POSTGRES: "PostgreSQL sintético", DemoSource.SUPABASE: "Supabase"}.get(

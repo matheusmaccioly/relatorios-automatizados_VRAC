@@ -15,7 +15,7 @@ from vrac.analyses.faculty_overview import FacultySource, RealHoursRow, Register
 from vrac.authorization import require_data_access
 from vrac.db.faculty_csv_reader import load_scope
 from vrac.demo_data import DemoDataError, DemoOptions
-from vrac.department_hierarchy import resolve_departments
+from vrac.department_hierarchy import available_institutional_departments, resolve_departments
 from vrac.provenance import INSTITUTIONAL_SOURCE
 from vrac.settings import DataMode, Settings
 from vrac.supabase_auth import current_session
@@ -36,8 +36,11 @@ def load_options(settings: Settings) -> DemoOptions:
             or not data["periods"]
         ):
             raise ValueError
+        departments = available_institutional_departments(tuple(data["departments"]))
+        if not departments:
+            raise ValueError
         return DemoOptions(
-            tuple(data["departments"]),
+            departments,
             tuple(data["periods"]),
             data["periods"][-1],
             INSTITUTIONAL_SOURCE,
@@ -80,6 +83,7 @@ def adapt(
         for r in parts["cadastro"]
     )
     notes = (
+        "Direito (DIR/JUR) pendente; excluído deste recorte e dos totais.",
         "Origem institucional pseudonimizada; IDs não são matrículas reais. Acesso restrito.",
         "Cadastro atual e histórico da população atualmente alocada; "
         "não representa lotação histórica.",

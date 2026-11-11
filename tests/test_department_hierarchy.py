@@ -157,3 +157,16 @@ def test_invalid_postgres_scope_stops_before_any_record_query(monkeypatch) -> No
             departments=("SINT-A", "SINT-A'; SELECT 1; --"),
         )
     assert all(parameters is None for _, parameters in calls)
+
+
+def test_institutional_mapping_intersects_access_and_keeps_unknown_explicit():
+    from vrac.department_hierarchy import institutional_hierarchy
+
+    hierarchy = institutional_hierarchy(
+        ("ADM", "ECO", "EDU", "FIL", "ELE", "IND", "INF", "DIR", "JUR", "NOVO")
+    )
+    assert hierarchy.departments_for("CCS") == ("ADM", "ECO")
+    assert hierarchy.departments_for("CTCH") == ("EDU", "FIL")
+    assert hierarchy.departments_for("CTC") == ("ELE", "IND", "INF")
+    assert hierarchy.departments_for(UNKNOWN_CENTER) == ("NOVO",)
+    assert institutional_hierarchy(("IND",)).departments_for("CTC") == ("IND",)

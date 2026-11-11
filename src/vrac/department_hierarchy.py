@@ -7,6 +7,35 @@ from vrac.analyses.academic_data import ALL_DEPARTMENTS
 ALL_CENTERS = "Todos os centros"
 UNKNOWN_CENTER = "Centro não informado"
 
+# Cadastro atual: CSV e diretório PUC-Rio, conferidos em 11/11/2026.
+# Não representa lotação histórica e não concede autorização.
+INSTITUTIONAL_CENTERS = {
+    "ADM": "CCS",
+    "ECO": "CCS",
+    "EDU": "CTCH",
+    "FIL": "CTCH",
+    "ELE": "CTC",
+    "IND": "CTC",
+    "INF": "CTC",
+}
+PENDING_DEPARTMENTS = frozenset({"DIR", "JUR"})
+
+
+def available_institutional_departments(departments: tuple[str, ...]) -> tuple[str, ...]:
+    return tuple(d for d in departments if d not in PENDING_DEPARTMENTS)
+
+
+def institutional_hierarchy(departments: tuple[str, ...]) -> "DepartmentHierarchy":
+    return DepartmentHierarchy(
+        tuple(
+            DepartmentRelation(INSTITUTIONAL_CENTERS.get(d, UNKNOWN_CENTER), d)
+            for d in available_institutional_departments(departments)
+        ),
+        "Cadastro institucional de centros · 11/11/2026",
+        "Centro > Departamento: cadastro atual, conferido com a fonte e o diretório PUC-Rio. "
+        "Direito permanece pendente e não integra os resultados, inclusive os totais.",
+    )
+
 
 @dataclass(frozen=True, slots=True)
 class DepartmentRelation:

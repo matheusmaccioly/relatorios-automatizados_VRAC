@@ -313,3 +313,31 @@ require_login(DataMode(mode))
         with pytest.raises(KeyError):
             app.session_state[key]
     assert app.session_state["vrac_auth_session"].data_mode == DataMode.SYNTHETIC
+
+
+def test_pending_rights_excluded_from_all_queries_and_explicit_selection(parts, monkeypatch):
+    from vrac.db import institutional_faculty as reader
+    from vrac.demo_data import DemoDataError, load_department_hierarchy
+    from vrac.department_hierarchy import ALL_DEPARTMENTS
+
+    session = identity(parts)
+    session.client.allowed = ["IND", "DIR", "JUR"]
+    verify_session(session)
+    scopes = []
+
+    def records(*, batch, component, departments):
+        scopes.append(departments)
+        return parts[component]
+
+    monkeypatch.setattr(reader, "load_scope", records)
+    with session_scope(session):
+        assert reader.load_options(SETTINGS).departments == ("IND",)
+        assert load_department_hierarchy(SETTINGS).centers == ("CTC",)
+        reader.load_faculty_source(SETTINGS, department=ALL_DEPARTMENTS)
+        reader.load_academic_source(SETTINGS, department=ALL_DEPARTMENTS)
+        assert scopes and all(scope == ("IND",) for scope in scopes)
+        for load in (reader.load_faculty_source, reader.load_academic_source):
+            for pending in ("DIR", "JUR"):
+                with pytest.raises(DemoDataError):
+                    load(SETTINGS, department=pending)
+        assert session.departments == ("IND", "DIR", "JUR")

@@ -17,7 +17,7 @@ from vrac.db.institutional_students import (
     periods,
 )
 from vrac.demo_data import DemoDataError
-from vrac.department_hierarchy import ALL_DEPARTMENTS
+from vrac.department_hierarchy import ALL_CENTERS, ALL_DEPARTMENTS, institutional_hierarchy
 from vrac.web_charts import interactive_chart
 
 PREFIX = "institutional_students_"
@@ -53,8 +53,15 @@ def render(branding: Branding, *, active: bool) -> None:
         if st.session_state.get(PREFIX + "scope") != options:
             clear()
             st.session_state[PREFIX + "scope"] = options
+        hierarchy = institutional_hierarchy(options.departments)
+        centers = (ALL_CENTERS, *hierarchy.centers)
+        center_key = PREFIX + "center"
+        if st.session_state.get(center_key, ALL_CENTERS) not in centers:
+            st.session_state[center_key] = ALL_CENTERS
         autorun = st.session_state.pop("alunos_autorun", False)
         if autorun:
+            st.session_state[center_key] = ALL_CENTERS
+            st.session_state[PREFIX + "center_scope"] = ALL_CENTERS
             requested = st.session_state.get("alunos_department", ALL_DEPARTMENTS)
             if requested == ALL_DEPARTMENTS:
                 st.session_state[PREFIX + "departments"] = list(options.departments)
@@ -66,11 +73,17 @@ def render(branding: Branding, *, active: bool) -> None:
                     "O departamento solicitado está pendente ou não está autorizado para alunos."
                 )
                 return
+        center = st.selectbox("Centro", centers, key=center_key)
+        available = hierarchy.departments_for(center)
+        if st.session_state.get(PREFIX + "center_scope") != center:
+            _discard()
+            st.session_state[PREFIX + "departments"] = list(available)
+            st.session_state[PREFIX + "center_scope"] = center
         departments = tuple(
             st.multiselect(
                 "Departamentos",
-                options.departments,
-                default=options.departments,
+                available,
+                default=available,
                 key=PREFIX + "departments",
             )
         )
@@ -102,6 +115,8 @@ def render(branding: Branding, *, active: bool) -> None:
         with st.expander("Filtros acadêmicos", expanded=True):
             columns = st.columns(3)
             for i, (field, title) in enumerate(FILTERS.items()):
+                if field == "sigla_centro":
+                    continue
                 with columns[i % 3]:
                     # Índices evitam ambiguidades do widget entre None e nenhuma seleção.
                     chosen = st.multiselect(
@@ -113,6 +128,8 @@ def render(branding: Branding, *, active: bool) -> None:
                     )
                     if chosen:
                         filters[field] = [facets[field][index] for index in chosen]
+        if center != ALL_CENTERS:
+            filters["sigla_centro"] = [center]
         context = {
             "Departamentos": ", ".join(departments),
             "Semestre inicial": period_label(start),
@@ -124,7 +141,7 @@ def render(branding: Branding, *, active: bool) -> None:
             "Direito": "Pendente; não incluído",
         }
         st.table(pd.DataFrame(context.items(), columns=["Filtro", "Valor"]))
-        signature = (options, departments, start, end, filters)
+        signature = (options, center, departments, start, end, filters)
         if st.session_state.get(PREFIX + "signature") != signature:
             _discard()
             st.session_state[PREFIX + "signature"] = signature

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vrac-analises"
-version = "0.1.2"
+version = "0.1.3"
 description = "Fundação da PoC interna de análises acadêmicas da VRAC — demonstração sintética"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
