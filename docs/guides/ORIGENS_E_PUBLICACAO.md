@@ -60,7 +60,7 @@ analítica ou visual.
 A configuração compartilhada usa `server.fileWatcherType=auto`, para observar
 mudanças nos módulos importados. Os atalhos locais podem continuar desativando
 essa observação por argumento de linha de comando. A versão do pacote nesta
-entrega é `0.1.1`, consistente em `pyproject.toml` e `uv.lock`.
+entrega é `0.1.2`, consistente em `pyproject.toml` e `uv.lock`.
 
 A [documentação de configuração do Streamlit](https://docs.streamlit.io/develop/api-reference/configuration/config.toml)
 explica que `none` desativa a observação de arquivos. A mudança no arquivo de
@@ -68,3 +68,16 @@ dependências aciona a resolução do ambiente conforme a
 [documentação do Community Cloud](https://docs.streamlit.io/deploy/streamlit-community-cloud/manage-your-app/upgrade-streamlit).
 Conferir o resultado no navegador; um push aceito sozinho não comprova atualização
 do aplicativo em execução.
+
+## Análise Geral de alunos — versão 0.1.2
+
+Após o login, abra **Alunos → Análise temporal → Análise Geral**. A consulta
+usa somente os departamentos autorizados para a sessão e apresenta séries por
+semestre, filtros acadêmicos, tabela e exportações CSV e PNG, seguindo as
+classificações da página de referência do PBIP. Direito permanece pendente;
+a identificação JUR ainda requer conferência e não foi convertida em outra sigla.
+
+A publicação não amplia permissões nem recarrega o lote. Validar com Matheus e
+Talita a consulta autenticada, os filtros e as exportações no ambiente web.
+O cabeçalho contém o atributo técnico `data-vrac-release="0.1.2"` para conferir
+a versão efetivamente renderizada, sem exibir informações internas.
