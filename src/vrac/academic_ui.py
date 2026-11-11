@@ -22,7 +22,12 @@ from vrac.analyses.academic_data import AcademicSource
 from vrac.analyses.academic_export import report_zip, result_context, summary_table, table_csv
 from vrac.analyses.academic_quality import inspect_source
 from vrac.analyses.export import _write, detail_csv, summary_csv
-from vrac.analyses.faculty_overview import OverviewFilters, compute_overview, filter_options
+from vrac.analyses.faculty_overview import (
+    FacultyOverview,
+    OverviewFilters,
+    compute_overview,
+    filter_options,
+)
 from vrac.analyses.pdf_export import report_pdf
 from vrac.analyses.verification import (
     IDENTITY,
@@ -40,6 +45,7 @@ from vrac.demo_data import (
     load_department_hierarchy,
 )
 from vrac.faculty_presentation import (
+    composition_pngs,
     render_composition,
     render_faculty_details,
     render_faculty_metric,
@@ -47,11 +53,19 @@ from vrac.faculty_presentation import (
 from vrac.feedback import OVERVIEW_STATUS
 from vrac.feedback_ui import render_feedback
 from vrac.indicators import change_label
-from vrac.navigation import ALL_FACULTY, COMPLETE_CODES, FACULTY, FACULTY_PICKER, VIEW_KEY
+from vrac.navigation import COMPLETE_CODES
 from vrac.organisation_ui import OrganisationScope, organisation_filters
 from vrac.provenance import nature
 from vrac.settings import DemoSource, Settings
-from vrac.ui_kit import card_title, data_table, download_button, scroll_to, show_chart, step
+from vrac.ui_kit import (
+    card_title,
+    data_table,
+    download_button,
+    info_button,
+    scroll_to,
+    show_chart,
+    step,
+)
 from vrac.web_charts import interactive_chart
 
 ANALYSIS_GUIDE = {
@@ -259,13 +273,12 @@ def _filters(source: AcademicSource, kinds: frozenset[str], prefix: str) -> Anal
             if kinds & QP_ANALYSES:
                 qp_key = f"{prefix}_qp"
                 qp_options = sorted({r.cadre for r in source.faculty.register if r.cadre})
-                defaults = [x for x in qp_options if x in {"PROF PRINCIPAL", "PRINCIPAL"}]
                 if qp_key in st.session_state:
                     st.session_state[qp_key] = [
                         x for x in st.session_state[qp_key] if x in qp_options
                     ]
                 else:
-                    st.session_state[qp_key] = defaults
+                    st.session_state[qp_key] = _qp_defaults(source)
                 qp = tuple(
                     st.multiselect(
                         "Quadros do grupo QP — simulação configurável",
@@ -274,13 +287,20 @@ def _filters(source: AcademicSource, kinds: frozenset[str], prefix: str) -> Anal
                         persist_state="page",
                     )
                 )
-            st.caption(
-                "O grupo inicial é apenas um exemplo de simulação, sem definição institucional "
-                "de QP. Seus quadros ficam registrados nos filtros e nas exportações. Na R03, "
-                "o filtro de quadros controla as séries exibidas e preserva o total; na "
-                "R04/R05 filtra a população. Na R02, Quadros docentes não recorta o geral: "
-                "use o grupo QP para a comparação."
-            )
+            with st.container(horizontal=True, horizontal_alignment="right"):
+                info_button(
+                    (
+                        "O grupo QP inicial é apenas um exemplo de simulação, sem definição "
+                        "institucional. Seus quadros ficam registrados nos filtros e nas "
+                        "exportações.",
+                        "Na R03, o filtro de quadros controla as séries exibidas e preserva o "
+                        "total; na R04 e na R05 filtra a população.",
+                        "Na R02, Quadros docentes não recorta o geral: use o grupo QP para a "
+                        "comparação.",
+                    ),
+                    key=f"{prefix}-filtros-docentes",
+                    title="Como estes filtros funcionam",
+                )
     courses: tuple[str, ...] = ()
     qualifications: tuple[str, ...] = ()
     levels: tuple[str, ...] = ()
@@ -311,10 +331,15 @@ def _filters(source: AcademicSource, kinds: frozenset[str], prefix: str) -> Anal
                     {r.entry_kind for r in student_rows if r.entry_kind},
                     f"{prefix}_entries",
                 )
-            st.caption(
-                "As situações de cada série seguem a regra documentada; cursos "
-                "não são unidos pelo nome."
-            )
+            with st.container(horizontal=True, horizontal_alignment="right"):
+                info_button(
+                    (
+                        "As situações de cada série seguem a regra documentada.",
+                        "Cursos não são unidos pelo nome.",
+                    ),
+                    key=f"{prefix}-filtros-academicos",
+                    title="Como estes filtros funcionam",
+                )
     return AnalysisFilters(
         first_period,
         last_period,
@@ -328,6 +353,41 @@ def _filters(source: AcademicSource, kinds: frozenset[str], prefix: str) -> Anal
         levels,
         entries,
     )
+
+
+def filter_descriptions(
+    scope: OrganisationScope, source: AcademicSource, filters: AnalysisFilters
+) -> dict[str, str]:
+    """Recorte por extenso, igual na tela, no ZIP e no PDF."""
+    return {
+        "Centro": scope.center,
+        "Departamento": scope.department,
+        "Departamentos efetivos": ", ".join(scope.departments),
+        "Origem": source.faculty.source,
+        "Referência inicial": filters.first_period,
+        "Referência final": filters.last_period,
+        "Semestre da carga": filters.workload_period,
+        "Grupo QP selecionado": ", ".join(filters.qp_cadres) or "Não selecionado",
+        "Quadros": ", ".join(filters.cadres) or "Todos",
+        "Categorias": ", ".join(filters.categories) or "Todas",
+        "Cursos": ", ".join(filters.courses) or "Todos",
+        "Habilitações": ", ".join(filters.qualifications) or "Todas",
+        "Turnos": ", ".join(filters.shifts) or "Todos",
+        "Níveis": ", ".join(filters.levels) or "Todos",
+        "Formas de ingresso": ", ".join(filters.entry_kinds) or "Todas",
+    }
+
+
+def _qp_defaults(source: AcademicSource) -> list[str]:
+    """Exemplo inicial do grupo QP simulado; não é definição institucional."""
+    options = sorted({r.cadre for r in source.faculty.register if r.cadre})
+    return [x for x in options if x in {"PROF PRINCIPAL", "PRINCIPAL"}]
+
+
+def default_filters(source: AcademicSource) -> AnalysisFilters:
+    """Recorte inicial do formulário: intervalo completo e seleções vazias."""
+    periods = source.periods
+    return AnalysisFilters(periods[0], periods[-1], periods[-1], tuple(_qp_defaults(source)))
 
 
 def _table_download(
@@ -347,6 +407,43 @@ def _table_download(
     )
 
 
+def _chart_context(
+    result: CalculatedAnalysis, specification: ChartSpec, export_context: dict[str, str] | None
+) -> dict[str, str]:
+    table = next(t for t in result.tables if t.key == specification.table)
+    return result_context(result, export_context) | {
+        "Análise": str(result.kind),
+        "Gráfico": specification.title,
+        "Unidade": chart_unit(result, specification),
+        "Avisos": " | ".join((*result.notes, table.note)),
+    }
+
+
+def _chart_png(
+    result: CalculatedAnalysis,
+    specification: ChartSpec,
+    branding: Branding,
+    chart_context: dict[str, str],
+) -> Callable[[], bytes]:
+    return lambda: render_png(
+        lambda: academic_chart(result, specification, branding), chart_context
+    )
+
+
+def _visible_charts(result: CalculatedAnalysis) -> list[tuple[int, ChartSpec]]:
+    """Gráficos com ao menos um valor; série toda ausente não vira gráfico vazio."""
+    visible = []
+    for index, specification in enumerate(result.charts):
+        table = next(t for t in result.tables if t.key == specification.table)
+        if table.rows and any(
+            row[table.columns.index(s)] is not None
+            for row in table.rows
+            for s in specification.series
+        ):
+            visible.append((index, specification))
+    return visible
+
+
 def _chart_card(
     result: CalculatedAnalysis,
     specification: ChartSpec,
@@ -361,19 +458,22 @@ def _chart_card(
     """Gráfico primeiro e tabela sob demanda, com a unidade e o gerador do PNG do pacote."""
     table = next(t for t in result.tables if t.key == specification.table)
     unit = chart_unit(result, specification)
-    chart_context = result_context(result, export_context) | {
-        "Análise": str(result.kind),
-        "Gráfico": specification.title,
-        "Unidade": unit,
-        "Avisos": " | ".join((*result.notes, table.note)),
-    }
-
-    def png() -> bytes:
-        return render_png(lambda: academic_chart(result, specification, branding), chart_context)
+    chart_context = _chart_context(result, specification, export_context)
+    png = _chart_png(result, specification, branding, chart_context)
 
     with st.container(border=True):
         with st.container(horizontal=True, vertical_alignment="center"):
             card_title(specification.title, f"Unidade: {unit}")
+            if specification.kind == "stacked_bar":
+                info_button(
+                    (
+                        "As barras empilham presenças por quadro, com possível sobreposição.",
+                        "A altura da pilha não é o total de pessoas distintas; consulte o "
+                        "gráfico do total e a tabela da mesma competência ou semestre.",
+                    ),
+                    key=f"{prefix}-{result.kind}-{index}",
+                    title="Como ler este gráfico",
+                )
             download_button(
                 "Baixar gráfico (PNG)",
                 png,
@@ -389,12 +489,6 @@ def _chart_card(
             lambda: interactive_chart(result, specification, branding),
             key=f"{prefix}_{result.kind}_chart_{index}",
         )
-        if specification.kind == "stacked_bar":
-            st.warning(
-                "As barras empilham presenças por quadro, com possível sobreposição. "
-                "A altura da pilha não é o total de pessoas distintas; consulte o "
-                "gráfico do total e a tabela da mesma competência ou semestre."
-            )
         with st.expander("Ver tabela do gráfico"):
             _display(table)
             _table_download(result, table, generated_at, export_context, key=csv_key)
@@ -409,8 +503,14 @@ def _render_result(
     prefix: str = "suite",
     export_context: dict[str, str] | None = None,
 ) -> dict[str, Callable[[], bytes]]:
-    st.subheader(result.title)
-    st.caption(f"{result.kind} · Situação: {result.status} · Origem: {result.source}")
+    urgent = result.status in {"Bloqueado", "Parcial"}
+    with st.container(horizontal=True, vertical_alignment="center"):
+        st.subheader(result.title)
+        info_button(result.notes, key=f"{prefix}-{result.kind}")
+    st.caption(
+        f"{result.kind} · Situação: {result.status}"
+        + (" — os motivos estão no ícone ⓘ" if urgent and result.notes else "")
+    )
     with st.container(key=f"vrac-narrative-{prefix}-{result.kind}"):
         st.write(result.narrative)
     if result.metrics:
@@ -423,25 +523,8 @@ def _render_result(
                         "—" if metric.value is None else _format(metric.value),
                         help=f"{metric.unit}. {metric.status}. {metric.note}",
                     )
-    urgent = result.status in {"Bloqueado", "Parcial"}
-
-    def notes() -> None:
-        with st.expander("Regras, avisos e limitações", expanded=urgent):
-            for note in result.notes:
-                st.write(f"• {note}")
-
-    if urgent:
-        notes()
     images = {}
-    visible = []
-    for index, specification in enumerate(result.charts):
-        table = next(t for t in result.tables if t.key == specification.table)
-        if table.rows and any(
-            row[table.columns.index(s)] is not None
-            for row in table.rows
-            for s in specification.series
-        ):
-            visible.append((index, specification))
+    visible = _visible_charts(result)
     # Séries mensais precisam da largura toda; as demais ficam duas por linha.
     wide = [item for item in visible if item[1].table == "monthly_history"]
     narrow = [item for item in visible if item[1].table != "monthly_history"]
@@ -498,25 +581,23 @@ def _render_result(
                 export_context,
                 key=f"{prefix}_{result.kind}_{table.key}_csv",
             )
-    if not urgent:
-        notes()
     return images
 
 
-def _render_overview(
-    source: AcademicSource,
-    filters: AnalysisFilters,
-    branding: Branding,
-    generated_at: datetime,
-    export_context: dict[str, str],
-    prefix: str,
-) -> tuple[dict[str, bytes | Callable[[], bytes]], dict[str, str]]:
-    if "register" not in source.available:
-        st.error("R01 indisponível: o cadastro docente não pôde ser consultado neste snapshot.")
-        return (
-            {"R01/indisponivel.txt": (b"Cadastro docente indisponivel; sem resultado.")},
-            {"kind": "R01", "status": "indisponível"},
-        )
+R01_UNAVAILABLE = (
+    {"R01/indisponivel.txt": b"Cadastro docente indisponivel; sem resultado."},
+    {"kind": "R01", "status": "indisponível"},
+)
+R01_REFERENCE = (
+    "Referência: cadastro atual; categoria e departamento contam linhas com matrícula; "
+    "total e quadro contam matrículas funcionais distintas.",
+    "Horas Reais: maior semestre por vínculo. Atualização da fonte: não disponível.",
+    "A R02 trata separadamente o grupo QP simulado.",
+)
+
+
+def _overview_of(source: AcademicSource, filters: AnalysisFilters) -> tuple[FacultyOverview, bool]:
+    """R01 no recorte; devolve também se alguma seleção não existe no cadastro atual."""
     requested = OverviewFilters(
         frozenset(filters.cadres) if filters.cadres else None,
         frozenset(filters.categories) if filters.categories else None,
@@ -531,63 +612,140 @@ def _render_overview(
         else None,
     )
     result = replace(compute_overview(source.faculty, effective), filters=requested)
+    return result, requested != effective
+
+
+def _overview_files(
+    result: FacultyOverview, generated_at: datetime, export_context: dict[str, str]
+) -> tuple[dict[str, str], dict[str, bytes | Callable[[], bytes]], dict[str, str]]:
     export_context = export_context | {
         "Snapshot": result.fingerprint,
         "Versão dos dados": result.version,
     }
-    if requested != effective:
-        st.info(
-            "R01: seleções sem correspondência no cadastro atual não acrescentam vínculos. "
-            "O histórico mantém seu domínio e sua referência próprios."
-        )
-    st.subheader("R01 · Situação geral do departamento")
-    if result.status == "partial":
-        st.warning("Parcial — composição calculada; fonte de Horas Reais indisponível.")
-    st.caption(
-        "Referência: cadastro atual; categoria e departamento contam linhas com matrícula; "
-        "total e quadro contam matrículas funcionais distintas. Horas Reais: "
-        "maior semestre por vínculo. Atualização da fonte: não disponível."
-    )
-    st.write(result.narrative)
-    if result.total is not None:
-        render_faculty_metric(result, prefix=prefix)
-    for note in result.warnings:
-        st.caption(note)
     files = {
         "R01/resumo.csv": summary_csv(result, generated_at, export_context),
         "R01/lista-conferencia.csv": detail_csv(result, generated_at, export_context),
     }
-    files.update(
-        render_composition(result, branding, prefix=f"{prefix}_r01", export_context=export_context)
-    )
-    render_faculty_details(result)
-    for name, data in tuple(files.items()):
-        if name.endswith(".csv"):
-            download_button(
-                "Baixar " + name.removeprefix("R01/"),
-                data,
-                file_name="vrac-" + name.replace("/", "-"),
-                mime="text/csv",
-                key=f"{prefix}_{name}",
-            )
-    st.caption(
-        "A referência da R01 é o cadastro atual. A R02 trata separadamente o grupo QP simulado."
-    )
-    return files, {
+    manifest = {
         "kind": "R01",
         "status": OVERVIEW_STATUS[result.status],
         "source": result.source,
         "version": result.version,
         "fingerprint": result.fingerprint,
     }
+    return export_context, files, manifest
 
 
-def _request_complete_report() -> None:
-    """Executado antes dos widgets: o relatório completo vive em Docentes."""
-    st.session_state[VIEW_KEY] = FACULTY.tab
-    st.session_state[FACULTY_PICKER] = ALL_FACULTY
-    st.session_state.pop("suite_pdf_analyses", None)
-    st.session_state["suite_autorun"] = True
+def _render_overview(
+    source: AcademicSource,
+    filters: AnalysisFilters,
+    branding: Branding,
+    generated_at: datetime,
+    export_context: dict[str, str],
+    prefix: str,
+) -> tuple[dict[str, bytes | Callable[[], bytes]], dict[str, str]]:
+    if "register" not in source.available:
+        st.error("R01 indisponível: o cadastro docente não pôde ser consultado neste snapshot.")
+        return R01_UNAVAILABLE
+    result, unmatched = _overview_of(source, filters)
+    export_context, files, manifest = _overview_files(result, generated_at, export_context)
+    notes = [*R01_REFERENCE, *result.warnings]
+    if unmatched:
+        notes.insert(
+            0,
+            "Seleções sem correspondência no cadastro atual não acrescentam vínculos. "
+            "O histórico mantém seu domínio e sua referência próprios.",
+        )
+    with st.container(horizontal=True, vertical_alignment="center"):
+        st.subheader("R01 · Situação geral do departamento")
+        info_button(notes, key=f"{prefix}-R01")
+    if result.status == "partial":
+        st.caption("Situação: Parcial — composição calculada; fonte de Horas Reais indisponível.")
+    st.write(result.narrative)
+    if result.total is not None:
+        render_faculty_metric(result, prefix=prefix)
+    files.update(
+        render_composition(result, branding, prefix=f"{prefix}_r01", export_context=export_context)
+    )
+    render_faculty_details(result)
+    return files, manifest
+
+
+def _quality_csv(checks, source: AcademicSource, export_context: dict[str, str]) -> bytes:
+    quality_rows = [asdict(c) for c in checks]
+    return _write(
+        [["Contexto", key, value] for key, value in export_context.items()]
+        + [[]]
+        + [["Natureza", "Snapshot", *quality_rows[0]]]
+        + [
+            [nature(source.faculty.source), source.fingerprint, *row.values()]
+            for row in quality_rows
+        ]
+    )
+
+
+def complete_report_pdf(settings: Settings, branding: Branding, scope: OrganisationScope) -> bytes:
+    """R01–R06 do recorte inicial, sem desenhar a tela: o PDF sai em um clique.
+
+    Mesmo cálculo, mesmos arquivos e mesmo pacote da tela Relatório completo; falhas da
+    origem sobem como erro e nunca trocam a fonte por exemplos.
+    """
+    source = load_academic_source(settings, **scope.source_arguments)
+    filters = default_filters(source)
+    generated_at = datetime.now(UTC)
+    export_context = {
+        "Execução": str(uuid4()),
+        **filter_descriptions(scope, source, filters),
+        "Extração (UTC)": generated_at.isoformat(),
+        "Cálculo (UTC)": generated_at.isoformat(),
+        "Versão dos dados": source.faculty.version,
+        "Snapshot acadêmico": source.fingerprint,
+        "Atualização da fonte": "não disponível",
+    }
+    results = tuple(
+        calculate(AnalysisKind(code), source, filters) for code in COMPLETE_CODES if code != "R01"
+    )
+    files: dict[str, bytes | Callable[[], bytes]] = {
+        "conferencias-programadas.csv": _quality_csv(inspect_source(source), source, export_context)
+    }
+    if "register" in source.available:
+        overview, _ = _overview_of(source, filters)
+        r01_context, r01_files, manifest = _overview_files(overview, generated_at, export_context)
+        files |= r01_files | composition_pngs(overview, branding, r01_context)
+    else:
+        unavailable, manifest = R01_UNAVAILABLE
+        files |= unavailable
+    images = {
+        f"{result.kind}/grafico-{index + 1}.png": _chart_png(
+            result, specification, branding, _chart_context(result, specification, export_context)
+        )
+        for result in results
+        for index, specification in _visible_charts(result)
+    }
+    package = report_zip(
+        results,
+        generated_at,
+        {name: build() for name, build in images.items()},
+        {name: data() if callable(data) else data for name, data in files.items()},
+        export_context,
+        additional_analyses=(manifest,),
+    )
+    return report_pdf(package, branding, selected=COMPLETE_CODES)
+
+
+def _analysis_title(code: str) -> str:
+    return f"{code} · {TITLES.get(code, 'Situação geral do departamento')}"
+
+
+EXPORT_NOTES = (
+    "PDF: resultados, gráficos e textos em formato de apresentação, com o recorte e a "
+    "origem dos dados na capa.",
+    "ZIP: todas as tabelas (CSV), gráficos (PNG) e conferências, para quem precisa "
+    "refazer ou conferir os números.",
+    "Relatório completo: calcula as seis análises (R01–R06) do mesmo departamento com o "
+    "intervalo completo e os filtros iniciais.",
+    "Análises sem fonte disponível aparecem como bloqueadas, com o motivo.",
+)
 
 
 def export_box(
@@ -598,61 +756,64 @@ def export_box(
     package: Callable[[tuple[str, ...] | None], bytes],
     branding: Branding,
     generated_at: datetime,
+    complete: Callable[[], bytes] | None = None,
 ) -> None:
     """Bloco único de exportação, no topo dos resultados de todas as telas.
 
-    PDF e ZIP são montados só no clique, a partir do mesmo pacote.
+    Um clique por arquivo: PDF e ZIP são montados no clique, a partir do mesmo pacote.
     """
     pdf_key = f"{prefix}_pdf_analyses"
     if pdf_key in st.session_state:
         st.session_state[pdf_key] = [k for k in st.session_state[pdf_key] if k in available]
     stamp = f"{generated_at:%Y%m%d-%H%M%S}"
     with target, st.container(border=True, key=f"vrac-export-{prefix}"):
-        card_title(
-            "Baixar relatório",
-            "PDF em formato de apresentação, com resultados e gráficos. "
-            "ZIP com todas as tabelas, gráficos e conferências.",
-        )
-        chosen = tuple(
-            st.multiselect(
-                "Análises incluídas no PDF",
-                available,
-                default=None if pdf_key in st.session_state else available,
-                format_func=lambda k: f"{k} · {TITLES.get(k, 'Situação geral do departamento')}",
-                key=pdf_key,
-                placeholder="Escolha ao menos uma análise",
+        with st.container(horizontal=True, vertical_alignment="center"):
+            card_title("Baixar relatório")
+            info_button(EXPORT_NOTES, key=f"{prefix}-export", title="O que cada arquivo traz")
+        if len(available) > 1:
+            chosen = tuple(
+                st.pills(
+                    "Análises no PDF",
+                    available,
+                    selection_mode="multi",
+                    default=None if pdf_key in st.session_state else available,
+                    format_func=_analysis_title,
+                    key=pdf_key,
+                    help="Clique para tirar ou incluir uma análise do PDF.",
+                )
             )
-        )
+        else:
+            chosen = available
         with st.container(horizontal=True, vertical_alignment="center"):
             if chosen:
-                complete = len(chosen) == len(COMPLETE_CODES)
                 download_button(
-                    "Baixar relatório completo (PDF)"
-                    if complete
-                    else "Baixar relatório das análises selecionadas (PDF)",
+                    "Baixar PDF",
                     lambda: report_pdf(package(chosen), branding, selected=chosen),
                     file_name=f"vrac-{'-'.join(chosen)}-{stamp}.pdf",
                     mime="application/pdf",
                     key=f"{prefix}_download_pdf_" + "_".join(chosen),
                     type="primary",
+                    icon=":material/picture_as_pdf:",
                     on_click="ignore",
                 )
             download_button(
-                "Baixar pacote (ZIP)",
+                "Baixar dados (ZIP)",
                 package,
                 file_name=f"vrac-analises-{stamp}.zip",
                 mime="application/zip",
                 key=f"{prefix}_download_all",
+                icon=":material/folder_zip:",
                 on_click="ignore",
             )
-            if set(available) != set(COMPLETE_CODES):
-                st.button(
-                    "Preparar relatório completo (R01–R06)",
+            if complete is not None and set(available) != set(COMPLETE_CODES):
+                download_button(
+                    "Relatório completo R01–R06 (PDF)",
+                    complete,
+                    file_name=f"vrac-relatorio-completo-{stamp}.pdf",
+                    mime="application/pdf",
                     key=f"{prefix}_complete_report",
                     type="tertiary",
-                    on_click=_request_complete_report,
-                    help="Abre Docentes › Relatório completo e calcula os seis roteiros "
-                    "com o recorte de Docentes.",
+                    on_click="ignore",
                 )
         if not chosen:
             st.caption("Escolha ao menos uma análise para liberar o PDF; o ZIP segue disponível.")
@@ -685,7 +846,6 @@ def workbench(
         scope = organisation_filters(
             hierarchy, prefix=prefix, department_label="Departamento das análises"
         )
-        department = scope.department
         source_key = (settings.data_mode, settings.demo_source, scope)
         if st.session_state.get(f"{prefix}_source_key") != source_key:
             _clear(source=True, prefix=prefix)
@@ -706,6 +866,7 @@ def workbench(
         loaded_at = st.session_state[f"{prefix}_loaded_at"]
         with st.container(horizontal=True, vertical_alignment="center"):
             st.caption(f"Dados da origem selecionada lidos em {loaded_at:%d/%m/%Y %H:%M:%S} UTC.")
+            info_button(source.errors, key=f"{prefix}-fonte", title="Sobre os dados desta origem")
             # O clique descarta a base; a aba aberta lê de novo na mesma execução.
             st.button(
                 "Atualizar dados",
@@ -718,28 +879,10 @@ def workbench(
                     "Uma atualização remove o cálculo anterior."
                 ),
             )
-        for text in source.errors:
-            st.warning(text)
         checks = inspect_source(source)
         step(2, "Refine os filtros, se precisar, e calcule")
         filters = _filters(source, kinds, prefix)
-        descriptions = {
-            "Centro": scope.center,
-            "Departamento": department,
-            "Departamentos efetivos": ", ".join(scope.departments),
-            "Origem": source.faculty.source,
-            "Referência inicial": filters.first_period,
-            "Referência final": filters.last_period,
-            "Semestre da carga": filters.workload_period,
-            "Grupo QP selecionado": ", ".join(filters.qp_cadres) or "Não selecionado",
-            "Quadros": ", ".join(filters.cadres) or "Todos",
-            "Categorias": ", ".join(filters.categories) or "Todas",
-            "Cursos": ", ".join(filters.courses) or "Todos",
-            "Habilitações": ", ".join(filters.qualifications) or "Todas",
-            "Turnos": ", ".join(filters.shifts) or "Todos",
-            "Níveis": ", ".join(filters.levels) or "Todos",
-            "Formas de ingresso": ", ".join(filters.entry_kinds) or "Todas",
-        }
+        descriptions = filter_descriptions(scope, source, filters)
         key = (codes, source.fingerprint, filters)
         if st.session_state.get(f"{prefix}_result_key") != key:
             _clear(prefix=prefix)
@@ -842,16 +985,7 @@ def workbench(
     # Uma análise só dispensa abas internas; várias ficam lado a lado.
     tabs = panel.tabs(labels) if len(labels) > 1 else [panel.container()]
     files, images = {}, {}
-    quality_rows = [asdict(c) for c in checks]
-    files["conferencias-programadas.csv"] = _write(
-        [["Contexto", key, value] for key, value in export_context.items()]
-        + [[]]
-        + [["Natureza", "Snapshot", *quality_rows[0]]]
-        + [
-            [nature(source.faculty.source), source.fingerprint, *row.values()]
-            for row in quality_rows
-        ]
-    )
+    files["conferencias-programadas.csv"] = _quality_csv(checks, source, export_context)
     overview_manifest = None
     if show_overview:
         with tabs[0]:
@@ -895,6 +1029,7 @@ def workbench(
         package=package,
         branding=branding,
         generated_at=generated_at,
+        complete=lambda: complete_report_pdf(settings, branding, scope),
     )
     status = "; ".join(
         ([f"R01: {overview_manifest['status']}"] if overview_manifest else [])

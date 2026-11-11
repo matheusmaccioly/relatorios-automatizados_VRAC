@@ -6,6 +6,7 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
+from conftest import result_downloads
 from streamlit.testing.v1 import AppTest
 
 from vrac.analyses.academic_data import ALL_DEPARTMENTS
@@ -57,7 +58,7 @@ def test_overview_all_departments_is_limited_to_center_in_screen_and_csv() -> No
     assert not app.exception and not app.error
     assert "overview_result" not in app.session_state
     assert "overview_history" not in app.session_state
-    assert not app.metric and not app.get("download_button")
+    assert not app.metric and not result_downloads(app)
 
 
 def test_workbench_center_change_replaces_snapshot_and_removes_results() -> None:
@@ -84,7 +85,7 @@ def test_workbench_center_change_replaces_snapshot_and_removes_results() -> None
     replaced = app.session_state["suite_source"]
     assert replaced.department.startswith("Centro sintético 2")
     assert replaced.fingerprint != source.fingerprint
-    assert not app.metric and not app.get("download_button")
+    assert not app.metric and not result_downloads(app)
 
 
 def test_postgres_without_center_mapping_keeps_explicit_unknown_group(monkeypatch) -> None:

@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 import streamlit as st
+from conftest import result_downloads
 from matplotlib import pyplot as plt
 from streamlit.testing.v1 import AppTest
 
@@ -81,7 +82,7 @@ def test_reset_overview_removes_results_and_restores_dependent_filters() -> None
         "overview_execution_id",
     ):
         assert name not in app.session_state
-    assert not app.metric and not app.get("download_button")
+    assert not app.metric and not result_downloads(app)
 
 
 def test_changed_overview_filters_explain_why_previous_results_were_cleared() -> None:
@@ -90,7 +91,7 @@ def test_changed_overview_filters_explain_why_previous_results_were_cleared() ->
     assert "overview_result" in app.session_state
     app.selectbox(key="overview_department").select("SINT-B").run()
     assert not app.exception and "overview_result" not in app.session_state
-    assert not app.get("download_button")
+    assert not result_downloads(app)
     assert any("Os filtros mudaram" in message.value for message in app.info)
 
 
@@ -194,7 +195,7 @@ def test_scope_change_reload_failure_removes_the_previous_snapshot(monkeypatch) 
     app.selectbox(key="alunos_center").select("Centro sintético 2").run()
     assert not app.exception and app.error
     assert "alunos_source" not in app.session_state and "alunos_results" not in app.session_state
-    assert not app.get("download_button") or all(
+    assert not result_downloads(app) or all(
         not (button.key or "").startswith("alunos_") for button in app.get("download_button")
     )
 

@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+from conftest import result_downloads
 from streamlit.testing.v1 import AppTest
 
 from vrac.demo_data import DemoDataError
@@ -47,7 +48,7 @@ def test_invalid_history_interval_only_blocks_history_and_changing_period_clears
     assert any("Histórico indisponível" in warning.value for warning in app.warning)
     app.selectbox(key="overview_last").select("2026.2").run()
     assert "overview_result" not in app.session_state
-    assert not app.get("download_button")
+    assert not result_downloads(app)
 
 
 def test_switching_faculty_analyses_keeps_each_filter_and_result():

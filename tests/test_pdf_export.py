@@ -171,49 +171,64 @@ def test_long_text_and_many_categories_preserve_chart_and_text():
         assert text.split().count(word) == 300
 
 
-def test_complete_action_from_individual_selection_and_invalidation():
+def test_single_analysis_offers_one_click_pdf_and_complete_report():
     app = AppTest.from_file(
         str(Path(__file__).resolve().parents[1] / "app.py"), default_timeout=90
     ).run()
-    # Parte de uma análise individual em Alunos; o relatório completo vive em Docentes.
     app.button(key="home_open_R06").click().run()
     app.button(key="alunos_run").click().run()
-    assert app.multiselect(key="alunos_pdf_analyses").value == ["R06"]
-    app.button(key="alunos_complete_report").click().run()
     assert not app.exception
-    assert app.session_state["vrac-view"] == "Docentes"
-    assert len(app.session_state["suite_results"]) == 5
-    assert any(d.label == "Baixar relatório completo (PDF)" for d in app.get("download_button"))
-    app.multiselect(key="suite_pdf_analyses").set_value(["R01", "R06"]).run()
+    # Uma análise só: sem seleção, o PDF sai direto, e o completo fica ao lado.
+    assert not any(g.key == "alunos_pdf_analyses" for g in app.get("button_group"))
+    assert pdf_labels(app, "alunos") == ["Baixar PDF"]
+    keys = {d.key for d in app.get("download_button")}
+    assert {"alunos_download_all", "alunos_complete_report"} <= keys
+
+
+def test_pdf_selection_by_pills_and_invalidation():
+    app = AppTest.from_file(
+        str(Path(__file__).resolve().parents[1] / "app.py"), default_timeout=90
+    ).run()
+    app.button(key="home_open_todas").click().run()
+    app.button(key="suite_run").click().run()
     assert not app.exception
-    assert pdf_labels(app, "suite") == ["Baixar relatório das análises selecionadas (PDF)"]
-    app.multiselect(key="suite_pdf_analyses").set_value([]).run()
+    assert len(app.button_group(key="suite_pdf_analyses").value) == 6
+    assert pdf_labels(app, "suite") == ["Baixar PDF"]
+    app.button_group(key="suite_pdf_analyses").set_value(["R01", "R06"]).run()
+    assert not app.exception
+    assert [d.key for d in app.get("download_button") if "_download_pdf" in d.key] == [
+        "suite_download_pdf_R01_R06"
+    ]
+    app.button_group(key="suite_pdf_analyses").set_value([]).run()
     assert pdf_labels(app, "suite") == []
     assert any(d.key == "suite_download_all" for d in app.get("download_button"))
     # Com as seis análises calculadas, o atalho do relatório completo não se repete.
-    assert not any(b.key == "suite_complete_report" for b in app.button)
+    assert not any(d.key == "suite_complete_report" for d in app.get("download_button"))
     app.selectbox(key="suite_last").select("2026.1").run()
     assert not any(d.key.startswith("suite_") for d in app.get("download_button"))
 
 
-def test_home_complete_report_calculates_all_six_for_the_chosen_department():
+def test_home_complete_report_is_a_direct_download_of_all_six():
+    from vrac.academic_ui import complete_report_pdf
+    from vrac.department_hierarchy import ALL_CENTERS
+    from vrac.organisation_ui import OrganisationScope
+    from vrac.settings import load_settings
+
     app = AppTest.from_file(
         str(Path(__file__).resolve().parents[1] / "app.py"), default_timeout=90
     ).run()
     app.selectbox(key="home_department").select("SINT-B").run()
-    app.button(key="home_complete").click().run()
-    assert not app.exception and not app.error
-    assert app.session_state["vrac-view"] == "Docentes"
-    assert app.selectbox(key="suite_department").value == "SINT-B"
-    assert [r.kind for r in app.session_state["suite_results"]] == [
-        "R02",
-        "R03",
-        "R04",
-        "R05",
-        "R06",
-    ]
-    assert len(app.multiselect(key="suite_pdf_analyses").value) == 6
-    assert any(d.label == "Baixar relatório completo (PDF)" for d in app.get("download_button"))
+    # O botão do Início já é o download: não troca de aba nem calcula na tela.
+    assert [d.key for d in app.get("download_button")] == ["home_complete"]
+    assert app.session_state["vrac-view"] == "Início"
+    assert "suite_results" not in app.session_state
+    pdf = complete_report_pdf(
+        load_settings(), load_branding(), OrganisationScope(ALL_CENTERS, "SINT-B", ("SINT-B",))
+    )
+    text = " ".join(page.extract_text() for page in PdfReader(io.BytesIO(pdf)).pages)
+    for code in ("R01", "R02", "R03", "R04", "R05", "R06"):
+        assert code in text
+    assert "SINT-B" in text and "DADOS SINTÉTICOS" in text
 
 
 def pdf_labels(app, prefix):
@@ -241,8 +256,8 @@ def test_faculty_panorama_offers_the_same_pdf_block(monkeypatch):
     app.button(key="home_open_panorama").click().run()
     app.button(key="overview_run").click().run()
     assert not app.exception and not app.error
-    assert app.multiselect(key="overview_pdf_analyses").value == ["R01", "R03"]
-    assert pdf_labels(app, "overview") == ["Baixar relatório das análises selecionadas (PDF)"]
+    assert app.button_group(key="overview_pdf_analyses").value == ["R01", "R03"]
+    assert pdf_labels(app, "overview") == ["Baixar PDF"]
     assert any(d.key == "overview_download_all" for d in app.get("download_button"))
     reader = PdfReader(io.BytesIO(produced["pdf"]))
     text = " ".join(page.extract_text() for page in reader.pages)

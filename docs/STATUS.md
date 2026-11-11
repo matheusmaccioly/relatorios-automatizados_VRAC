@@ -1,3 +1,37 @@
+## Download em um clique e avisos no ícone ⓘ — 11/11/2026
+
+Pedido de Matheus (D-039), após atualizar a `main` local com a origem pseudonimizada.
+
+**O que mudou para quem usa:**
+
+- **Início › Gerar relatório completo (R01–R06):** baixa o PDF na hora, sem trocar de aba.
+- **Sem seletor “Origem dos dados”:** no Supabase, a origem é sempre a pseudonimizada.
+- **Baixar relatório:** *Baixar PDF*, *Baixar dados (ZIP)* e *Relatório completo R01–R06
+  (PDF)*; com várias análises, botões de seleção definem o que entra no PDF. No Supabase,
+  todos os downloads saem no mesmo clique.
+- **Ícone ⓘ:** regras, avisos, limitações e notas da fonte (inclusive “IDs não são
+  matrículas reais…”) ficam num ícone no canto do título, não mais em faixas amarelas.
+  A faixa do topo mostra só a natureza dos dados.
+
+| Verificação | Resultado observado |
+|---|---|
+| Suíte offline (`pytest`) | **581 aprovados, 5 ignorados** (sqlalchemy ausente no Mac; testes de Windows) |
+| Ruff `check` / `format --check` | Aprovados |
+| Chromium headless, origem memória | PDF completo baixado com um clique no Início, sem trocar de aba; PDF de R04 baixado; ícone ⓘ aberto; 390 px conferido; sem erros de console |
+| Chromium headless, página mínima | Link de download acionado sozinho dentro do iframe, como no modo Supabase |
+
+**Não executados:** Supabase/Cloud com login real e dados pseudonimizados; Safari e
+Firefox (o download automático pode ser bloqueado; o link fica como alternativa);
+navegação por teclado e leitor de tela.
+
+**Riscos:** o relatório completo do Início usa sempre o intervalo completo e os filtros
+iniciais, sem filtros adicionais. Calcular as seis análises e desenhar os gráficos pode
+levar alguns segundos sem resultado visível no modo local. A demonstração sintética no
+Supabase deixa de ser acessível pela hospedagem.
+
+**A validar:** Matheus e Talita — se o ícone ⓘ é fácil de achar e se a faixa do topo
+deve continuar; se o relatório completo do Início deve aceitar filtros.
+
 ## Exportação do PDF em todas as telas — 10/11/2026
 
 Pedido de Matheus (D-038): bloco único **Baixar relatório** (seleção do PDF, PDF, ZIP e

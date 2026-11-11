@@ -1,7 +1,8 @@
 # Origens dos dados e publicação da PoC
 
-A navegação por áreas da `main` é compartilhada pelas duas origens. Em Supabase,
-use **Origem dos dados** antes de entrar ou durante a sessão:
+A navegação por áreas da `main` é compartilhada pelas duas origens. Desde a D-039, a
+hospedagem (Supabase) usa sempre a origem institucional pseudonimizada, sem seletor;
+a demonstração sintética fica na execução local em memória:
 
 | Origem | Conteúdo | Acesso |
 | --- | --- | --- |
@@ -43,9 +44,8 @@ Os testes padrão são offline, com exemplos fictícios e rede bloqueada.
 Testes SQL de autorização são separados e exigem execução autorizada.
 
 A publicação existente usa `main` e `app.py` no Streamlit Community Cloud.
-Após um envio autorizado, conferir a reconstrução da aplicação, a presença do
-seletor e o login. Em uma sessão autorizada, selecionar a origem institucional,
-conferir Docentes e as exportações, depois alternar para a demonstração.
+Após um envio autorizado, conferir a reconstrução da aplicação e o login. Em uma sessão autorizada,
+conferir Docentes, as exportações e o relatório completo do Início.
 Nenhum CSV, material de origem, registro individual ou script pontual de concessão
 de acesso deve integrar o commit público. As migrações versionadas descrevem o
 schema; publicar o código não deve executar novamente a importação.

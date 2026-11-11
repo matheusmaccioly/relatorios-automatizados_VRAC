@@ -78,28 +78,16 @@ def _composition_chart(
                 key=f"{prefix}_chart_{name}",
             )
 
-        def figure() -> Figure:
-            drawn = distribution_bars(
-                items,
-                title=title,
-                unit=unit,
-                branding=branding,
-                orientation=orientation,
-                keep_order=indicator,
-            )
-            drawn.text(
-                0.01,
-                0.01,
-                f"{nature((export_context or {}).get('Origem', ''))} | {context}",
-                fontsize=7,
-                family=branding.tokens["typography"]["body_family"],
-            )
-            drawn.tight_layout(rect=(0, 0.06, 1, 1))
-            return drawn
-
-        def png() -> bytes:
-            return render_png(figure, export_context)
-
+        png = _composition_png(
+            items,
+            title=title,
+            unit=unit,
+            orientation=orientation,
+            branding=branding,
+            context=context,
+            export_context=export_context,
+            indicator=indicator,
+        )
         with st.expander("Ver tabela do gráfico"):
             data_table(pd.DataFrame(shown, columns=[label, "Quantidade"]), numeric=["Quantidade"])
             download_button(
@@ -113,20 +101,42 @@ def _composition_chart(
         return png
 
 
-def render_composition(
-    overview: FacultyOverview,
-    branding: Branding,
+def _composition_png(
+    items: Sequence[tuple[str, int]],
     *,
-    prefix: str,
-    export_context: Mapping[str, str] | None = None,
-) -> dict[str, Callable[[], bytes]]:
-    """Distribuições com as contagens calculadas; sem recompor totais pelas barras.
+    title: str,
+    unit: str,
+    orientation: Literal["vertical", "horizontal"],
+    branding: Branding,
+    context: str,
+    export_context: Mapping[str, str] | None,
+    indicator: bool,
+) -> Callable[[], bytes]:
+    def figure() -> Figure:
+        drawn = distribution_bars(
+            items,
+            title=title,
+            unit=unit,
+            branding=branding,
+            orientation=orientation,
+            keep_order=indicator,
+        )
+        drawn.text(
+            0.01,
+            0.01,
+            f"{nature((export_context or {}).get('Origem', ''))} | {context}",
+            fontsize=7,
+            family=branding.tokens["typography"]["body_family"],
+        )
+        drawn.tight_layout(rect=(0, 0.06, 1, 1))
+        return drawn
 
-    Devolve geradores de PNG: o arquivo só é desenhado quando alguém o baixa.
-    """
-    export_context = dict(export_context or {}) | {"Origem": overview.source}
-    files: dict[str, Callable[[], bytes]] = {}
-    charts = (
+    return lambda: render_png(figure, export_context)
+
+
+def _composition_charts(overview: FacultyOverview) -> tuple:
+    """Nome, título, rótulo, contagens, unidade e orientação de cada distribuição da R01."""
+    return (
         (
             "departamento",
             "Quantidade de professores por Departamento",
@@ -160,6 +170,56 @@ def render_composition(
             "horizontal",
         ),
     )
+
+
+def _chart_context(
+    overview: FacultyOverview, export_context: Mapping[str, str], title: str, unit: str
+) -> dict[str, str]:
+    return dict(export_context) | {
+        "Análise": "R01",
+        "Gráfico": title,
+        "Unidade": unit,
+        "Avisos": " | ".join(overview.warnings),
+    }
+
+
+def composition_pngs(
+    overview: FacultyOverview,
+    branding: Branding,
+    export_context: Mapping[str, str] | None = None,
+) -> dict[str, Callable[[], bytes]]:
+    """Mesmos PNG da tela, sem desenhá-la; usados pelo relatório completo do Início."""
+    export_context = dict(export_context or {}) | {"Origem": overview.source}
+    return {
+        f"R01/grafico-{name}.png": _composition_png(
+            items,
+            title=title,
+            unit=unit,
+            orientation=orientation,
+            branding=branding,
+            context=f"{overview.department} | Cadastro atual | {overview.fingerprint[:12]}",
+            export_context=_chart_context(overview, export_context, title, unit),
+            indicator=name == "resultado",
+        )
+        for name, title, _, items, unit, orientation in _composition_charts(overview)
+        if items
+    }
+
+
+def render_composition(
+    overview: FacultyOverview,
+    branding: Branding,
+    *,
+    prefix: str,
+    export_context: Mapping[str, str] | None = None,
+) -> dict[str, Callable[[], bytes]]:
+    """Distribuições com as contagens calculadas; sem recompor totais pelas barras.
+
+    Devolve geradores de PNG: o arquivo só é desenhado quando alguém o baixa.
+    """
+    export_context = dict(export_context or {}) | {"Origem": overview.source}
+    files: dict[str, Callable[[], bytes]] = {}
+    charts = _composition_charts(overview)
     # Valor único primeiro; várias categorias lado a lado, e a última ocupa a linha se sobrar.
     slots = {chart[0]: st.container() for chart in charts if len(chart[3]) <= 1}
     grid = [chart for chart in charts if len(chart[3]) > 1]
@@ -180,13 +240,7 @@ def render_composition(
                 prefix=prefix,
                 context=f"{overview.department} | Cadastro atual | {overview.fingerprint[:12]}",
                 indicator=name == "resultado",
-                export_context=dict(export_context or {})
-                | {
-                    "Análise": "R01",
-                    "Gráfico": title,
-                    "Unidade": unit,
-                    "Avisos": " | ".join(overview.warnings),
-                },
+                export_context=_chart_context(overview, export_context, title, unit),
             )
         if png is not None:
             files[f"R01/grafico-{name}.png"] = png

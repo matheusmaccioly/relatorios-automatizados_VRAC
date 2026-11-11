@@ -4,6 +4,21 @@ Registro iniciado em 26/10/2026. “Adotada para a fundação” descreve uma de
 
 ## Decisões
 
+**D-039 — download em um clique, origem fixa e avisos no ícone ⓘ, Matheus, 11/11/2026:**
+Matheus pediu cinco melhorias de UX. Decidido: (1) **Gerar relatório completo (R01–R06)**
+no Início baixa o PDF direto, sem trocar de aba: calcula as seis análises do departamento
+escolhido com o intervalo completo e os filtros iniciais (mesmo cálculo e pacote da tela
+Relatório completo). No Supabase, todo download sai no mesmo clique; o link continua
+visível se o navegador bloquear. (2) Na hospedagem (Supabase), a origem é sempre a
+institucional pseudonimizada; o seletor **Origem dos dados** saiu. A demonstração
+sintética segue só na execução local em memória. (3) Bloco **Baixar relatório**
+reorganizado: análises do PDF em botões de seleção (só quando há mais de uma), **Baixar
+PDF**, **Baixar dados (ZIP)** e **Relatório completo R01–R06 (PDF)** em um clique.
+(4–5) Regras, avisos, limitações e notas da fonte saem das faixas e vão para um ícone ⓘ
+no canto do título correspondente. A faixa do topo fica só com a natureza dos dados.
+Situação Parcial/Bloqueado continua escrita ao lado do título. Fórmulas, consultas e
+conteúdo do PDF não mudam.
+
 **D-038 — exportação do PDF em todas as telas, Matheus, 10/11/2026:** Matheus pediu
 melhor disposição da construção do PDF, presente em todas as páginas, e opção de relatório
 completo na página inicial. Decidido: (1) um único bloco **Baixar relatório** no topo dos

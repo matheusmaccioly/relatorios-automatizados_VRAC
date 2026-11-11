@@ -13,7 +13,7 @@ from streamlit.testing.v1 import AppTest
 from vrac.analyses.academic_fixture import load_fixture
 from vrac.authorization import AccessDenied, authorize_data_access
 from vrac.db import supabase_reader as reader
-from vrac.demo_data import DemoDataError, load_academic_source
+from vrac.demo_data import DemoDataError, DemoOptions, load_academic_source
 from vrac.settings import ConfigurationError, DemoSource, Environment, Settings
 from vrac.supabase_auth import (
     AuthenticationError,
@@ -276,6 +276,11 @@ def test_login_and_logout_clear_previous_results_and_files(monkeypatch):
     monkeypatch.setattr("vrac.auth_ui.load_supabase_config", lambda: CONFIG)
     monkeypatch.setattr("vrac.auth_ui.sign_in", lambda *args, **kwargs: identity)
     monkeypatch.setattr("vrac.auth_ui.verify_session", lambda s: None)
+    # A hospedagem usa sempre a origem pseudonimizada; aqui só importa limpar a sessão.
+    monkeypatch.setattr(
+        "vrac.ui.load_demo_options",
+        lambda settings: DemoOptions(("SINT",), ("2026.1",), "2026.1", "Supabase"),
+    )
     app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "app.py")).run()
     app.text_input(key="vrac_login_email").set_value("test@example.invalid")
     app.text_input(key="vrac_login_password").set_value("synthetic-password")

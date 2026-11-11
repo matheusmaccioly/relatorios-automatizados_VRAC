@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pytest
+from conftest import result_downloads
 from streamlit.testing.v1 import AppTest
 
 from vrac.demo_data import DemoDataError
@@ -42,7 +43,7 @@ def test_all_six_routes_generate_tables_charts_downloads_and_clear_on_filter_cha
     app.selectbox(key="suite_last").select("2026.1").run()
     assert "suite_results" not in app.session_state
     assert not app.metric
-    assert not app.get("download_button")
+    assert not result_downloads(app)
 
 
 def test_workload_period_invalidates_results_and_downloads() -> None:
@@ -50,7 +51,7 @@ def test_workload_period_invalidates_results_and_downloads() -> None:
     app.button(key="suite_run").click().run()
     assert "suite_results" in app.session_state and app.get("download_button")
     app.selectbox(key="suite_workload_period").select("2026.1").run()
-    assert "suite_results" not in app.session_state and not app.get("download_button")
+    assert "suite_results" not in app.session_state and not result_downloads(app)
 
 
 def test_empty_department_and_invalid_range_are_explicit_without_fake_results() -> None:
@@ -64,7 +65,7 @@ def test_empty_department_and_invalid_range_are_explicit_without_fake_results() 
     app.button(key="suite_run").click().run()
     assert not app.exception and app.error
     assert "suite_results" not in app.session_state
-    assert not app.get("download_button")
+    assert not result_downloads(app)
 
 
 def test_refresh_failure_removes_data_and_does_not_switch_sources(
@@ -81,7 +82,7 @@ def test_refresh_failure_removes_data_and_does_not_switch_sources(
     assert not app.exception and app.error
     assert "suite_source" not in app.session_state
     assert "suite_results" not in app.session_state
-    assert not app.get("download_button")
+    assert not result_downloads(app)
 
 
 def test_r01_can_be_selected_and_shows_all_breakdowns_and_details():
@@ -96,7 +97,7 @@ def test_r01_can_be_selected_and_shows_all_breakdowns_and_details():
     assert len(r01.metric) == 1 and r01.metric[0].value == "5"
     assert any("Estado das Horas Reais" in frame.value.columns for frame in r01.dataframe)
     app.multiselect(key="suite_categories").select("Não informado").run()
-    assert "suite_results" not in app.session_state and not app.get("download_button")
+    assert "suite_results" not in app.session_state and not result_downloads(app)
     app.button(key="suite_run").click().run()
     assert not app.exception and r01_tab(app).metric[0].value == "1"
 
@@ -112,7 +113,7 @@ def test_snapshot_refresh_and_origin_failure_remove_every_previous_result(monkey
     app.button(key="suite_run").click().run()
     assert app.metric and app.get("download_button")
     app.button(key="suite_load").click().run()
-    assert not app.metric and not app.get("download_button")
+    assert not app.metric and not result_downloads(app)
     assert "suite_results" not in app.session_state
     app.button(key="suite_run").click().run()
     monkeypatch.setenv("VRAC_DEMO_SOURCE", "postgres")
@@ -124,7 +125,7 @@ def test_snapshot_refresh_and_origin_failure_remove_every_previous_result(monkey
     app.run()
     assert not app.exception and app.error
     assert "suite_results" not in app.session_state and "suite_source" not in app.session_state
-    assert not app.get("download_button")
+    assert not result_downloads(app)
 
 
 def test_history_only_category_is_empty_in_r01_without_blocking_the_flow(monkeypatch):
@@ -141,7 +142,8 @@ def test_history_only_category_is_empty_in_r01_without_blocking_the_flow(monkeyp
     app.multiselect(key="suite_categories").select("Categoria só histórica").run()
     app.button(key="suite_run").click().run()
     assert not app.exception and not app.error and not r01_tab(app).metric
-    assert any("não acrescentam vínculos" in i.value for i in app.info)
+    # O aviso fica no ícone de informação da R01, não numa faixa na tela.
+    assert any("não acrescentam vínculos" in h.value for h in app.get("html"))
 
 
 def test_analysis_guidance_and_filter_summary_are_available_before_calculation():
@@ -170,4 +172,4 @@ def test_reset_filters_keeps_loaded_snapshot_and_removes_results_and_downloads()
     assert app.session_state["suite_source"].fingerprint == fingerprint
     assert app.selectbox(key="suite_first").value == app.selectbox(key="suite_first").options[0]
     assert not app.multiselect(key="suite_categories").value
-    assert "suite_results" not in app.session_state and not app.get("download_button")
+    assert "suite_results" not in app.session_state and not result_downloads(app)

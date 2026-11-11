@@ -21,8 +21,10 @@ ARTIFACT_CACHE_LIMIT = 96
 def download_button(label: str, data: Any, *, file_name: str, mime: str, **kwargs: Any) -> Any:
     """Supabase entrega bytes só à sessão autorizada, sem URL pública de mídia.
 
-    O botão prepara um link embutido na página já autenticada. A transferência seguinte
-    é local ao navegador; não cria arquivo no servidor nem endpoint que sobreviva ao logout.
+    O clique prepara o arquivo e o entrega na própria página já autenticada, sem segundo
+    clique; o link fica visível caso o navegador bloqueie a transferência automática.
+    A transferência é local ao navegador; não cria arquivo no servidor nem endpoint que
+    sobreviva ao logout.
     """
     if load_settings().demo_source != DemoSource.SUPABASE:
         return st.download_button(label, data, file_name=file_name, mime=mime, **kwargs)
@@ -33,16 +35,26 @@ def download_button(label: str, data: Any, *, file_name: str, mime: str, **kwarg
         label,
         key=kwargs.get("key"),
         type=kwargs.get("type", "secondary"),
+        icon=kwargs.get("icon"),
+        help=kwargs.get("help"),
+        width=kwargs.get("width", "content"),
         disabled=kwargs.get("disabled", False),
     ):
-        content = data() if callable(data) else data
+        from vrac.demo_data import DemoDataError
+
+        try:
+            with st.spinner("Preparando o arquivo..."):
+                content = data() if callable(data) else data
+        except (DemoDataError, ValueError) as error:
+            st.error(f"Não foi possível preparar o arquivo: {error}")
+            return False
         content = content.encode("utf-8") if isinstance(content, str) else content
         if not isinstance(content, bytes) or len(content) > 25 * 1024 * 1024:
             st.error("O arquivo excede o limite de exportação desta demonstração.")
             return False
         current_session()  # Revalidar após gerar, antes de entregar os bytes.
         encoded = base64.b64encode(content).decode("ascii")
-        # Iframe isolado: sem scripts, token ou armazenamento persistente.
+        # Iframe isolado: script fixo que só aciona o link; sem token nem armazenamento.
         from streamlit.components.v1 import html
 
         branding = load_branding()
@@ -54,13 +66,11 @@ def download_button(label: str, data: Any, *, file_name: str, mime: str, **kwarg
             f'<style>@font-face {{font-family:"{family}";src:url(data:font/ttf;base64,'
             f'{font_bytes}) format("truetype");}} '
             f'a {{font-family:"{family}";color:{color};}}</style>'
-            f'<a href="data:{escape(mime, quote=True)};base64,{encoded}" '
+            f'<a id="arquivo" href="data:{escape(mime, quote=True)};base64,{encoded}" '
             f'download="{escape(file_name, quote=True)}" '
-            ">Salvar arquivo preparado</a>",
+            ">Download não começou? Clique aqui.</a>"
+            '<script>document.getElementById("arquivo").click()</script>',
             height=35,
-        )
-        st.caption(
-            "O link vale nesta tela. Ao mudar os filtros ou sair, prepare o arquivo novamente."
         )
         return True
     return False
@@ -78,6 +88,24 @@ FIRST_COLUMNS = (
     "Carga contratada",
 )
 TONE_TOKENS = {"attention": "yellow_soft", "strong": "yellow", "neutral": "surface_hover"}
+
+
+def info_button(notes: Collection[str], *, key: str, title: str = "Regras e limitações") -> None:
+    """Regras, avisos e limitações num ícone discreto; o texto continua acessível no clique."""
+    if not notes:
+        return
+    with st.popover(
+        "", icon=":material/info:", type="tertiary", help=title, key=f"vrac-info-{key}"
+    ):
+        items = "".join(f"<li>{escape(note)}</li>" for note in notes)
+        st.html(f'<div class="vrac-info"><b>{escape(title)}</b><ul>{items}</ul></div>')
+
+
+def titled_row(title: Callable[[], None], notes: Collection[str], *, key: str) -> None:
+    """Título à esquerda e o ícone de informação no canto direito da mesma linha."""
+    with st.container(horizontal=True, vertical_alignment="center", key=f"vrac-titulo-{key}"):
+        title()
+        info_button(notes, key=key)
 
 
 def step(number: int, title: str) -> None:

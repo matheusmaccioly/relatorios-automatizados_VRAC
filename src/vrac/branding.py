@@ -133,6 +133,10 @@ button[data-variant="segmented_control"] {background: $white;}
 button[data-variant="segmented_control"][aria-checked="true"]
   {background: $black !important; border-color: $black !important;}
 button[data-variant="segmented_control"][aria-checked="true"] p {color: $white; font-weight: 700;}
+button[data-variant="pills"] {background: $white;}
+button[data-variant="pills"][aria-pressed="true"]
+  {background: $black !important; border-color: $black !important;}
+button[data-variant="pills"][aria-pressed="true"] p {color: $white; font-weight: 700;}
 .vrac-passos {list-style: none; margin: .5rem 0 0; padding: 0; display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem;}
 .vrac-passos li {display: flex; gap: .75rem; font-size: .95rem; color: $ink_soft;
@@ -196,6 +200,17 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .vrac-card-title small {display: block; font-family: "$editorial_family", serif;
   font-weight: 400; font-size: .82rem; color: $ink_soft; margin-top: 1px;}
 [class*="st-key-vrac-narrative"] {border-left: 3px solid $yellow; padding-left: .9rem;}
+/* Ícone de informação: regras e limitações ficam a um clique, sem faixas na tela */
+[class*="st-key-vrac-info-"] [data-testid="stPopoverButton"] div[aria-hidden="true"]
+  {display: none;}
+[class*="st-key-vrac-info-"] [data-testid="stPopoverButton"] {padding: .15rem; min-height: 0;}
+[class*="st-key-vrac-info-"] [data-testid="stIconMaterial"] {color: $ink_soft;
+  font-size: 1.2rem;}
+[class*="st-key-vrac-info-"] [data-testid="stPopoverButton"]:hover [data-testid="stIconMaterial"]
+  {color: $black;}
+.vrac-info {font-size: .9rem; color: $black; max-width: 36rem;}
+.vrac-info ul {margin: .4rem 0 0; padding-left: 1.1rem;}
+.vrac-info li {margin: 0 0 .35rem; color: $ink_soft;}
 [data-testid="stExpander"] details {border: 1px solid $line; border-radius: 3px;
   background: $white;}
 [data-testid="stExpander"] summary p {font-weight: 600; color: $black;}

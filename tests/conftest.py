@@ -75,3 +75,8 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     group.addoption(
         "--db-config", default=None, help="Configuração externa: somente operador autorizado."
     )
+
+
+def result_downloads(app) -> list:
+    """Downloads ligados a um resultado; o relatório completo do Início é sempre oferecido."""
+    return [d for d in app.get("download_button") if d.key != "home_complete"]

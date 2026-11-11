@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+from conftest import result_downloads
 from streamlit.testing.v1 import AppTest
 
 from vrac.analyses.academic_data import ALL_DEPARTMENTS
@@ -28,7 +29,7 @@ def assert_invalidated(app):
     assert not app.exception
     assert "alunos_results" not in app.session_state
     assert "alunos_generated" not in app.session_state
-    assert not app.metric and not app.get("download_button")
+    assert not app.metric and not result_downloads(app)
 
 
 def test_r06_every_academic_filter_removes_previous_results_and_downloads():

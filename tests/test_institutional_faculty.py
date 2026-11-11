@@ -252,23 +252,26 @@ def test_institutional_screen_calculates_without_synthetic_labels(monkeypatch, p
     assert "Dados fictícios" not in captions
     assert "DADOS SINTÉTICOS" not in captions
     assert any("PSEUDONIMIZADOS" in x.value for x in app.warning)
-    app.button(key="home_complete").click().run()
-    assert not app.exception
-    results = app.session_state["suite_results"]
-    assert all(r.source == INSTITUTIONAL_SOURCE for r in results)
-    assert next(r for r in results if r.kind == AnalysisKind.STUDENTS).status == "Bloqueado"
+    # Sem seletor de origem: na hospedagem, a fonte é sempre a pseudonimizada.
+    assert not any(box.label == "Origem dos dados" for box in app.selectbox)
     captured = {}
     from vrac import academic_ui
 
     original = academic_ui.report_zip
 
     def capture(*args, **kwargs):
+        captured["results"] = args[0]
         captured["zip"] = original(*args, **kwargs)
         return captured["zip"]
 
     monkeypatch.setattr(academic_ui, "report_zip", capture)
-    app.button(key="suite_download_all").click().run(timeout=60)
-    assert not app.exception
+    # Relatório completo em um clique no Início: calcula, empacota e entrega o PDF.
+    app.button(key="home_complete").click().run(timeout=60)
+    assert not app.exception and not app.error
+    assert app.session_state["vrac-view"] == "Início"
+    results = captured["results"]
+    assert all(r.source == INSTITUTIONAL_SOURCE for r in results)
+    assert next(r for r in results if r.kind == AnalysisKind.STUDENTS).status == "Bloqueado"
     with ZipFile(io.BytesIO(captured["zip"])) as archive:
         manifest = json.loads(archive.read("manifesto.json"))
         assert manifest["synthetic"] is False

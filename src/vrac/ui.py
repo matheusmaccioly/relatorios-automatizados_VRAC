@@ -10,7 +10,13 @@ from uuid import uuid4
 import pandas as pd
 import streamlit as st
 
-from vrac.academic_ui import _clear, _render_result, export_box, workbench
+from vrac.academic_ui import (
+    _clear,
+    _render_result,
+    complete_report_pdf,
+    export_box,
+    workbench,
+)
 from vrac.analyses.academic import AnalysisFilters, AnalysisKind, calculate
 from vrac.analyses.academic_data import ALL_DEPARTMENTS
 from vrac.analyses.academic_export import report_zip
@@ -57,10 +63,10 @@ from vrac.navigation import (
     area_of,
     codes_for,
 )
-from vrac.organisation_ui import organisation_filters
+from vrac.organisation_ui import OrganisationScope, organisation_filters
 from vrac.provenance import INSTITUTIONAL_SOURCE, nature
 from vrac.settings import ConfigurationError, DataMode, DemoSource, Settings, load_settings
-from vrac.ui_kit import data_table, download_button, scroll_to, step
+from vrac.ui_kit import data_table, download_button, info_button, scroll_to, step
 from vrac.web_charts import warm_up
 
 MISSING_LABEL = "ausente"
@@ -173,9 +179,12 @@ def _quick_start() -> None:
     _open_analysis(st.session_state["home_analysis"], st.session_state["home_department"], run=True)
 
 
-def _complete_report() -> None:
-    st.session_state.pop("suite_pdf_analyses", None)
-    _open_analysis(ALL_FACULTY, st.session_state["home_department"], run=True)
+def _slug(text: str) -> str:
+    """Nome de arquivo legível, sem acentos nem espaços."""
+    from unicodedata import normalize
+
+    plain = normalize("NFKD", text).encode("ascii", "ignore").decode()
+    return "-".join("".join(c if c.isalnum() else " " for c in plain).lower().split())
 
 
 def _go_home() -> None:
@@ -187,7 +196,14 @@ def _analysis_label(code: str) -> str:
     return f"{area.title} · {area.analysis(code).name}"
 
 
-def _home(settings: Settings) -> None:
+def _home_scope(hierarchy, department: str) -> OrganisationScope:
+    """Atalho do Início: departamento escolhido, sem recorte por centro."""
+    if department == ALL_DEPARTMENTS:
+        return OrganisationScope(ALL_CENTERS, department, hierarchy.departments_for(ALL_CENTERS))
+    return OrganisationScope(ALL_CENTERS, department, (department,))
+
+
+def _home(settings: Settings, branding: Branding) -> None:
     """Porta de entrada: atalho que já calcula e áreas que levam a cada análise."""
     with st.container(key="vrac-home-hero"):
         text, start = st.columns([1.3, 1], gap="large")
@@ -212,7 +228,7 @@ def _home(settings: Settings) -> None:
                     format_func=_analysis_label,
                     key="home_analysis",
                 )
-                st.selectbox(
+                department = st.selectbox(
                     "Departamento",
                     (*hierarchy.departments_for(ALL_CENTERS), ALL_DEPARTMENTS),
                     key="home_department",
@@ -225,13 +241,19 @@ def _home(settings: Settings) -> None:
                     on_click=_quick_start,
                 )
                 st.html('<p class="vrac-start-ou">ou</p>')
-                st.button(
+                scope = _home_scope(hierarchy, department)
+                download_button(
                     "Gerar relatório completo (R01–R06)",
+                    lambda: complete_report_pdf(settings, branding, scope),
+                    file_name=f"vrac-relatorio-completo-{_slug(department)}-"
+                    f"{datetime.now(UTC):%Y%m%d}.pdf",
+                    mime="application/pdf",
                     width="stretch",
                     key="home_complete",
-                    on_click=_complete_report,
-                    help="Calcula as seis análises do departamento escolhido e libera o PDF "
-                    "completo em Docentes › Relatório completo.",
+                    icon=":material/picture_as_pdf:",
+                    on_click="ignore",
+                    help="Calcula as seis análises do departamento escolhido e baixa o PDF "
+                    "na hora, com o intervalo completo e os filtros iniciais.",
                 )
     st.html(
         '<div class="vrac-section-title"><h2>Explore por área</h2>'
@@ -355,17 +377,9 @@ def _content(branding: Branding, notice) -> None:
         if settings.data_mode == DataMode.REAL:
             st.error(authorize_data_access(settings).reason)
             st.stop()
-        choices = {
-            "Demonstração sintética": DataMode.SYNTHETIC,
-            "Institucional pseudonimizada · professores": DataMode.PSEUDONYMIZED,
-        }
-        selected_origin = st.selectbox(
-            "Origem dos dados",
-            tuple(choices),
-            key="vrac_data_origin",
-            index=1 if settings.data_mode == DataMode.PSEUDONYMIZED else 0,
-        )
-        settings = replace(settings, data_mode=choices[selected_origin])
+        # Na hospedagem, a origem é sempre a institucional pseudonimizada, sem seletor;
+        # a demonstração sintética segue disponível só na execução local em memória.
+        settings = replace(settings, data_mode=DataMode.PSEUDONYMIZED)
         try:
             session = require_login(settings.data_mode)
         except ConfigurationError as error:
@@ -402,7 +416,7 @@ def _authorized_content(settings: Settings, branding: Branding, notice) -> None:
         )
         st.error(str(error))
         st.stop()
-    notice.warning(nature(options.source) + f" · Origem dos dados: {options.source}")
+    notice.warning(nature(options.source))
 
     # Todas as abas são executadas para preservar os filtros ao navegar entre elas;
     # a base de cada área só é lida enquanto a sua aba está aberta.
@@ -410,7 +424,7 @@ def _authorized_content(settings: Settings, branding: Branding, notice) -> None:
         VIEWS, key=VIEW_KEY, on_change="rerun"
     )
     with home_tab:
-        _home(settings)
+        _home(settings, branding)
     with faculty_tab:
         _faculty_area(settings, branding, options, active=bool(faculty_tab.open))
     with students_tab:
@@ -635,9 +649,11 @@ def _faculty_overview(settings: Settings, branding: Branding, demo_options: Demo
         ]
         if active_filters:
             st.caption("Filtros adicionais ativos · " + " · ".join(active_filters))
-        st.caption(
-            f"Composição: cadastro atual, em {UNIT_LABEL}. Histórico: pessoas ativas em cada "
-            "mês, com quadro e categoria próprios do mês. " + nature(source.source)
+        overview_notes = (
+            f"Composição: cadastro atual, em {UNIT_LABEL}.",
+            "Histórico: pessoas ativas em cada mês, com quadro e categoria próprios do mês.",
+            nature(source.source),
+            *source.notes,
         )
         digest = hashlib.sha256(json.dumps(asdict(source), sort_keys=True).encode()).hexdigest()
         key = (settings.demo_source, scope, filters, digest, first_period, last_period)
@@ -656,6 +672,7 @@ def _faculty_overview(settings: Settings, branding: Branding, demo_options: Demo
                 type="tertiary",
                 on_click=_reset_overview_filters,
             )
+            info_button(overview_notes, key="overview-fonte", title="Sobre estes dados")
         run = st.session_state.pop("overview_autorun", False) or run
 
     if run:
@@ -764,6 +781,7 @@ def _faculty_overview(settings: Settings, branding: Branding, demo_options: Demo
             package=package,
             branding=branding,
             generated_at=generated_at,
+            complete=lambda: complete_report_pdf(settings, branding, scope),
         )
     if history_error := st.session_state.get("overview_history_error"):
         st.warning(f"Histórico indisponível: {history_error}")
@@ -789,7 +807,9 @@ def _overview_results(
 ) -> tuple[object | None, dict]:
     """Devolve o espaço do bloco de exportação e os geradores dos gráficos da R01."""
     with st.container(key="vrac-panel-overview-results"):
-        st.subheader("Resultados calculados")
+        with st.container(horizontal=True, vertical_alignment="center"):
+            st.subheader("Resultados calculados")
+            info_button(overview.warnings, key="overview-avisos")
         st.caption(f"Centro: {center} · Departamentos efetivos: {', '.join(departments)}")
         if overview.status not in {OverviewStatus.VALID, OverviewStatus.PARTIAL}:
             _overview_provenance(overview, generated_at, center)
@@ -797,7 +817,9 @@ def _overview_results(
             return None, {}
         export_slot = st.container()
         if overview.status == OverviewStatus.PARTIAL:
-            st.warning("Parcial — composição calculada; fonte de Horas Reais indisponível.")
+            st.caption(
+                "Situação: Parcial — composição calculada; fonte de Horas Reais indisponível."
+            )
 
         figure, reading = st.columns([1, 2.4], gap="medium", vertical_alignment="center")
         with figure:
@@ -813,6 +835,7 @@ def _overview_results(
                 file_name=f"{stem}-resumo.csv",
                 mime="text/csv",
                 key="overview_download_summary",
+                type="tertiary",
             )
             download_button(
                 "Baixar lista de conferência (CSV)",
@@ -820,15 +843,13 @@ def _overview_results(
                 file_name=f"{stem}-lista.csv",
                 mime="text/csv",
                 key="overview_download_detail",
+                type="tertiary",
             )
 
         charts = render_composition(
             overview, branding, prefix="overview", export_context=export_context
         )
         render_faculty_details(overview)
-        with st.expander(f"Avisos e limitações · {len(overview.warnings)}", expanded=False):
-            for text in overview.warnings:
-                st.warning(text)
         _overview_provenance(overview, generated_at, center)
     return export_slot, charts
 
