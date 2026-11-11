@@ -34,6 +34,27 @@ afetam a análise; os demais ficam no valor inicial, e os usados continuam em ta
 **Filtros usados neste resultado**. Trocar Centro ou Departamento recarrega a base e
 limpa os resultados. A navegação continua visível ao rolar a página.
 
+## Padrão de tela (revisão de 11/11/2026)
+
+Todas as análises calculadas, inclusive Alunos institucional, seguem a mesma ordem:
+
+| Posição | Elemento | Observação |
+|---|---|---|
+| Topo da aba | Título da área, pergunta em negrito e descrição curta | Docentes tem também o seletor de análises |
+| Painel de filtros, etapa 1 | **Defina o recorte**: Centro e Departamento(s) | (i) **Sobre estes dados** junto à origem |
+| Painel de filtros, etapa 2 | **Refine os filtros, se precisar, e calcule** | Filtros opcionais recolhíveis, com (i) **Como estes filtros funcionam** no canto inferior direito |
+| Ações | **Calcular resultados** e **Limpar filtros** | **Conferir filtros selecionados** em tabela Filtro · Valor |
+| Antes do cálculo | Aviso tracejado "Recorte pronto…" | |
+| Painel de resultados | **Resultados calculados**, recorte e **Filtros usados neste resultado** | Mesma tabela Filtro · Valor, com versão/lote e horários |
+| Logo abaixo | Bloco amarelo **Baixar relatório** | PDF e ZIP; em Alunos, só ZIP (ver guia de alunos) |
+| Cada análise | Título com (i) de regras e limitações, situação e texto descritivo | |
+| Cada gráfico | Cartão: título e unidade à esquerda, (i) e **Baixar gráfico (PNG)** à direita | **Ver tabela do gráfico** recolhido, com **Baixar tabela (CSV)** |
+| Tabelas sem gráfico | **Outras tabelas e arquivos**, cada uma recolhida com o seu CSV | |
+
+Regras, avisos e limitações ficam no ícone (i), não em faixas na tela; avisos que
+impedem o cálculo continuam visíveis. O resumo e a lista de conferência do panorama
+ficam em **Outros arquivos**, abaixo das tabelas de professores.
+
 ## Como ler as tabelas
 
 Cada gráfico traz sua tabela recolhida em **Ver tabela do gráfico**, com o CSV. Tabelas sem

@@ -2,7 +2,8 @@
 
 import base64
 import json
-from collections.abc import Callable, Collection, Mapping
+from collections.abc import Callable, Collection, Iterator, Mapping
+from contextlib import contextmanager
 from functools import cache
 from html import escape
 from typing import Any
@@ -108,6 +109,26 @@ def titled_row(title: Callable[[], None], notes: Collection[str], *, key: str) -
         info_button(notes, key=key)
 
 
+def filter_review(descriptions: Mapping[str, str]) -> None:
+    """Tabela Filtro | Valor do recorte ainda não calculado, igual em todas as telas."""
+    st.markdown(
+        "| Filtro | Valor |\n|---|---|\n"
+        + "\n".join(
+            f"| {name} | {str(value).replace('|', ' / ').replace(chr(10), ' ')} |"
+            for name, value in descriptions.items()
+        )
+    )
+
+
+def used_filters(descriptions: Mapping[str, str], caption: str) -> None:
+    """Filtros do último cálculo, com versão e horários; mesmo bloco em todas as telas."""
+    with st.expander("Filtros usados neste resultado", expanded=False):
+        st.table(
+            pd.DataFrame([{"Filtro": name, "Valor": value} for name, value in descriptions.items()])
+        )
+        st.caption(caption)
+
+
 def step(number: int, title: str) -> None:
     """Etapa numerada de um formulário, como as seções do portal de referência."""
     st.html(f'<div class="vrac-step"><span class="vrac-n">{number}</span>{escape(title)}</div>')
@@ -125,6 +146,14 @@ def scroll_to(panel: str) -> None:
 def card_title(title: str, subtitle: str | None = None) -> None:
     detail = f"<small>{escape(subtitle)}</small>" if subtitle else ""
     st.html(f'<div class="vrac-card-title">{escape(title)}{detail}</div>')
+
+
+@contextmanager
+def card_header(title: str, subtitle: str | None = None, *, key: str) -> Iterator[None]:
+    """Cabeçalho de cartão: título à esquerda; ícone e ações à direita, sem quebrar a linha."""
+    with st.container(horizontal=True, vertical_alignment="center", key=f"vrac-card-head-{key}"):
+        card_title(title, subtitle)
+        yield
 
 
 def single_value(value: object, label: str) -> None:

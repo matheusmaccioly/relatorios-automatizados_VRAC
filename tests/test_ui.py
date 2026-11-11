@@ -173,7 +173,9 @@ def test_faculty_overview_calculates_only_on_explicit_action() -> None:
     assert not app.exception
     assert app.metric[0].label == "Quantidade de professores"
     assert app.metric[0].value == "5"
-    filters = app.table[0].value.iloc[0]
+    # Mesma tabela Filtro · Valor das demais telas.
+    table = next(t.value for t in app.table if list(t.value.columns) == ["Filtro", "Valor"])
+    filters = dict(zip(table["Filtro"], table["Valor"], strict=True))
     assert filters["Unidade"] == "matrículas funcionais distintas"
     assert filters["Quadro"] == "todos" and filters["Origem"] == "Memória"
     assert len(app.get("vega_lite_chart")) == 5

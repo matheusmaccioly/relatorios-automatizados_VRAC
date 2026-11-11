@@ -58,13 +58,15 @@ from vrac.organisation_ui import OrganisationScope, organisation_filters
 from vrac.provenance import nature
 from vrac.settings import DemoSource, Settings
 from vrac.ui_kit import (
-    card_title,
+    card_header,
     data_table,
     download_button,
+    filter_review,
     info_button,
     scroll_to,
     show_chart,
     step,
+    used_filters,
 )
 from vrac.web_charts import interactive_chart
 
@@ -462,8 +464,9 @@ def _chart_card(
     png = _chart_png(result, specification, branding, chart_context)
 
     with st.container(border=True):
-        with st.container(horizontal=True, vertical_alignment="center"):
-            card_title(specification.title, f"Unidade: {unit}")
+        with card_header(
+            specification.title, f"Unidade: {unit}", key=f"{prefix}-{result.kind}-{index}"
+        ):
             if specification.kind == "stacked_bar":
                 info_button(
                     (
@@ -746,6 +749,13 @@ EXPORT_NOTES = (
     "intervalo completo e os filtros iniciais.",
     "Análises sem fonte disponível aparecem como bloqueadas, com o motivo.",
 )
+EXPORT_NOTES_WITHOUT_PDF = (
+    "ZIP: tabelas (CSV) e gráficos (PNG) deste resultado, com filtros, origem e lote em "
+    "cada arquivo.",
+    "Cada gráfico também tem o próprio PNG, e cada tabela o próprio CSV.",
+    "PDF ainda indisponível nesta análise: o modelo atual não reproduz todos os filtros "
+    "aplicados, como subnível, situação atual e centro.",
+)
 
 
 def export_box(
@@ -757,19 +767,35 @@ def export_box(
     branding: Branding,
     generated_at: datetime,
     complete: Callable[[], bytes] | None = None,
+    pdf: bool = True,
 ) -> None:
     """Bloco único de exportação, no topo dos resultados de todas as telas.
 
     Um clique por arquivo: PDF e ZIP são montados no clique, a partir do mesmo pacote.
+    Sem PDF, o bloco mantém o mesmo lugar e aparência, só com o ZIP.
     """
     pdf_key = f"{prefix}_pdf_analyses"
     if pdf_key in st.session_state:
         st.session_state[pdf_key] = [k for k in st.session_state[pdf_key] if k in available]
     stamp = f"{generated_at:%Y%m%d-%H%M%S}"
     with target, st.container(border=True, key=f"vrac-export-{prefix}"):
-        with st.container(horizontal=True, vertical_alignment="center"):
-            card_title("Baixar relatório")
-            info_button(EXPORT_NOTES, key=f"{prefix}-export", title="O que cada arquivo traz")
+        with card_header("Baixar relatório", key=f"export-{prefix}"):
+            info_button(
+                EXPORT_NOTES if pdf else EXPORT_NOTES_WITHOUT_PDF,
+                key=f"{prefix}-export",
+                title="O que cada arquivo traz",
+            )
+        if not pdf:
+            download_button(
+                "Baixar dados (ZIP)",
+                package,
+                file_name=f"vrac-analises-{stamp}.zip",
+                mime="application/zip",
+                key=f"{prefix}_download_all",
+                icon=":material/folder_zip:",
+                on_click="ignore",
+            )
+            return
         if len(available) > 1:
             chosen = tuple(
                 st.pills(
@@ -900,13 +926,7 @@ def workbench(
         run = st.session_state.pop(f"{prefix}_autorun", False) or run
         review, quality = st.columns(2, gap="medium")
         with review, st.expander("Conferir filtros selecionados", expanded=False):
-            st.markdown(
-                "| Filtro | Valor |\n|---|---|\n"
-                + "\n".join(
-                    f"| {name} | {str(value).replace('|', ' / ').replace(chr(10), ' ')} |"
-                    for name, value in descriptions.items()
-                )
-            )
+            filter_review(descriptions)
         with quality, st.expander("Qualidade e cobertura dos dados", expanded=False):
             st.caption(
                 "Conferências sobre o snapshot completo, antes dos filtros de análise; "
@@ -959,14 +979,12 @@ def workbench(
         f"Recorte: {scope.label} · {filters.first_period} a {filters.last_period}. "
         "Os resultados abaixo correspondem ao último cálculo com estes filtros."
     )
-    with panel.expander("Filtros usados neste resultado", expanded=False):
-        st.table(
-            pd.DataFrame([{"Filtro": name, "Valor": value} for name, value in descriptions.items()])
-        )
-        st.caption(
+    with panel:
+        used_filters(
+            descriptions,
             f"Versão dos dados: {source.faculty.version} · snapshot {source.fingerprint[:12]} · "
             f"extração {loaded_at:%d/%m/%Y %H:%M:%S} UTC · "
-            f"cálculo {generated_at:%d/%m/%Y %H:%M:%S} UTC · atualização da fonte: não disponível"
+            f"cálculo {generated_at:%d/%m/%Y %H:%M:%S} UTC · atualização da fonte: não disponível",
         )
     export_context = {
         "Execução": st.session_state[f"{prefix}_execution_id"],

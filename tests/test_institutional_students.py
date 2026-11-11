@@ -111,10 +111,14 @@ def test_ui_filters_exports_and_failure_clear_old_results(monkeypatch, session):
     app.button(key="institutional_students_run").click().run()
     assert not app.exception
     assert len(app.get("vega_lite_chart")) == 1
-    assert len(app.get("download_button")) == 1
-    app.button(key="institutional_students_prepare_png").click().run()
-    assert not app.exception
-    assert len(app.get("download_button")) == 2
+    # Mesmo padrão das análises docentes: PNG no cartão, CSV na tabela e ZIP no topo.
+    assert {d.key for d in app.get("download_button")} == {
+        "institutional_students_R06_png_0",
+        "institutional_students_R06_student_general_csv",
+        "institutional_students_download_all",
+    }
+    assert not any("_download_pdf" in d.key for d in app.get("download_button"))
+    assert any(e.label == "Filtros usados neste resultado" for e in app.expander)
     app.multiselect(key="institutional_students_curso").select(2).run()
     assert not app.exception
     assert not app.get("download_button")
@@ -159,7 +163,8 @@ def test_real_navigation_routes_to_general(monkeypatch, session):
     assert not app.exception
     app.button(key="institutional_students_run").click().run()
     assert not app.exception and app.get("vega_lite_chart")
-    assert any(x.value == "Análise temporal" for x in app.subheader)
+    assert any("Como evoluíram as matrículas no período?" in x.value for x in app.markdown)
+    assert any(x.value == "Resultados calculados" for x in app.subheader)
     assert not any(name == "vrac_snapshot" for name, _ in session.client.calls)
 
 

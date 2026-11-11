@@ -7,13 +7,13 @@ import pandas as pd
 import streamlit as st
 from matplotlib.figure import Figure
 
-from vrac.analyses.export import DETAIL_COLUMNS
+from vrac.analyses.export import DETAIL_COLUMNS, _write
 from vrac.analyses.faculty_overview import UNIT_LABEL, FacultyOverview
 from vrac.branding import Branding
 from vrac.charts import distribution_bars, render_png
 from vrac.indicators import indicator_distribution, indicator_label
 from vrac.provenance import is_institutional, nature
-from vrac.ui_kit import card_title, data_table, download_button, show_chart, single_value
+from vrac.ui_kit import card_header, data_table, download_button, show_chart, single_value
 from vrac.web_charts import interactive_bars
 
 QUANTITY_COLUMNS = (
@@ -57,8 +57,33 @@ def _composition_chart(
     # O resultado segue a ordem de leitura, com símbolos só na tela: o PNG usa o texto.
     shown = [(indicator_label(key), value) for key, value in items] if indicator else items
     with st.container(border=True):
-        card_title(title, f"Unidade: {unit}")
-        if not items:
+        png = (
+            _composition_png(
+                items,
+                title=title,
+                unit=unit,
+                orientation=orientation,
+                branding=branding,
+                context=context,
+                export_context=export_context,
+                indicator=indicator,
+            )
+            if items
+            else None
+        )
+        # Mesmo cabeçalho dos demais gráficos: título e unidade, com o PNG à direita.
+        with card_header(title, f"Unidade: {unit}", key=f"{prefix}-{name}"):
+            if png is not None:
+                download_button(
+                    "Baixar gráfico (PNG)",
+                    png,
+                    file_name=f"vrac-R01-{name}.png",
+                    mime="image/png",
+                    key=f"{prefix}_png_{name}",
+                    type="tertiary",
+                    on_click="ignore",
+                )
+        if png is None:
             st.info("Sem registros para esta distribuição no recorte selecionado.")
             return None
         if len(items) == 1:
@@ -77,28 +102,43 @@ def _composition_chart(
                 ),
                 key=f"{prefix}_chart_{name}",
             )
-
-        png = _composition_png(
-            items,
-            title=title,
-            unit=unit,
-            orientation=orientation,
-            branding=branding,
-            context=context,
-            export_context=export_context,
-            indicator=indicator,
-        )
         with st.expander("Ver tabela do gráfico"):
             data_table(pd.DataFrame(shown, columns=[label, "Quantidade"]), numeric=["Quantidade"])
+            st.caption(f"Unidade: {unit}. Não some as categorias para reconstruir o total.")
             download_button(
-                "Baixar gráfico (PNG)",
-                png,
-                file_name=f"vrac-R01-{name}.png",
-                mime="image/png",
-                key=f"{prefix}_png_{name}",
-                on_click="ignore",
+                "Baixar tabela (CSV)",
+                _composition_csv(
+                    items, title=title, label=label, unit=unit, context=export_context
+                ),
+                file_name=f"vrac-R01-{name}.csv",
+                mime="text/csv",
+                key=f"{prefix}_csv_{name}",
             )
         return png
+
+
+def _composition_csv(
+    items: Sequence[tuple[str, int]],
+    *,
+    title: str,
+    label: str,
+    unit: str,
+    context: Mapping[str, str] | None,
+) -> bytes:
+    """Mesmas contagens da tabela, com o texto original da regra e o contexto do cálculo."""
+    context = dict(context or {})
+    return _write(
+        [
+            ["Identificação", nature(context.get("Origem", ""))],
+            ["Análise", "R01 · Situação geral do departamento"],
+            ["Tabela", title],
+            ["Unidade", unit],
+            *([f"Contexto: {key}", value] for key, value in context.items()),
+            [],
+            [label, "Quantidade"],
+            *([key, value] for key, value in items),
+        ]
+    )
 
 
 def _composition_png(
@@ -296,7 +336,6 @@ def render_faculty_details(overview: FacultyOverview) -> None:
     )
     general, workload = _detail_frames(overview)
     with general_tab:
-        st.subheader("Informações gerais dos professores")
         if general.empty:
             st.info("Sem registros docentes para o recorte selecionado.")
         else:
@@ -306,7 +345,6 @@ def render_faculty_details(overview: FacultyOverview) -> None:
             "Cada linha é um registro do cadastro; não representa necessariamente uma pessoa única."
         )
     with workload_tab:
-        st.subheader("CH Real dos professores em disciplinas")
         if workload.empty:
             st.info("Sem registros docentes para o recorte selecionado.")
         else:

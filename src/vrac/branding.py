@@ -197,6 +197,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .vrac-single span {color: $ink_soft;}
 .vrac-subtitle {font-weight: 700; color: $black; font-size: 1.05rem; margin-top: .5rem;}
 .vrac-card-title {font-weight: 700; color: $black; font-size: 1rem; line-height: 1.3;}
+/* Cabeçalho de cartão: o título cede espaço e as ações ficam sempre à direita */
+[class*="st-key-vrac-card-head-"] {flex-wrap: nowrap; align-items: flex-start;}
+[class*="st-key-vrac-card-head-"] > :first-child {flex: 1 1 auto; min-width: 0;}
+[class*="st-key-vrac-card-head-"] > :not(:first-child) {flex: none;}
 .vrac-card-title small {display: block; font-family: "$editorial_family", serif;
   font-weight: 400; font-size: .82rem; color: $ink_soft; margin-top: 1px;}
 [class*="st-key-vrac-narrative"] {border-left: 3px solid $yellow; padding-left: .9rem;}

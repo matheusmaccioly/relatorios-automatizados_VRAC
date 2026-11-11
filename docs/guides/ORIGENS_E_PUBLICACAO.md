@@ -60,7 +60,7 @@ analítica ou visual.
 A configuração compartilhada usa `server.fileWatcherType=auto`, para observar
 mudanças nos módulos importados. Os atalhos locais podem continuar desativando
 essa observação por argumento de linha de comando. A versão do pacote nesta
-entrega é `0.1.3`, consistente em `pyproject.toml` e `uv.lock`.
+entrega é `0.1.4`, consistente em `pyproject.toml` e `uv.lock`.
 
 A [documentação de configuração do Streamlit](https://docs.streamlit.io/develop/api-reference/configuration/config.toml)
 explica que `none` desativa a observação de arquivos. A mudança no arquivo de
@@ -79,7 +79,7 @@ a identificação JUR ainda requer conferência e não foi convertida em outra s
 
 A publicação não amplia permissões nem recarrega o lote. Validar com Matheus e
 Talita a consulta autenticada, os filtros e as exportações no ambiente web.
-O cabeçalho contém o atributo técnico `data-vrac-release="0.1.3"` para conferir
+O cabeçalho contém o atributo técnico `data-vrac-release="0.1.4"` para conferir
 a versão efetivamente renderizada, sem exibir informações internas.
 
 ## Centros e departamentos nas análises institucionais
@@ -106,3 +106,13 @@ a troca de centro invalida resultados e arquivos do recorte anterior.
 
 Alteração incluída na publicação autorizada da versão 0.1.3. Não exige recarga do Supabase.
 Validar com Matheus/Talita os recortes CCS/CTCH/CTC antes da homologação.
+
+## Padronização da interface — versão 0.1.4
+
+Alunos passou a seguir o mesmo padrão de tela de Docentes: etapas de filtro,
+Calcular resultados, filtros usados em tabela, bloco Baixar relatório (ZIP), cartão
+do gráfico com PNG e tabela recolhida com CSV, e limites no ícone de informação.
+O PDF de alunos não é oferecido nesta versão, porque o modelo atual não reproduz
+todos os filtros aplicados. Docentes recebeu ajustes de consistência nos cartões e
+nos filtros usados. Sem mudança de cálculo, consulta, permissão ou schema; não exige
+recarga do Supabase. Padrão descrito em [Interface e gráficos](INTERFACE_E_GRAFICOS.md).

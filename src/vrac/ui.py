@@ -66,7 +66,14 @@ from vrac.navigation import (
 from vrac.organisation_ui import OrganisationScope, organisation_filters
 from vrac.provenance import INSTITUTIONAL_SOURCE, nature
 from vrac.settings import ConfigurationError, DataMode, DemoSource, Settings, load_settings
-from vrac.ui_kit import data_table, download_button, info_button, scroll_to, step
+from vrac.ui_kit import (
+    data_table,
+    download_button,
+    info_button,
+    scroll_to,
+    step,
+    used_filters,
+)
 from vrac.web_charts import warm_up
 
 MISSING_LABEL = "ausente"
@@ -126,7 +133,7 @@ def _header(branding: Branding) -> None:
     marks = branding.tokens["marks"]
     with st.container(key="vrac-header"):
         st.html(
-            '<div class="vrac-marca" data-vrac-release="0.1.3">'
+            '<div class="vrac-marca" data-vrac-release="0.1.4">'
             f'<img src="{branding.logo_url}" alt="{marks["logo_alt"]}" '
             f'width="{marks["display_width"]}"><span class="sep" aria-hidden="true"></span>'
             '<span class="nome">Análises acadêmicas'
@@ -345,8 +352,9 @@ def _students_area(
 ) -> None:
     _area_intro(STUDENTS)
     if settings.data_mode == DataMode.PSEUDONYMIZED:
-        from vrac.student_general_ui import render
+        from vrac.student_general_ui import DESCRIPTION, QUESTION, render
 
+        _question(QUESTION, DESCRIPTION)
         render(branding, active=active)
         return
     (analysis,) = STUDENTS.analyses
@@ -819,9 +827,12 @@ def _overview_results(
         with st.container(horizontal=True, vertical_alignment="center"):
             st.subheader("Resultados calculados")
             info_button(overview.warnings, key="overview-avisos")
-        st.caption(f"Centro: {center} · Departamentos efetivos: {', '.join(departments)}")
+        st.caption(
+            f"Recorte: {center} · {', '.join(departments)}. "
+            "Os resultados abaixo correspondem ao último cálculo com estes filtros."
+        )
+        _overview_provenance(overview, generated_at, center)
         if overview.status not in {OverviewStatus.VALID, OverviewStatus.PARTIAL}:
-            _overview_provenance(overview, generated_at, center)
             st.info(overview.narrative)
             return None, {}
         export_slot = st.container()
@@ -836,7 +847,12 @@ def _overview_results(
         with reading, st.container(key="vrac-narrative-overview"):
             st.markdown(overview.narrative)
 
+        charts = render_composition(
+            overview, branding, prefix="overview", export_context=export_context
+        )
+        render_faculty_details(overview)
         stem = f"vrac-r01-{overview.department}-{generated_at:%Y%m%d-%H%M%S}"
+        st.html('<div class="vrac-subtitle">Outros arquivos</div>')
         with st.container(horizontal=True):
             download_button(
                 "Baixar resumo (CSV)",
@@ -854,34 +870,21 @@ def _overview_results(
                 key="overview_download_detail",
                 type="tertiary",
             )
-
-        charts = render_composition(
-            overview, branding, prefix="overview", export_context=export_context
-        )
-        render_faculty_details(overview)
-        _overview_provenance(overview, generated_at, center)
     return export_slot, charts
 
 
 def _overview_provenance(overview: FacultyOverview, generated_at: datetime, center: str) -> None:
-    with st.expander("Filtros usados e origem deste resultado", expanded=False):
-        st.table(
-            pd.DataFrame(
-                [
-                    {
-                        "Centro": center,
-                        "Departamento": overview.department,
-                        "Referência": "Cadastro atual",
-                        "Unidade": UNIT_LABEL,
-                        **dict(describe_filters(overview.filters)),
-                        "Origem": overview.source,
-                    }
-                ]
-            )
-        )
-        st.caption(
-            f"{nature(overview.source)} · versão {overview.version} · "
-            f"snapshot {overview.fingerprint[:12]} · "
-            f"cálculo {generated_at:%d/%m/%Y %H:%M:%S} UTC · extração: horário não registrado · "
-            "atualização institucional: não disponível"
-        )
+    used_filters(
+        {
+            "Centro": center,
+            "Departamento": overview.department,
+            "Referência": "Cadastro atual",
+            "Unidade": UNIT_LABEL,
+            **dict(describe_filters(overview.filters)),
+            "Origem": overview.source,
+        },
+        f"{nature(overview.source)} · versão {overview.version} · "
+        f"snapshot {overview.fingerprint[:12]} · "
+        f"cálculo {generated_at:%d/%m/%Y %H:%M:%S} UTC · extração: horário não registrado · "
+        "atualização institucional: não disponível",
+    )
