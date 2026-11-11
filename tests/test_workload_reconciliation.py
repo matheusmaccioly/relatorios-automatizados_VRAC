@@ -187,5 +187,5 @@ def test_workload_export_and_chart_follow_tables_and_warnings():
     assert [bar.get_height() for bar in figure.axes[0].patches] == [r[1] for r in distribution.rows]
     plt.close(figure)
     with ZipFile(BytesIO(report_zip((result,), now))) as archive:
-        assert archive.read("R04/workload.csv") == csv
+        assert archive.read("4-carga-horaria/workload.csv") == csv
         assert b'"synthetic": true' in archive.read("manifesto.json")

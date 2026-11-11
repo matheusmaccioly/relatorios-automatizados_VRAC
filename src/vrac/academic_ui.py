@@ -9,9 +9,11 @@ import pandas as pd
 import streamlit as st
 
 from vrac.analyses.academic import (
+    ANALYSIS_NAMES,
     DEFAULT_GROUP_A,
     DEFAULT_GROUP_B,
     DEFAULT_STATUS,
+    OVERVIEW_FOLDER,
     QP_CADRE,
     TITLES,
     AnalysisFilters,
@@ -19,8 +21,10 @@ from vrac.analyses.academic import (
     CalculatedAnalysis,
     ChartSpec,
     ResultTable,
+    blocked,
     calculate,
     chart_unit,
+    export_folder,
 )
 from vrac.analyses.academic_data import AcademicSource
 from vrac.analyses.academic_export import report_zip, result_context, summary_table, table_csv
@@ -61,7 +65,7 @@ from vrac.feedback_ui import render_feedback
 from vrac.indicators import change_label
 from vrac.navigation import COMPLETE_CODES
 from vrac.organisation_ui import OrganisationScope, organisation_filters
-from vrac.provenance import nature
+from vrac.provenance import is_institutional, nature
 from vrac.settings import DemoSource, Settings
 from vrac.ui_kit import (
     card_header,
@@ -464,7 +468,7 @@ def _table_download(
     download_button(
         "Baixar tabela (CSV)",
         table_csv(result, table, generated_at, export_context),
-        file_name=f"vrac-{result.kind}-{table.key}.csv",
+        file_name=f"vrac-{export_folder(result.kind)}-{table.key}.csv",
         mime="text/csv",
         key=key,
     )
@@ -475,7 +479,7 @@ def _chart_context(
 ) -> dict[str, str]:
     table = next(t for t in result.tables if t.key == specification.table)
     return result_context(result, export_context) | {
-        "Análise": str(result.kind),
+        "Análise": result.title,
         "Gráfico": specification.title,
         "Unidade": chart_unit(result, specification),
         "Avisos": " | ".join((*result.notes, table.note)),
@@ -541,7 +545,7 @@ def _chart_card(
             download_button(
                 "Baixar gráfico (PNG)",
                 png,
-                file_name=f"vrac-{result.kind}-grafico-{index + 1}.png",
+                file_name=f"vrac-{export_folder(result.kind)}-grafico-{index + 1}.png",
                 mime="image/png",
                 key=f"{prefix}_{result.kind}_png_{index}",
                 type="tertiary",
@@ -556,7 +560,7 @@ def _chart_card(
         with st.expander("Ver tabela do gráfico"):
             _display(table)
             _table_download(result, table, generated_at, export_context, key=csv_key)
-    return f"{result.kind}/grafico-{index + 1}.png", png
+    return f"{export_folder(result.kind)}/grafico-{index + 1}.png", png
 
 
 def _render_result(
@@ -653,7 +657,7 @@ def _render_result(
 
 
 R01_UNAVAILABLE = (
-    {"R01/indisponivel.txt": b"Cadastro docente indisponivel; sem resultado."},
+    {f"{OVERVIEW_FOLDER}/indisponivel.txt": b"Cadastro docente indisponivel; sem resultado."},
     {"kind": "R01", "status": "indisponível"},
 )
 R01_REFERENCE = (
@@ -692,8 +696,10 @@ def _overview_files(
         "Versão dos dados": result.version,
     }
     files = {
-        "R01/resumo.csv": summary_csv(result, generated_at, export_context),
-        "R01/lista-conferencia.csv": detail_csv(result, generated_at, export_context),
+        f"{OVERVIEW_FOLDER}/resumo.csv": summary_csv(result, generated_at, export_context),
+        f"{OVERVIEW_FOLDER}/lista-conferencia.csv": detail_csv(
+            result, generated_at, export_context
+        ),
     }
     manifest = {
         "kind": "R01",
@@ -774,9 +780,7 @@ def complete_report_pdf(settings: Settings, branding: Branding, scope: Organisat
         "Snapshot acadêmico": source.fingerprint,
         "Atualização da fonte": "não disponível",
     }
-    results = tuple(
-        calculate(AnalysisKind(code), source, filters) for code in COMPLETE_CODES if code != "R01"
-    )
+    results = calculate_selected(COMPLETE_CODES, source, filters, scope)
     files: dict[str, bytes | Callable[[], bytes]] = {
         "conferencias-programadas.csv": _quality_csv(inspect_source(source), source, export_context)
     }
@@ -788,7 +792,7 @@ def complete_report_pdf(settings: Settings, branding: Branding, scope: Organisat
         unavailable, manifest = R01_UNAVAILABLE
         files |= unavailable
     images = {
-        f"{result.kind}/grafico-{index + 1}.png": _chart_png(
+        f"{export_folder(result.kind)}/grafico-{index + 1}.png": _chart_png(
             result, specification, branding, _chart_context(result, specification, export_context)
         )
         for result in results
@@ -803,6 +807,44 @@ def complete_report_pdf(settings: Settings, branding: Branding, scope: Organisat
         additional_analyses=(manifest,),
     )
     return report_pdf(package, branding, selected=COMPLETE_CODES)
+
+
+def calculate_selected(
+    codes: tuple[str, ...],
+    source: AcademicSource,
+    filters: AnalysisFilters,
+    scope: OrganisationScope,
+) -> tuple[CalculatedAnalysis, ...]:
+    """Análises do recorte; alunos institucionais vêm da mesma consulta da aba Alunos."""
+    return tuple(
+        _institutional_students(source, filters, scope)
+        if code == "R06" and is_institutional(source.faculty.source)
+        else calculate(AnalysisKind(code), source, filters)
+        for code in codes
+        if code != "R01"
+    )
+
+
+def _institutional_students(
+    source: AcademicSource, filters: AnalysisFilters, scope: OrganisationScope
+) -> CalculatedAnalysis:
+    """Análise Geral de alunos com os filtros iniciais do painel e o acesso próprio de alunos."""
+    from vrac.db import institutional_students as students
+
+    try:
+        options = students.load_options()
+        departments = tuple(d for d in scope.departments if d in options.departments)
+        if not departments:
+            raise DemoDataError("Sem acesso a alunos nos departamentos deste recorte.")
+        facets = students.load_filters(options, departments)
+        selected = {}
+        for field in students.DEFAULT_EXCLUDED:
+            indexes = students.default_selection(field, facets[field])
+            if indexes is not None:
+                selected[field] = [facets[field][index] for index in indexes]
+        return students.calculate(options, departments, options.start, options.end, selected)
+    except DemoDataError as error:
+        return blocked(AnalysisKind.STUDENTS, source, filters, str(error))
 
 
 def _analysis_title(code: str) -> str:
@@ -1020,11 +1062,7 @@ def workbench(
     if run:
         try:
             with st.spinner("Calculando as análises..."):
-                results = tuple(
-                    calculate(AnalysisKind(code), source, filters)
-                    for code in codes
-                    if code != "R01"
-                )
+                results = calculate_selected(codes, source, filters, scope)
                 st.session_state[f"{prefix}_results"] = results
                 st.session_state[f"{prefix}_result_key"] = key
                 st.session_state[f"{prefix}_generated"] = datetime.now(UTC)
@@ -1119,7 +1157,7 @@ def workbench(
         complete=lambda: complete_report_pdf(settings, branding, scope),
     )
     status = "; ".join(
-        ([f"R01: {overview_manifest['status']}"] if overview_manifest else [])
+        ([f"{ANALYSIS_NAMES['R01']}: {overview_manifest['status']}"] if overview_manifest else [])
         + [f"{r.kind}: {r.status}" for r in results]
     )
     _render_verification(settings, label, kinds, scope, filters, source, prefix)

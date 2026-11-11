@@ -10,7 +10,7 @@ import pytest
 from pypdf import PdfReader
 from streamlit.testing.v1 import AppTest
 
-from vrac.analyses.academic import AnalysisFilters, AnalysisKind, calculate
+from vrac.analyses.academic import ANALYSIS_NAMES, AnalysisFilters, AnalysisKind, calculate
 from vrac.analyses.academic_export import report_zip
 from vrac.analyses.academic_fixture import load_fixture
 from vrac.analyses.export import detail_csv, summary_csv
@@ -32,9 +32,14 @@ def test_pdf_preserves_consolidated_values_and_omits_detail(department, missing)
     now = datetime(2026, 11, 9, tzinfo=UTC)
     overview = compute_overview(source.faculty, OverviewFilters())
     files = (
-        {"R01/resumo.csv": summary_csv(overview, now), "R01/lista.csv": detail_csv(overview, now)}
+        {
+            "1-analise-geral-professores/resumo.csv": summary_csv(overview, now),
+            "1-analise-geral-professores/lista.csv": detail_csv(overview, now),
+        }
         if not missing
-        else {"R01/indisponivel.txt": b"Cadastro indisponivel; sem resultado."}
+        else {
+            "1-analise-geral-professores/indisponivel.txt": b"Cadastro indisponivel; sem resultado."
+        }
     )
     package = report_zip(
         results,
@@ -53,17 +58,22 @@ def test_pdf_preserves_consolidated_values_and_omits_detail(department, missing)
         for r in compute_overview(load_fixture("SINT-B").faculty, OverviewFilters()).detail
     )
     assert not any(str(registration) in text for registration in forbidden)
-    for kind in ("R01", "R02", "R03", "R04", "R05", "R06"):
-        assert kind in text
+    # Nomes das análises, nunca os códigos internos.
+    assert not any(code in text for code in ("R01", "R02", "R03", "R04", "R05", "R06"))
+    for name in ANALYSIS_NAMES.values():
+        assert name in normalized
     for page in reader.pages:
         assert "DADOS SINTÉTICOS" in page.extract_text()
     for result in results:
         assert result.status in text
         for metric in result.metrics:
             assert " ".join(metric.label.split()) in normalized
+            percent = metric.unit == "%" and metric.value is not None
             expected = (
                 "Ausente"
                 if metric.value is None
+                else f"{metric.value:.1f}".replace(".", ",") + "%"
+                if percent
                 else (
                     f"{metric.value:.2f}".rstrip("0").rstrip(".")
                     if isinstance(metric.value, float)
@@ -71,7 +81,7 @@ def test_pdf_preserves_consolidated_values_and_omits_detail(department, missing)
                 ).replace(".", ",")
             )
             assert expected in text
-            assert metric.unit in normalized
+            assert percent or metric.unit in normalized
     assert "Lista de conferência" not in text
     assert "Registros históricos elegíveis" not in text
     assert "88000001" not in text
@@ -96,7 +106,7 @@ def test_selected_report_contains_only_requested_sections(selected):
     package = report_zip(
         results,
         now,
-        additional_files={"R01/resumo.csv": summary_csv(overview, now)},
+        additional_files={"1-analise-geral-professores/resumo.csv": summary_csv(overview, now)},
         additional_analyses=({"kind": "R01", "status": overview.status},),
     )
     text = " ".join(
@@ -106,13 +116,14 @@ def test_selected_report_contains_only_requested_sections(selected):
         ).pages
     )
     assert "Síntese visual" in text
-    for kind in ("R01", "R02", "R03", "R04", "R05", "R06"):
-        assert (f"{kind} ·" in text) == (kind in selected)
+    for kind, name in ANALYSIS_NAMES.items():
+        assert (f"Filtros e referências · {name}" in text) == (kind in selected)
+    assert "R0" not in text
     if "R01" in selected:
-        assert "Total de docentes" in text
+        assert "Quantidade de professores" in text
     # A escolha não altera os dados nem o conteúdo original do ZIP.
     with ZipFile(io.BytesIO(package)) as archive:
-        assert "R01/resumo.csv" in archive.namelist()
+        assert "1-analise-geral-professores/resumo.csv" in archive.namelist()
 
 
 @pytest.mark.parametrize("selected", [(), ("R99",), ("R02", "R02"), ("R01",)])
@@ -159,8 +170,8 @@ def test_long_text_and_many_categories_preserve_chart_and_text():
     package = report_zip(
         results,
         datetime(2026, 11, 9, tzinfo=UTC),
-        images={"R03/mensal.png": png},
-        additional_files={"R01/indisponivel.txt": b"Cadastro indisponivel"},
+        images={"3-historico-departamento/mensal.png": png},
+        additional_files={"1-analise-geral-professores/indisponivel.txt": b"Cadastro indisponivel"},
         additional_analyses=({"kind": "R01", "status": "indisponível"},),
     )
     reader = PdfReader(io.BytesIO(report_pdf(package, branding)))
@@ -226,8 +237,9 @@ def test_home_complete_report_is_a_direct_download_of_all_six():
         load_settings(), load_branding(), OrganisationScope(ALL_CENTERS, "SINT-B", ("SINT-B",))
     )
     text = " ".join(page.extract_text() for page in PdfReader(io.BytesIO(pdf)).pages)
-    for code in ("R01", "R02", "R03", "R04", "R05", "R06"):
-        assert code in text
+    normalized = " ".join(text.split())
+    assert all(name in normalized for name in ANALYSIS_NAMES.values())
+    assert "R0" not in text
     assert "SINT-B" in text and "DADOS SINTÉTICOS" in text
 
 
@@ -261,4 +273,5 @@ def test_faculty_panorama_offers_the_same_pdf_block(monkeypatch):
     assert any(d.key == "overview_download_all" for d in app.get("download_button"))
     reader = PdfReader(io.BytesIO(produced["pdf"]))
     text = " ".join(page.extract_text() for page in reader.pages)
-    assert "R01" in text and "R03" in text and "DADOS SINTÉTICOS" in text
+    assert "Análise Geral dos professores" in text and "Histórico do departamento" in text
+    assert "R0" not in text and "DADOS SINTÉTICOS" in text

@@ -17,7 +17,13 @@ from vrac.academic_ui import (
     export_box,
     workbench,
 )
-from vrac.analyses.academic import DEFAULT_STATUS, AnalysisFilters, AnalysisKind, calculate
+from vrac.analyses.academic import (
+    DEFAULT_STATUS,
+    OVERVIEW_FOLDER,
+    AnalysisFilters,
+    AnalysisKind,
+    calculate,
+)
 from vrac.analyses.academic_data import ALL_DEPARTMENTS
 from vrac.analyses.academic_export import report_zip
 from vrac.analyses.export import detail_csv, summary_csv
@@ -133,7 +139,7 @@ def _header(branding: Branding) -> None:
     marks = branding.tokens["marks"]
     with st.container(key="vrac-header"):
         st.html(
-            '<div class="vrac-marca" data-vrac-release="0.1.6">'
+            '<div class="vrac-marca" data-vrac-release="0.1.7">'
             f'<img src="{branding.logo_url}" alt="{marks["logo_alt"]}" '
             f'width="{marks["display_width"]}"><span class="sep" aria-hidden="true"></span>'
             '<span class="nome">Análises acadêmicas'
@@ -771,8 +777,10 @@ def _faculty_overview(settings: Settings, branding: Branding, demo_options: Demo
             )
     if export_slot is not None:
         r01_files = {
-            "R01/resumo.csv": summary_csv(overview, generated_at, export_context),
-            "R01/lista-conferencia.csv": detail_csv(overview, generated_at, export_context),
+            f"{OVERVIEW_FOLDER}/resumo.csv": summary_csv(overview, generated_at, export_context),
+            f"{OVERVIEW_FOLDER}/lista-conferencia.csv": detail_csv(
+                overview, generated_at, export_context
+            ),
             **r01_charts,
         }
         r01_manifest = {

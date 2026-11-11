@@ -60,7 +60,7 @@ analítica ou visual.
 A configuração compartilhada usa `server.fileWatcherType=auto`, para observar
 mudanças nos módulos importados. Os atalhos locais podem continuar desativando
 essa observação por argumento de linha de comando. A versão do pacote nesta
-entrega é `0.1.6`, consistente em `pyproject.toml` e `uv.lock`.
+entrega é `0.1.7`, consistente em `pyproject.toml` e `uv.lock`.
 
 A [documentação de configuração do Streamlit](https://docs.streamlit.io/develop/api-reference/configuration/config.toml)
 explica que `none` desativa a observação de arquivos. A mudança no arquivo de
@@ -79,7 +79,7 @@ a identificação JUR ainda requer conferência e não foi convertida em outra s
 
 A publicação não amplia permissões nem recarrega o lote. Validar com Matheus e
 Talita a consulta autenticada, os filtros e as exportações no ambiente web.
-O cabeçalho contém o atributo técnico `data-vrac-release="0.1.6"` para conferir
+O cabeçalho contém o atributo técnico `data-vrac-release="0.1.7"` para conferir
 a versão efetivamente renderizada, sem exibir informações internas.
 
 ## Centros e departamentos nas análises institucionais
@@ -141,3 +141,13 @@ docentes (oito departamentos; JUR continua recusado). A migração
 departamento, com a mesma RLS dos eventos e resposta idêntica à anterior (conferida em
 todos os recortes ao aplicar); a consulta de filtros caiu de ~6,9 s para ~26 ms. O
 carregador de alunos preenche essas opções em novas cargas.
+
+## PDF legível e alunos no relatório completo — versão 0.1.7
+
+Gráficos do PDF e dos PNG redesenhados para leitura: proporção do slide, fontes maiores,
+legenda acima dos dados, eixo a partir de zero, valores só onde cabem e nomes longos em
+linhas. O PDF não usa mais os códigos R01–R06: roteiro numerado com a área (Docentes ou
+Alunos) e nomes das análises; o ZIP usa pastas legíveis (`1-analise-geral-professores`
+a `6-analise-geral-alunos`). No relatório completo institucional, alunos vêm da mesma
+consulta da aba Alunos, com os filtros iniciais do painel e o acesso de alunos de cada
+usuário. Sem mudança de schema ou de permissões.

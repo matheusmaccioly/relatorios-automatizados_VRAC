@@ -108,7 +108,8 @@ def test_monthly_png_line_keeps_gaps_values_and_semester_month_labels():
             str(month) for month in range(1, 13)
         ]
         texts = [text.get_text() for text in axis.texts]
-        assert "2026.1" in texts and "2026.2" in texts and "0" in texts
+        # Semestres no eixo e só o último valor conhecido rotulado, sem sobreposição.
+        assert "2026.1" in texts and "2026.2" in texts and texts.count("1") == 1
         png = figure_png(figure)
         assert png.startswith(b"\x89PNG\r\n\x1a\n")
         width, height = struct.unpack(">II", png[16:24])

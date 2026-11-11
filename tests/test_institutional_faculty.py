@@ -279,7 +279,9 @@ def test_institutional_screen_calculates_without_synthetic_labels(monkeypatch, p
         manifest = json.loads(archive.read("manifesto.json"))
         assert manifest["synthetic"] is False
         assert manifest["context"]["Origem"] == INSTITUTIONAL_SOURCE
-        assert "PSEUDONIMIZADOS" in archive.read("R01/resumo.csv").decode("utf-8-sig")
+        assert "PSEUDONIMIZADOS" in archive.read("1-analise-geral-professores/resumo.csv").decode(
+            "utf-8-sig"
+        )
 
 
 def test_source_switch_clears_results_files_and_feedback(monkeypatch, parts):

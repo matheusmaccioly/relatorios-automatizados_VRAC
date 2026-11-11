@@ -326,16 +326,18 @@ def test_all_series_chart_csv_and_zip_match_values_and_gaps():
         png = figure_png(figure)
         assert b"DADOS TOTALMENTE SINT" in png
         now = datetime(2026, 11, 3, tzinfo=UTC)
-        with ZipFile(io.BytesIO(report_zip((result,), now, {"R06/grafico-1.png": png}))) as archive:
+        with ZipFile(
+            io.BytesIO(report_zip((result,), now, {"6-analise-geral-alunos/grafico-1.png": png}))
+        ) as archive:
             manifest = json.loads(archive.read("manifesto.json"))
             assert (
                 manifest["synthetic"]
                 and manifest["analyses"][0]["fingerprint"] == source.fingerprint
             )
-            assert archive.read("R06/grafico-1.png") == png
+            assert archive.read("6-analise-geral-alunos/grafico-1.png") == png
             for table in result.tables:
                 direct = table_csv(result, table, now)
-                assert archive.read(f"R06/{table.key}.csv") == direct
+                assert archive.read(f"6-analise-geral-alunos/{table.key}.csv") == direct
                 rows = list(csv.reader(io.StringIO(direct.decode("utf-8-sig")), delimiter=";"))
                 data = rows[rows.index(list(table.columns)) + 1 :]
                 assert data == [[reconciliation.safe_cell(v) for v in row] for row in table.rows]

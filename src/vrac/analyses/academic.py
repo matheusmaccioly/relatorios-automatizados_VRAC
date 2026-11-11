@@ -40,6 +40,25 @@ TITLES = {
     AnalysisKind.FUNCTIONS: "Gratificações e funções",
     AnalysisKind.STUDENTS: "Análise Geral dos alunos",
 }
+# Nomes visíveis e pastas dos arquivos exportados; os códigos R0x ficam só no código.
+ANALYSIS_NAMES = {"R01": "Análise Geral dos professores", **{str(k): v for k, v in TITLES.items()}}
+EXPORT_FOLDERS = {
+    "R01": "1-analise-geral-professores",
+    "R02": "2-comparacao-grupos",
+    "R03": "3-historico-departamento",
+    "R04": "4-carga-horaria",
+    "R05": "5-gratificacoes-funcoes",
+    "R06": "6-analise-geral-alunos",
+}
+
+
+OVERVIEW_FOLDER = EXPORT_FOLDERS["R01"]
+
+
+def export_folder(code: str) -> str:
+    return EXPORT_FOLDERS[str(code)]
+
+
 FACULTY_UNIT = "professores (matrículas funcionais distintas)"
 DEFAULT_GROUP_A = "QP"
 DEFAULT_GROUP_B = "Geral"
@@ -226,6 +245,9 @@ def _result(
 
 def _blocked(kind: AnalysisKind, source: AcademicSource, filters: AnalysisFilters, text: str):
     return _result(kind, source, filters, [], [], [text], status="Bloqueado", narrative=text)
+
+
+blocked = _blocked  # Uso público: análise sem fonte, com o motivo registrado.
 
 
 RESERVED_GROUP_NAMES = frozenset({"Departamento", PARTICIPATION, "Em ambos os grupos"})

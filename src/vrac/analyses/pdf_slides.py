@@ -15,6 +15,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.platypus import Paragraph
 
+from vrac.analyses.academic import ANALYSIS_NAMES, export_folder
 from vrac.analyses.academic_export import FILTER_LABELS
 from vrac.branding import Branding
 
@@ -116,12 +117,19 @@ def render_slides(
                     y -= height + 12
 
     context = manifest.get("context", {})
+
+    def name_of(kind: str) -> str:
+        return analyses[kind].get("title") or ANALYSIS_NAMES.get(kind, "Análise")
+
+    def area_of(kind: str) -> str:
+        return "Alunos" if kind == "R06" else "Docentes"
+
     page("PUC-Rio · Análises acadêmicas", "Síntese visual dos resultados")
     canvas.setFillColor(color("yellow"))
     canvas.roundRect(36, 75, 555, 345, 4, fill=1, stroke=0)
     para("Docentes, carga horária\ne matrículas", 60, 385, 490, 38, True)
     para("Resultados consolidados e gráficos", 60, 230, 490, 20, serif=True)
-    para("Análises selecionadas: " + ", ".join(included), 60, 173, 490, 16, True)
+    para(f"{len(included)} análise(s) neste relatório", 60, 173, 490, 16, True)
     para("Tabelas detalhadas disponíveis na aplicação e no ZIP.", 60, 126, 490, 14)
     canvas.drawImage(
         str(branding.logo),
@@ -155,20 +163,22 @@ def render_slides(
         y = 420 - index * 58
         canvas.setFillColor(color("yellow"))
         canvas.roundRect(36, y - 38, 62, 38, 3, fill=1, stroke=0)
-        para(kind, 48, y - 7, 55, 17, True)
-        para(analyses[kind].get("title", "Análise Geral dos professores"), 118, y - 5, 790, 19)
+        para(f"{index + 1:02}", 52, y - 7, 40, 17, True)
+        para(name_of(kind), 118, y - 5, 640, 19)
+        para(area_of(kind), 780, y - 9, 140, 12, serif=True)
 
     appendices = []
     for kind in included:
         result = analyses[kind]
-        title = result.get("title", "Análise Geral dos professores")
+        title = name_of(kind)
+        kicker = f"{area_of(kind)} · {included.index(kind) + 1:02}"
         metrics = list(result.get("metrics", []))
         narrative = result.get("narrative", "")
         notes = list(result.get("notes", []))
         filters = []
         provenance = []
         if kind == "R01":
-            filename = "R01/resumo.csv"
+            filename = f"{export_folder('R01')}/resumo.csv"
             if filename in archive.namelist():
                 rows = csv.reader(
                     io.StringIO(archive.read(filename).decode("utf-8-sig")), delimiter=";"
@@ -180,7 +190,7 @@ def render_slides(
                     if group == "Resultado" and label == "Total":
                         metrics.append(
                             {
-                                "label": "Total de docentes",
+                                "label": "Quantidade de professores",
                                 "value": value,
                                 "unit": "matrículas funcionais distintas",
                                 "status": "Cadastro atual",
@@ -201,7 +211,7 @@ def render_slides(
                         provenance.append(f"{label}: {value}")
             else:
                 for name in archive.namelist():
-                    if name.startswith("R01/") and name.endswith(".txt"):
+                    if name.startswith(f"{export_folder('R01')}/") and name.endswith(".txt"):
                         notes.append(archive.read(name).decode("utf-8-sig"))
         else:
             for key, value in result["filters"].items():
@@ -222,7 +232,7 @@ def render_slides(
             notes += [m["note"] for m in metrics if m.get("note")]
             notes += [t["note"] for t in result.get("tables", []) if t.get("note")]
 
-        page(f"{kind} · Resultados calculados", title)
+        page(f"{kicker} · Resultados calculados", title)
         status = {"valid": "Calculado", "partial": "Parcial", "empty": "Sem dados"}.get(
             result["status"], result["status"]
         )
@@ -230,15 +240,15 @@ def render_slides(
         # Resultados existentes, sem médias ou totais novos.
         for start in range(0, max(1, len(metrics)), 6):
             if start:
-                page(f"{kind} · Resultados", title)
+                page(f"{kicker} · Resultados", title)
             batch = metrics[start : start + 6]
             count = min(3, max(1, len(batch)))
             width = (888 - (count - 1) * 16) / count
             for i, metric in enumerate(batch):
                 x = 36 + (i % 3) * (width + 16)
-                y = 393 - (i // 3) * 130
+                y = 400 - (i // 3) * 146
                 canvas.setFillColor(color("yellow" if i == 0 else "white"))
-                canvas.roundRect(x, y - 120, width, 120, 4, fill=1, stroke=0)
+                canvas.roundRect(x, y - 134, width, 134, 4, fill=1, stroke=0)
                 value = metric["value"]
                 shown = (
                     "Ausente"
@@ -249,19 +259,20 @@ def render_slides(
                         else str(value)
                     ).replace(".", ",")
                 )
-                para(shown, x + 14, y - 12, width - 28, 31, True)
-                para(metric["label"], x + 14, y - 58, width - 28, 15, True)
-                para(
-                    metric["unit"] + " · " + metric.get("status", ""),
-                    x + 14,
-                    y - 102,
-                    width - 28,
-                    10,
-                )
-            top = 240 if len(batch) <= 3 else 120
+                if metric.get("unit") == "%" and value is not None:
+                    shown = f"{value:.1f}".replace(".", ",") + "%"
+                bottom = para(shown, x + 14, y - 12, width - 28, 30, True)
+                bottom = para(metric["label"], x + 14, bottom - 6, width - 28, 14, True)
+                status = metric.get("status", "")
+                detail = metric["unit"] if metric.get("unit") != "%" else ""
+                if status and status != "Calculado":
+                    detail = f"{detail} · {status}" if detail else status
+                if detail:
+                    para(detail, x + 14, bottom - 4, width - 28, 10)
+            top = 245 if len(batch) <= 3 else 100
             if narrative and start == 0:
                 # Textos extensos continuam em páginas próprias, nunca são reduzidos ou cortados.
-                paragraphs([narrative], title, kind, top)
+                paragraphs([narrative], title, kicker, top)
             if not batch and not narrative:
                 para(
                     "Sem resultados disponíveis. Consulte a situação "
@@ -272,14 +283,15 @@ def render_slides(
                     20,
                 )
 
-        charts = [n for n in archive.namelist() if n.startswith(kind + "/") and n.endswith(".png")]
+        folder = export_folder(kind) + "/"
+        charts = [n for n in archive.namelist() if n.startswith(folder) and n.endswith(".png")]
         for index, name in enumerate(charts):
-            page(f"{kind} · Gráfico {index + 1} de {len(charts)}", title)
+            page(f"{kicker} · Gráfico {index + 1} de {len(charts)}", title)
             canvas.setFillColor(color("white"))
-            canvas.roundRect(36, 53, 888, 382, 4, fill=1, stroke=0)
+            canvas.roundRect(36, 45, 888, 398, 4, fill=1, stroke=0)
             image = ImageReader(io.BytesIO(archive.read(name)))
             w, h = image.getSize()
-            ratio = min(860 / w, 354 / h)
+            ratio = min(872 / w, 382 / h)
             canvas.drawImage(
                 image,
                 480 - w * ratio / 2,
@@ -290,11 +302,12 @@ def render_slides(
             )
         if not charts:
             notes.append("Sem gráfico disponível para este recorte; ausência não representa zero.")
-        appendices.append((kind, filters, provenance, list(dict.fromkeys(notes))))
+        appendices.append((kind, kicker, filters, provenance, list(dict.fromkeys(notes))))
 
     # Filtros em tabela; referências e avisos preservados fora da sequência visual principal.
-    for kind, filters, _provenance, _notes in appendices:
-        page(f"{kind} · Contexto de leitura", "Filtros e referências")
+    for kind, kicker, filters, _provenance, _notes in appendices:
+        heading = f"Filtros e referências · {name_of(kind)}"
+        page(f"{kicker} · Contexto de leitura", heading)
         y = 430
         for label, value in [("Filtro aplicável", "Valor efetivo"), *filters]:
             style = ParagraphStyle("cell", fontName=f"{family}-400", fontSize=13, leading=17)
@@ -302,12 +315,12 @@ def render_slides(
             heights = [p.wrap(w, 20000)[1] for p, w in zip(cells, (260, 580), strict=True)]
             height = max(heights) + 16
             if height > 350:
-                paragraphs([f"{label}: {value}"], "Filtros e referências", kind, y)
-                page(kind, "Filtros e referências · continuação")
+                paragraphs([f"{label}: {value}"], heading, kicker, y)
+                page(kicker, heading + " · continuação")
                 y = 430
                 continue
             if y - height < 65:
-                page(kind, "Filtros e referências · continuação")
+                page(kicker, heading + " · continuação")
                 y = 430
             canvas.setFillColor(color("white"))
             canvas.rect(36, y - height, 888, height - 2, fill=1, stroke=0)
@@ -321,8 +334,8 @@ def render_slides(
                     "Cada grupo é definido pelos quadros e categorias acima, como o filtro "
                     "Quadro/Categoria Funcional do painel. QP corresponde a PROF PRINCIPAL."
                 ],
-                "Filtros e referências",
-                kind,
+                heading,
+                kicker,
                 y - 12,
             )
         if analyses[kind].get("status") in {"Parcial", "Bloqueado", "Sem dados", "indisponível"}:
@@ -331,8 +344,8 @@ def render_slides(
                     "Há resultados indisponíveis neste recorte. Ausência não significa zero. "
                     "Consulte os avisos da análise na aplicação."
                 ],
-                "Filtros e referências",
-                kind,
+                heading,
+                kicker,
                 y - 75,
             )
     canvas.save()

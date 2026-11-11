@@ -8,7 +8,7 @@ from dataclasses import asdict
 from datetime import datetime
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
-from vrac.analyses.academic import CalculatedAnalysis, ResultTable
+from vrac.analyses.academic import CalculatedAnalysis, ResultTable, export_folder
 from vrac.analyses.export import safe_cell
 from vrac.provenance import INSTITUTIONAL_SOURCE, is_institutional, nature
 
@@ -145,7 +145,7 @@ def report_zip(
         for result in results:
             for table in (summary_table(result), *result.tables):
                 write(
-                    f"{result.kind}/{table.key}.csv",
+                    f"{export_folder(result.kind)}/{table.key}.csv",
                     table_csv(result, table, generated_at, context),
                 )
         for name, data in (images or {}).items():

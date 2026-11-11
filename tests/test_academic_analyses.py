@@ -340,7 +340,7 @@ def test_csv_and_zip_include_filters_snapshot_nulls_and_synthetic_marker() -> No
         manifest = json.loads(archive.read("manifesto.json"))
         assert manifest["synthetic"] is True
         assert manifest["analyses"][0]["filters"]["group_a_cadres"] == ["PROF PRINCIPAL"]
-        assert "R06/students.csv" in archive.namelist()
+        assert "6-analise-geral-alunos/students.csv" in archive.namelist()
     with pytest.raises(ValueError):
         report_zip((result,), NOW, additional_files={"../fora.txt": b"x"})
 

@@ -65,7 +65,7 @@ def test_current_units_and_department_comparison_agree_with_exports():
     text = table_csv(result, table(result, "departments"), NOW).decode("utf-8-sig")
     assert "SINT-A;1;2;1;50" in text and "SINT-B;1;1;1;100" in text
     with ZipFile(io.BytesIO(report_zip((result,), NOW))) as archive:
-        assert archive.read("R02/departments.csv").decode("utf-8-sig") == text
+        assert archive.read("2-comparacao-grupos/departments.csv").decode("utf-8-sig") == text
 
 
 def test_same_selection_is_full_share_and_department_overlap_is_not_a_total():

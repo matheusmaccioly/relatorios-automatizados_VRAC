@@ -55,7 +55,7 @@ def test_funnel_counts_and_pdf_readability():
     reader = PdfReader(io.BytesIO(report_pdf(package, load_branding(), selected=("R02", "R04"))))
     text = " ".join(p.extract_text() for p in reader.pages)
     assert "09/11/2026 às 12h00" in text
-    assert "85,71" in text and "85,714285" not in text
+    assert "85,7%" in text and "85,714285" not in text
     assert "indicador" not in text.lower()
     assert "Snapshot:" not in text and "Origem e limitações" not in text
     assert all("DADOS SINTÉTICOS" in p.extract_text() for p in reader.pages)

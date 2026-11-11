@@ -199,7 +199,8 @@ def test_full_axis_png_preserves_semesters_and_zero_baseline(session):
         figure = academic_chart(result, result.charts[0], load_branding())
         axis = figure.axes[0]
         assert len(axis.get_xticklabels()) == 24
-        assert all(label.get_rotation() == 45 for label in axis.get_xticklabels())
+        # Rótulos curtos cabem na horizontal no PNG largo; nada é girado sem necessidade.
+        assert all(label.get_rotation() == 0 for label in axis.get_xticklabels())
         assert axis.get_ylim()[0] == 0
         return figure
 
@@ -257,3 +258,38 @@ def test_unknown_or_academic_code_is_refused(session):
     session.client.allowed = ["IND", "JUR"]
     with session_scope(session), pytest.raises(DemoDataError):
         load_options()
+
+
+def test_complete_report_uses_institutional_students_with_dashboard_defaults(session):
+    from vrac.academic_ui import calculate_selected
+    from vrac.analyses.academic import AnalysisFilters
+    from vrac.db.institutional_faculty import adapt
+    from vrac.department_hierarchy import ALL_CENTERS
+    from vrac.organisation_ui import OrganisationScope
+
+    empty = {
+        name: []
+        for name in (
+            "cadastro",
+            "horas_reais",
+            "historico_mensal",
+            "historico_cargos",
+            "alocacoes",
+            "eventos_funcoes",
+        )
+    }
+    source = adapt(empty, department="IND", batch=BATCH, periods=("2026.1", "2026.2"))
+    filters = AnalysisFilters("2026.1", "2026.2", "2026.2")
+    with session_scope(session):
+        (result,) = calculate_selected(
+            ("R06",), source, filters, OrganisationScope(ALL_CENTERS, "IND", ("IND",))
+        )
+        assert result.status == "Calculado" and result.title == "Análise Geral dos alunos"
+        name, params = session.client.calls[-1]
+        assert name == "vrac_alunos_geral" and params["p_departamentos"] == ["IND"]
+        # Filtro salvo do painel: Curso/Programa sem nulo e sem texto vazio.
+        assert params["p_filtros"] == {"curso": ["Valor fictício  "]}
+        (denied,) = calculate_selected(
+            ("R06",), source, filters, OrganisationScope(ALL_CENTERS, "ADM", ("ADM",))
+        )
+        assert denied.status == "Bloqueado" and "Sem acesso a alunos" in denied.narrative

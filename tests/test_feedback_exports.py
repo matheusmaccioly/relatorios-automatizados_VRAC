@@ -13,7 +13,7 @@ from matplotlib import pyplot as plt
 from PIL import Image
 from streamlit.testing.v1 import AppTest
 
-from vrac.analyses.academic import AnalysisFilters, AnalysisKind, calculate
+from vrac.analyses.academic import AnalysisFilters, AnalysisKind, calculate, export_folder
 from vrac.analyses.academic_export import report_zip, table_csv
 from vrac.analyses.academic_fixture import load_fixture
 from vrac.analyses.export import _write, detail_csv, safe_cell, summary_csv
@@ -51,12 +51,14 @@ def test_exports_keep_context_values_accents_precision_and_formula_protection():
     with Image.open(io.BytesIO(png)) as image:
         assert json.loads(image.info["Contexto"])["Centro"] == "São José"
         assert "SINTÉTICOS" in image.info["Description"]
-    package = report_zip((result,), NOW, {"R06/grafico-1.png": png}, context=context)
+    package = report_zip(
+        (result,), NOW, {"6-analise-geral-alunos/grafico-1.png": png}, context=context
+    )
     with ZipFile(io.BytesIO(package)) as archive:
         manifest = json.loads(archive.read("manifesto.json"))
         assert manifest["context"] == context
-        assert archive.read(f"R06/{table.key}.csv") == data
-        assert archive.read("R06/grafico-1.png") == png
+        assert archive.read(f"6-analise-geral-alunos/{table.key}.csv") == data
+        assert archive.read("6-analise-geral-alunos/grafico-1.png") == png
         assert manifest["analyses"][0]["fingerprint"] == source.fingerprint
 
 
@@ -191,7 +193,7 @@ def test_package_manifest_and_files_follow_the_displayed_execution(monkeypatch):
         assert manifest["context"]["Quadro"] == "PROF PRINCIPAL"
         assert manifest["additional_analyses"][0]["kind"] == "R01"
         assert manifest["additional_analyses"][0]["fingerprint"] in archive.read(
-            "R01/resumo.csv"
+            "1-analise-geral-professores/resumo.csv"
         ).decode("utf-8-sig")
         for result, entry in zip(results, manifest["analyses"], strict=True):
             assert entry["kind"] == result.kind and entry["filters"]["last_period"] == "2026.1"
@@ -199,7 +201,9 @@ def test_package_manifest_and_files_follow_the_displayed_execution(monkeypatch):
                 rows = list(
                     csv.reader(
                         io.StringIO(
-                            archive.read(f"{result.kind}/{table.key}.csv").decode("utf-8-sig")
+                            archive.read(f"{export_folder(result.kind)}/{table.key}.csv").decode(
+                                "utf-8-sig"
+                            )
                         ),
                         delimiter=";",
                     )
@@ -211,7 +215,7 @@ def test_package_manifest_and_files_follow_the_displayed_execution(monkeypatch):
             context = json.loads(image.info["Contexto"])
             assert context["Execução"] == manifest["context"]["Execução"]
             assert context["Unidade"] and context["Avisos"]
-        with Image.open(io.BytesIO(archive.read("R02/grafico-1.png"))) as image:
+        with Image.open(io.BytesIO(archive.read("2-comparacao-grupos/grafico-1.png"))) as image:
             assert json.loads(image.info["Contexto"])["Unidade"] == (
                 "professores (matrículas funcionais distintas)"
             )

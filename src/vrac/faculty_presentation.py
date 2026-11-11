@@ -7,6 +7,7 @@ import pandas as pd
 import streamlit as st
 from matplotlib.figure import Figure
 
+from vrac.analyses.academic import ANALYSIS_NAMES, OVERVIEW_FOLDER
 from vrac.analyses.export import DETAIL_COLUMNS, _write
 from vrac.analyses.faculty_overview import UNIT_LABEL, FacultyOverview
 from vrac.branding import Branding
@@ -77,7 +78,7 @@ def _composition_chart(
                 download_button(
                     "Baixar gráfico (PNG)",
                     png,
-                    file_name=f"vrac-R01-{name}.png",
+                    file_name=f"vrac-{OVERVIEW_FOLDER}-{name}.png",
                     mime="image/png",
                     key=f"{prefix}_png_{name}",
                     type="tertiary",
@@ -110,7 +111,7 @@ def _composition_chart(
                 _composition_csv(
                     items, title=title, label=label, unit=unit, context=export_context
                 ),
-                file_name=f"vrac-R01-{name}.csv",
+                file_name=f"vrac-{OVERVIEW_FOLDER}-{name}.csv",
                 mime="text/csv",
                 key=f"{prefix}_csv_{name}",
             )
@@ -130,7 +131,7 @@ def _composition_csv(
     return _write(
         [
             ["Identificação", nature(context.get("Origem", ""))],
-            ["Análise", "R01 · Situação geral do departamento"],
+            ["Análise", ANALYSIS_NAMES["R01"]],
             ["Tabela", title],
             ["Unidade", unit],
             *([f"Contexto: {key}", value] for key, value in context.items()),
@@ -216,7 +217,7 @@ def _chart_context(
     overview: FacultyOverview, export_context: Mapping[str, str], title: str, unit: str
 ) -> dict[str, str]:
     return dict(export_context) | {
-        "Análise": "R01",
+        "Análise": ANALYSIS_NAMES["R01"],
         "Gráfico": title,
         "Unidade": unit,
         "Avisos": " | ".join(overview.warnings),
@@ -231,7 +232,7 @@ def composition_pngs(
     """Mesmos PNG da tela, sem desenhá-la; usados pelo relatório completo do Início."""
     export_context = dict(export_context or {}) | {"Origem": overview.source}
     return {
-        f"R01/grafico-{name}.png": _composition_png(
+        f"{OVERVIEW_FOLDER}/grafico-{name}.png": _composition_png(
             items,
             title=title,
             unit=unit,
@@ -242,7 +243,8 @@ def composition_pngs(
             indicator=name == "resultado",
         )
         for name, title, _, items, unit, orientation in _composition_charts(overview)
-        if items
+        # Uma única barra repete o número do cartão; a tela também mostra só o número.
+        if len(items) > 1
     }
 
 
@@ -283,7 +285,7 @@ def render_composition(
                 export_context=_chart_context(overview, export_context, title, unit),
             )
         if png is not None:
-            files[f"R01/grafico-{name}.png"] = png
+            files[f"{OVERVIEW_FOLDER}/grafico-{name}.png"] = png
     st.caption(
         "Passe o cursor para ver os valores; clique numa barra para destacar e clique duas "
         "vezes para limpar. O destaque não altera filtros, resultados ou arquivos. "
