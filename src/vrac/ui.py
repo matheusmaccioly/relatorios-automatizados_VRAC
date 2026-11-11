@@ -143,6 +143,9 @@ def _footer() -> None:
 
 
 def _clear_all_results() -> None:
+    from vrac.student_general_ui import clear as clear_students
+
+    clear_students()
     for key in ("demo_data", "demo_filters"):
         st.session_state.pop(key, None)
     _clear_overview()
@@ -340,6 +343,11 @@ def _students_area(
     settings: Settings, branding: Branding, options: DemoOptions, *, active: bool
 ) -> None:
     _area_intro(STUDENTS)
+    if settings.data_mode == DataMode.PSEUDONYMIZED:
+        from vrac.student_general_ui import render
+
+        render(branding, active=active)
+        return
     (analysis,) = STUDENTS.analyses
     _question(analysis.question, analysis.description)
     workbench(

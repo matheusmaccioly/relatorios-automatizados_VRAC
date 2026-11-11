@@ -237,11 +237,14 @@ def academic_chart(
             if positions[0] > 0:
                 axis.axvline(positions[0] - 0.5, color=colors["line"], linewidth=0.6)
         axis.margins(y=0.2)
+    crowded_students = table.key == "student_general" and len(labels) > 12
     axis.set_xticks(
         range(len(labels)),
         labels,
-        rotation=25 if any(len(label) > 12 for label in labels) else 0,
-        ha="right" if any(len(label) > 12 for label in labels) else "center",
+        rotation=45
+        if crowded_students
+        else (25 if any(len(label) > 12 for label in labels) else 0),
+        ha="right" if crowded_students or any(len(label) > 12 for label in labels) else "center",
     )
     axis.set_title(
         specification.title, loc="left", fontsize=12, family=family, color=colors["black"]
@@ -256,7 +259,7 @@ def academic_chart(
     axis.grid(axis="y", color=colors["line"], linewidth=0.6)
     axis.set_axisbelow(True)
     axis.yaxis.get_major_locator().set_params(integer=True)
-    if monthly:
+    if monthly or table.key == "student_general":
         axis.set_ylim(bottom=0)
         axis.yaxis.get_major_locator().set_params(integer=True, min_n_ticks=1)
     for side in ("top", "right", "left"):

@@ -135,3 +135,6 @@ sql/Report1.txt
 /docs/guides/DOCENTES_INSTITUCIONAIS.md
 /docs/operations/SUPABASE_DOCENTES_CSV.md
 /sql/release_faculty_poc.sql
+/docs/guides/ALUNOS_INSTITUCIONAIS.md
+/docs/operations/SUPABASE_ALUNOS_CSV.md
+/sql/release_students_poc.sql

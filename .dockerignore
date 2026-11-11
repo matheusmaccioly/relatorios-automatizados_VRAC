@@ -78,3 +78,6 @@ docs/EVIDENCIAS_PAINEIS_VRAC.local.json
 # Modelo fornecido e pacote SQL interno; revisão local autorizada, sem publicação.
 /base/
 /docs/operations/departamentos.local/
+/docs/guides/ALUNOS_INSTITUCIONAIS.md
+/docs/operations/SUPABASE_ALUNOS_CSV.md
+/sql/release_students_poc.sql
