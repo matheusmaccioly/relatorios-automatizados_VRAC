@@ -60,7 +60,7 @@ analítica ou visual.
 A configuração compartilhada usa `server.fileWatcherType=auto`, para observar
 mudanças nos módulos importados. Os atalhos locais podem continuar desativando
 essa observação por argumento de linha de comando. A versão do pacote nesta
-entrega é `0.1.7`, consistente em `pyproject.toml` e `uv.lock`.
+entrega é `0.1.8`, consistente em `pyproject.toml` e `uv.lock`.
 
 A [documentação de configuração do Streamlit](https://docs.streamlit.io/develop/api-reference/configuration/config.toml)
 explica que `none` desativa a observação de arquivos. A mudança no arquivo de
@@ -79,7 +79,7 @@ a identificação JUR ainda requer conferência e não foi convertida em outra s
 
 A publicação não amplia permissões nem recarrega o lote. Validar com Matheus e
 Talita a consulta autenticada, os filtros e as exportações no ambiente web.
-O cabeçalho contém o atributo técnico `data-vrac-release="0.1.7"` para conferir
+O cabeçalho contém o atributo técnico `data-vrac-release="0.1.8"` para conferir
 a versão efetivamente renderizada, sem exibir informações internas.
 
 ## Centros e departamentos nas análises institucionais
@@ -151,3 +151,14 @@ Alunos) e nomes das análises; o ZIP usa pastas legíveis (`1-analise-geral-prof
 a `6-analise-geral-alunos`). No relatório completo institucional, alunos vêm da mesma
 consulta da aba Alunos, com os filtros iniciais do painel e o acesso de alunos de cada
 usuário. Sem mudança de schema ou de permissões.
+
+## Rótulos de dados e páginas sem vazio no PDF — versão 0.1.8
+
+Botão do Início sem códigos internos ("Gerar relatório completo"). Gráficos de linha de
+uma série com ponto e valor em cada competência ou semestre; eixo mensal com mês
+abreviado e semestre abaixo (histórico do departamento e gratificações por mês); barras
+empilhadas com valor no segmento quando cabe; barras de uma série com nomes longos ou
+muitas categorias deitadas, com o nome inteiro. Séries com mais de 48 meses e listas com
+mais de 12 categorias saem em partes, uma por página do PDF, na mesma escala. Análise sem
+cartões (alunos institucionais) traz o primeiro gráfico na página de resultados; listas
+longas de filtros não abrem páginas em branco. Sem mudança de schema, dados ou permissões.

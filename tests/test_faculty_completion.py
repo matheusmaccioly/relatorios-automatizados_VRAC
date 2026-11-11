@@ -184,6 +184,7 @@ def test_comparison_department_chart_uses_count_unit_in_png_and_web():
     assert {row["Unidade"] for row in chart_records(result, spec)} == {unit}
     figure = academic_chart(result, spec, load_branding())
     try:
-        assert figure.axes[0].get_ylabel() == unit
+        # Unidade longa quebrada em duas linhas no eixo, mesmo texto.
+        assert " ".join(figure.axes[0].get_ylabel().split()) == unit
     finally:
         plt.close(figure)

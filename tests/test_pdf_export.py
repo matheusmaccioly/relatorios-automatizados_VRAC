@@ -231,6 +231,8 @@ def test_home_complete_report_is_a_direct_download_of_all_six():
     app.selectbox(key="home_department").select("SINT-B").run()
     # O botão do Início já é o download: não troca de aba nem calcula na tela.
     assert [d.key for d in app.get("download_button")] == ["home_complete"]
+    # Códigos internos (R01–R06) não aparecem no botão.
+    assert app.get("download_button")[0].label == "Gerar relatório completo"
     assert app.session_state["vrac-view"] == "Início"
     assert "suite_results" not in app.session_state
     pdf = complete_report_pdf(

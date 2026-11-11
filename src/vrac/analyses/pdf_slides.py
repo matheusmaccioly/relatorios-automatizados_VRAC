@@ -7,6 +7,7 @@ from xml.sax.saxutils import escape
 from zipfile import ZipFile
 from zoneinfo import ZoneInfo
 
+from PIL import Image as PILImage
 from reportlab.lib.colors import HexColor
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.utils import ImageReader
@@ -18,6 +19,7 @@ from reportlab.platypus import Paragraph
 from vrac.analyses.academic import ANALYSIS_NAMES, export_folder
 from vrac.analyses.academic_export import FILTER_LABELS
 from vrac.branding import Branding
+from vrac.charts import PANELS_KEY
 
 
 def render_slides(
@@ -90,8 +92,11 @@ def render_slides(
         )
         para(f"{page_count:02}", 889, 24, 35, 10, True)
 
-    def paragraphs(values: list[str], heading: str, kicker: str, top: float = 430) -> None:
-        # Quebra por linhas pelo próprio motor tipográfico, sem truncar textos extensos.
+    def paragraphs(values: list[str], heading: str, kicker: str, top: float = 430) -> float:
+        """Quebra por linhas pelo próprio motor tipográfico, sem truncar textos extensos.
+
+        Devolve a altura livre; só abre página de continuação quando ainda há texto.
+        """
         style = ParagraphStyle("flow", fontName=f"{family}-400", fontSize=14, leading=19)
         y = top
         for value in values:
@@ -99,22 +104,53 @@ def render_slides(
             while pending:
                 p = pending.pop(0)
                 _, height = p.wrap(880, 20000)
-                if height > y - 55:
-                    pieces = p.split(880, y - 55)
-                    if not pieces:
-                        page(kicker, heading + " · continuação")
-                        y = 430
-                        pending.insert(0, p)
-                        continue
-                    first, *rest = pieces
-                    _, height = first.wrap(880, 20000)
-                    first.drawOn(canvas, 36, y - height)
-                    page(kicker, heading + " · continuação")
-                    y = 430
-                    pending = rest + pending
-                else:
+                if height <= y - 55:
                     p.drawOn(canvas, 36, y - height)
                     y -= height + 12
+                    continue
+                pieces = p.split(880, y - 55) if y - 55 > 19 else []
+                if len(pieces) < 2:
+                    # Nada cabe aqui: o parágrafo inteiro segue para a próxima página.
+                    page(kicker, heading + " · continuação")
+                    y = 430
+                    pending.insert(0, p)
+                    continue
+                first, *rest = pieces
+                _, height = first.wrap(880, 20000)
+                first.drawOn(canvas, 36, y - height)
+                page(kicker, heading + " · continuação")
+                y = 430
+                pending = rest + pending
+        return y
+
+    def chart_panels(data: bytes) -> list[ImageReader]:
+        """Um painel por página; gráficos longos chegam empilhados em um único PNG."""
+        image = PILImage.open(io.BytesIO(data))
+        try:
+            panels = max(1, int(image.info.get(PANELS_KEY, "1")))
+        except ValueError:
+            panels = 1
+        if panels == 1 or image.height % panels:
+            return [ImageReader(io.BytesIO(data))]
+        step = image.height // panels
+        return [
+            ImageReader(image.crop((0, i * step, image.width, (i + 1) * step)))
+            for i in range(panels)
+        ]
+
+    def draw_chart(image: ImageReader, top: float = 443) -> None:
+        canvas.setFillColor(color("white"))
+        canvas.roundRect(36, 45, 888, top - 45, 4, fill=1, stroke=0)
+        w, h = image.getSize()
+        ratio = min(872 / w, (top - 61) / h)
+        canvas.drawImage(
+            image,
+            480 - w * ratio / 2,
+            (top + 45) / 2 - h * ratio / 2,
+            width=w * ratio,
+            height=h * ratio,
+            mask="auto",
+        )
 
     context = manifest.get("context", {})
 
@@ -232,13 +268,29 @@ def render_slides(
             notes += [m["note"] for m in metrics if m.get("note")]
             notes += [t["note"] for t in result.get("tables", []) if t.get("note")]
 
+        folder = export_folder(kind) + "/"
+        charts = [n for n in archive.namelist() if n.startswith(folder) and n.endswith(".png")]
+        chart_pages = []
+        for index, name in enumerate(charts):
+            panels = chart_panels(archive.read(name))
+            for part, image in enumerate(panels):
+                label = f"Gráfico {index + 1} de {len(charts)}"
+                if len(panels) > 1:
+                    label += f" · parte {part + 1} de {len(panels)}"
+                chart_pages.append((label, image))
+
         page(f"{kicker} · Resultados calculados", title)
         status = {"valid": "Calculado", "partial": "Parcial", "empty": "Sem dados"}.get(
             result["status"], result["status"]
         )
         para("Situação: " + status, 36, 433, 880, 13, serif=True)
+        if not metrics and (narrative or chart_pages):
+            # Sem cartões: texto no topo e o primeiro gráfico logo abaixo, sem página vazia.
+            y = paragraphs([narrative], title, kicker, 405) if narrative else 405
+            if chart_pages and y - 45 >= 250:
+                draw_chart(chart_pages.pop(0)[1], top=y - 4)
         # Resultados existentes, sem médias ou totais novos.
-        for start in range(0, max(1, len(metrics)), 6):
+        for start in range(0, len(metrics), 6) if metrics else ():
             if start:
                 page(f"{kicker} · Resultados", title)
             batch = metrics[start : start + 6]
@@ -273,33 +325,18 @@ def render_slides(
             if narrative and start == 0:
                 # Textos extensos continuam em páginas próprias, nunca são reduzidos ou cortados.
                 paragraphs([narrative], title, kicker, top)
-            if not batch and not narrative:
-                para(
-                    "Sem resultados disponíveis. Consulte a situação "
-                    "e as limitações deste recorte.",
-                    36,
-                    360,
-                    850,
-                    20,
-                )
-
-        folder = export_folder(kind) + "/"
-        charts = [n for n in archive.namelist() if n.startswith(folder) and n.endswith(".png")]
-        for index, name in enumerate(charts):
-            page(f"{kicker} · Gráfico {index + 1} de {len(charts)}", title)
-            canvas.setFillColor(color("white"))
-            canvas.roundRect(36, 45, 888, 398, 4, fill=1, stroke=0)
-            image = ImageReader(io.BytesIO(archive.read(name)))
-            w, h = image.getSize()
-            ratio = min(872 / w, 382 / h)
-            canvas.drawImage(
-                image,
-                480 - w * ratio / 2,
-                244 - h * ratio / 2,
-                width=w * ratio,
-                height=h * ratio,
-                mask="auto",
+        if not metrics and not narrative and not charts:
+            para(
+                "Sem resultados disponíveis. Consulte a situação e as limitações deste recorte.",
+                36,
+                360,
+                850,
+                20,
             )
+
+        for label, image in chart_pages:
+            page(f"{kicker} · {label}", title)
+            draw_chart(image)
         if not charts:
             notes.append("Sem gráfico disponível para este recorte; ausência não representa zero.")
         appendices.append((kind, kicker, filters, provenance, list(dict.fromkeys(notes))))
@@ -315,9 +352,9 @@ def render_slides(
             heights = [p.wrap(w, 20000)[1] for p, w in zip(cells, (260, 580), strict=True)]
             height = max(heights) + 16
             if height > 350:
-                paragraphs([f"{label}: {value}"], heading, kicker, y)
-                page(kicker, heading + " · continuação")
-                y = 430
+                # Lista longa (por exemplo, cursos) corre como texto; a próxima linha da
+                # tabela segue logo abaixo, sem abrir página em branco.
+                y = paragraphs([f"{label}: {value}"], heading, kicker, y - 6)
                 continue
             if y - height < 65:
                 page(kicker, heading + " · continuação")
@@ -329,7 +366,7 @@ def render_slides(
             y -= height
         # Identificadores técnicos e notas integrais permanecem no pacote ZIP.
         if kind == "R02":
-            paragraphs(
+            y = paragraphs(
                 [
                     "Cada grupo é definido pelos quadros e categorias acima, como o filtro "
                     "Quadro/Categoria Funcional do painel. QP corresponde a PROF PRINCIPAL."
@@ -346,7 +383,7 @@ def render_slides(
                 ],
                 heading,
                 kicker,
-                y - 75,
+                y - 12,
             )
     canvas.save()
     return output.getvalue()

@@ -139,7 +139,7 @@ def _header(branding: Branding) -> None:
     marks = branding.tokens["marks"]
     with st.container(key="vrac-header"):
         st.html(
-            '<div class="vrac-marca" data-vrac-release="0.1.7">'
+            '<div class="vrac-marca" data-vrac-release="0.1.8">'
             f'<img src="{branding.logo_url}" alt="{marks["logo_alt"]}" '
             f'width="{marks["display_width"]}"><span class="sep" aria-hidden="true"></span>'
             '<span class="nome">Análises acadêmicas'
@@ -260,7 +260,7 @@ def _home(settings: Settings, branding: Branding) -> None:
                 st.html('<p class="vrac-start-ou">ou</p>')
                 scope = _home_scope(hierarchy, department)
                 download_button(
-                    "Gerar relatório completo (R01–R06)",
+                    "Gerar relatório completo",
                     lambda: complete_report_pdf(settings, branding, scope),
                     file_name=f"vrac-relatorio-completo-{_slug(department)}-"
                     f"{datetime.now(UTC):%Y%m%d}.pdf",

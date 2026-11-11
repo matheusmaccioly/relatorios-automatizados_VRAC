@@ -14,7 +14,7 @@ from vrac.analyses.academic import AnalysisFilters, AnalysisKind, calculate
 from vrac.analyses.academic_data import HistoryRow
 from vrac.analyses.academic_fixture import load_fixture
 from vrac.branding import load_branding
-from vrac.charts import academic_chart, figure_png
+from vrac.charts import MONTH_NAMES, academic_chart, figure_png
 from vrac.web_charts import chart_records, interactive_chart
 
 
@@ -104,12 +104,11 @@ def test_monthly_png_line_keeps_gaps_values_and_semester_month_labels():
         assert axis.lines[0].get_color() == branding.series[0]
         moves = sum(code == Path.MOVETO for _, code in axis.lines[0].get_path().iter_segments())
         assert moves == 3
-        assert [tick.get_text() for tick in axis.get_xticklabels()] == [
-            str(month) for month in range(1, 13)
-        ]
+        assert [tick.get_text() for tick in axis.get_xticklabels()] == list(MONTH_NAMES)
         texts = [text.get_text() for text in axis.texts]
-        # Semestres no eixo e só o último valor conhecido rotulado, sem sobreposição.
-        assert "2026.1" in texts and "2026.2" in texts and texts.count("1") == 1
+        # Semestres no eixo e valor em cada competência conhecida; ausência sem rótulo.
+        assert "2026.1" in texts and "2026.2" in texts
+        assert texts.count("1") == 3 and texts.count("0") == 1
         png = figure_png(figure)
         assert png.startswith(b"\x89PNG\r\n\x1a\n")
         width, height = struct.unpack(">II", png[16:24])
