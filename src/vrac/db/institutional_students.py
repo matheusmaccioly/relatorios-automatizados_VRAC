@@ -15,6 +15,7 @@ from vrac.analyses.academic import (
     ResultTable,
 )
 from vrac.demo_data import DemoDataError
+from vrac.dev.faculty_csv import DEPARTMENTS
 from vrac.provenance import INSTITUTIONAL_SOURCE
 from vrac.settings import DataMode
 from vrac.supabase_auth import current_session
@@ -116,7 +117,8 @@ def load_options() -> StudentOptions:
             not isinstance(departments, list)
             or not departments
             or len(set(departments)) != len(departments)
-            or not set(departments) <= {"ADM", "ECO", "EDU", "ELE", "FIL", "IND", "INF"}
+            # Mesma lista fechada dos docentes e do schema (inclui DIR desde a 0.1.5).
+            or not set(departments) <= DEPARTMENTS
         ):
             raise ValueError
         periods(data["start"], data["end"])

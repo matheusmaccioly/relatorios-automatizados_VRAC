@@ -233,3 +233,27 @@ def test_default_selection_reproduces_dashboard_saved_slicers():
     # Sem valor excluído, o filtro continua em Todos (nenhum parâmetro enviado).
     assert default_selection("curso", ("ENGENHARIA",)) is None
     assert default_selection("turno", ("Diurno", None)) is None
+
+
+def test_law_department_is_accepted_and_shown_in_ccs(monkeypatch, session):
+    # Regressão 0.1.5: o lote com Direito devolve DIR; a lista fechada deve aceitá-lo.
+    session.client.allowed = ["ADM", "DIR", "ECO", "IND"]
+    with session_scope(session):
+        assert load_options().departments == ("ADM", "DIR", "ECO", "IND")
+    app = screen(monkeypatch, session)
+    assert not app.exception and not app.error
+    app.selectbox(key="institutional_students_center").select("CCS").run()
+    assert app.multiselect(key="institutional_students_departments").options == [
+        "ADM",
+        "DIR",
+        "ECO",
+    ]
+    app.button(key="institutional_students_run").click().run()
+    assert not app.exception and not app.error
+    assert "DIR" in session.client.calls[-1][1]["p_departamentos"]
+
+
+def test_unknown_or_academic_code_is_refused(session):
+    session.client.allowed = ["IND", "JUR"]
+    with session_scope(session), pytest.raises(DemoDataError):
+        load_options()

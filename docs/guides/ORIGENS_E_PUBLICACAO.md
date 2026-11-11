@@ -60,7 +60,7 @@ analítica ou visual.
 A configuração compartilhada usa `server.fileWatcherType=auto`, para observar
 mudanças nos módulos importados. Os atalhos locais podem continuar desativando
 essa observação por argumento de linha de comando. A versão do pacote nesta
-entrega é `0.1.5`, consistente em `pyproject.toml` e `uv.lock`.
+entrega é `0.1.6`, consistente em `pyproject.toml` e `uv.lock`.
 
 A [documentação de configuração do Streamlit](https://docs.streamlit.io/develop/api-reference/configuration/config.toml)
 explica que `none` desativa a observação de arquivos. A mudança no arquivo de
@@ -79,7 +79,7 @@ a identificação JUR ainda requer conferência e não foi convertida em outra s
 
 A publicação não amplia permissões nem recarrega o lote. Validar com Matheus e
 Talita a consulta autenticada, os filtros e as exportações no ambiente web.
-O cabeçalho contém o atributo técnico `data-vrac-release="0.1.5"` para conferir
+O cabeçalho contém o atributo técnico `data-vrac-release="0.1.6"` para conferir
 a versão efetivamente renderizada, sem exibir informações internas.
 
 ## Centros e departamentos nas análises institucionais
@@ -131,3 +131,13 @@ Exige a migração `20261111190000_vrac_docentes_layout_v2` (colunas opcionais) 
 lotes v2 liberados; a versão 0.1.4 não lê docentes institucionais após essa migração.
 Pessoa e vínculo seguem pseudonimizados. Validar com Matheus e Talita os números
 contra capturas do painel de um departamento autorizado.
+
+## Correção de Alunos com Direito — versão 0.1.6
+
+A 0.1.5 recusava a lista de departamentos de alunos quando ela passou a conter DIR
+("Análise de alunos indisponível"). A leitura agora usa a mesma lista fechada dos
+docentes (oito departamentos; JUR continua recusado). A migração
+`20261111210000_vrac_alunos_opcoes_filtros` pré-calcula as opções de filtro por lote e
+departamento, com a mesma RLS dos eventos e resposta idêntica à anterior (conferida em
+todos os recortes ao aplicar); a consulta de filtros caiu de ~6,9 s para ~26 ms. O
+carregador de alunos preenche essas opções em novas cargas.

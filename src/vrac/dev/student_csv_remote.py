@@ -86,6 +86,12 @@ def run_load(bundle: StudentBundle, batch: UUID) -> dict:
                 flush=True,
             )
         batch_sql = sql.Literal(str(batch)).as_string()
+        # Opções de filtro pré-calculadas (migração 20261111210000), ainda com lote bloqueado.
+        path.write_text(
+            f"BEGIN; SELECT vrac_alunos.preencher_opcoes_filtros({batch_sql}); COMMIT;",
+            encoding="utf-8",
+        )
+        remote_query(path=path, read_only=False)
         observed = remote_query(
             sql="SELECT count(*) AS rows,min(linha) AS first,max(linha) AS last "
             "FROM vrac_alunos.eventos WHERE carga_id=" + batch_sql

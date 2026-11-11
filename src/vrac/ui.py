@@ -133,7 +133,7 @@ def _header(branding: Branding) -> None:
     marks = branding.tokens["marks"]
     with st.container(key="vrac-header"):
         st.html(
-            '<div class="vrac-marca" data-vrac-release="0.1.5">'
+            '<div class="vrac-marca" data-vrac-release="0.1.6">'
             f'<img src="{branding.logo_url}" alt="{marks["logo_alt"]}" '
             f'width="{marks["display_width"]}"><span class="sep" aria-hidden="true"></span>'
             '<span class="nome">Análises acadêmicas'
