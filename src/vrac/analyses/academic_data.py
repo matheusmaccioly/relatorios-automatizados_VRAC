@@ -47,6 +47,14 @@ class AllocationRow:
     vacancies_filled: int | None
     shared: str | None
     classification: str | None
+    # Campos da tabela "Detalhamento das turmas oferecidas" do painel; ausentes = None.
+    level: str | None = None
+    discipline_name: str | None = None
+    credits: float | None = None
+    mandatory: str | None = None
+    distance_hours: float | None = None
+    extension_hours: float | None = None
+    vacancies_offered: int | None = None
 
 
 @dataclass(frozen=True, slots=True)

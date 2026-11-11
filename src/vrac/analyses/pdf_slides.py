@@ -156,12 +156,12 @@ def render_slides(
         canvas.setFillColor(color("yellow"))
         canvas.roundRect(36, y - 38, 62, 38, 3, fill=1, stroke=0)
         para(kind, 48, y - 7, 55, 17, True)
-        para(analyses[kind].get("title", "Situação geral do departamento"), 118, y - 5, 790, 19)
+        para(analyses[kind].get("title", "Análise Geral dos professores"), 118, y - 5, 790, 19)
 
     appendices = []
     for kind in included:
         result = analyses[kind]
-        title = result.get("title", "Situação geral do departamento")
+        title = result.get("title", "Análise Geral dos professores")
         metrics = list(result.get("metrics", []))
         narrative = result.get("narrative", "")
         notes = list(result.get("notes", []))
@@ -318,8 +318,8 @@ def render_slides(
         if kind == "R02":
             paragraphs(
                 [
-                    "O grupo QP deste exemplo é definido pelos quadros selecionados acima. "
-                    "Sua composição institucional permanece pendente."
+                    "Cada grupo é definido pelos quadros e categorias acima, como o filtro "
+                    "Quadro/Categoria Funcional do painel. QP corresponde a PROF PRINCIPAL."
                 ],
                 "Filtros e referências",
                 kind,

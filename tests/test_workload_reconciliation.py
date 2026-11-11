@@ -97,10 +97,10 @@ def test_null_contract_policy_and_coverage_are_independent():
     source = replace(source, workloads=rows)
     result = calculate(AnalysisKind.WORKLOAD, source, FILTERS)
     values = detail(result)
-    assert values["V1"][4:10] == (10, 20, -10, 50, "Resultados distintos", "Parcial")
-    assert values["V2"][4] is None and values["V2"][9] == "Nulo na fonte"
-    assert values["V3"][6:8] == (4, None)
-    assert values["V4"][5:8] == (None, None, None)
+    assert values["V1"][5:9] == ("Resultados distintos", 10, 20, "Parcial")
+    assert values["V2"][6] is None and values["V2"][8] == "Nulo na fonte"
+    assert values["V3"][6:8] == (4, 0)
+    assert values["V4"][6:8] == (7, None)  # CH Contratada conflitante fica ausente
     assert (
         "V5" not in values and result.status == "Parcial" and result.metrics[1].status == "Parcial"
     )
@@ -115,7 +115,8 @@ def test_null_contract_policy_and_coverage_are_independent():
         result = calculate(
             AnalysisKind.WORKLOAD, replace(source, policy=policy, available=available), FILTERS
         )
-        assert all(r[6:8] == (None, None) for r in detail(result).values())
+        # A política declara só a unidade; as horas exibidas não dependem dela.
+        assert detail(result)["V1"][6:8] == (10, 20)
 
 
 @pytest.mark.parametrize(
@@ -154,11 +155,12 @@ def test_allocations_keep_cross_departments_shared_zero_null_and_missing_classif
     result = calculate(AnalysisKind.WORKLOAD, source, FILTERS)
     actual = next(t for t in result.tables if t.key == "allocation_detail").rows
     assert len(actual) == 2 and actual[0][1:3] == ("SINT-A", "SINT-A")
-    assert actual[1][1:3] == ("SINT-A", "SINT-B") and actual[0][6] == 0 and actual[1][6] is None
-    assert actual[0][-1] is None and detail(result)["V1"][4] == 10
+    assert actual[1][1:3] == ("SINT-A", "SINT-B") and actual[0][15] == 0 and actual[1][15] is None
+    assert actual[0][13] is None and actual[0][-1] == 1  # um professor na turma
+    assert detail(result)["V1"][6] == 10
     no_alloc = replace(source, allocations=(), available=source.available - {"allocations"})
     result = calculate(AnalysisKind.WORKLOAD, no_alloc, FILTERS)
-    assert detail(result)["V1"][4] == 10 and any("indisponível" in n for n in result.notes)
+    assert detail(result)["V1"][6] == 10 and any("indisponível" in n for n in result.notes)
     no_hours = replace(source, workloads=(), available=source.available - {"workloads"})
     assert calculate(AnalysisKind.WORKLOAD, no_hours, FILTERS).status == "Bloqueado"
     assert calculate(AnalysisKind.STUDENTS, no_hours, FILTERS).status != "Bloqueado"

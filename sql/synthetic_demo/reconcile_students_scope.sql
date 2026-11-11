@@ -43,17 +43,14 @@ candidates AS (
     SELECT DISTINCT registration FROM history
     WHERE period = %(period)s AND status IN ('MT', 'MC') AND registration IS NOT NULL
 ),
+-- Como o DAX do painel: sem cadastro não conta; ingresso em branco é comparado como 0.
 eligible AS (
     SELECT c.registration FROM candidates c JOIN entries e ON c.registration = e.registration
-    WHERE e.first_entry <= %(period)s
+    WHERE e.first_entry IS NULL OR e.first_entry <= %(period)s
 ),
 enrollment_observed AS (
     SELECT 1 AS observed
     WHERE EXISTS (SELECT 1 FROM history WHERE period = %(period)s)
-      AND NOT EXISTS (
-          SELECT 1 FROM candidates c LEFT JOIN entries e ON c.registration = e.registration
-          WHERE e.first_entry IS NULL
-      )
 ),
 completions AS (
     SELECT registration, MIN(period) AS event FROM current_students

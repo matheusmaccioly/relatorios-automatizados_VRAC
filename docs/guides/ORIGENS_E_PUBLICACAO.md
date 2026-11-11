@@ -60,7 +60,7 @@ analítica ou visual.
 A configuração compartilhada usa `server.fileWatcherType=auto`, para observar
 mudanças nos módulos importados. Os atalhos locais podem continuar desativando
 essa observação por argumento de linha de comando. A versão do pacote nesta
-entrega é `0.1.4`, consistente em `pyproject.toml` e `uv.lock`.
+entrega é `0.1.5`, consistente em `pyproject.toml` e `uv.lock`.
 
 A [documentação de configuração do Streamlit](https://docs.streamlit.io/develop/api-reference/configuration/config.toml)
 explica que `none` desativa a observação de arquivos. A mudança no arquivo de
@@ -79,7 +79,7 @@ a identificação JUR ainda requer conferência e não foi convertida em outra s
 
 A publicação não amplia permissões nem recarrega o lote. Validar com Matheus e
 Talita a consulta autenticada, os filtros e as exportações no ambiente web.
-O cabeçalho contém o atributo técnico `data-vrac-release="0.1.4"` para conferir
+O cabeçalho contém o atributo técnico `data-vrac-release="0.1.5"` para conferir
 a versão efetivamente renderizada, sem exibir informações internas.
 
 ## Centros e departamentos nas análises institucionais
@@ -89,7 +89,7 @@ os departamentos disponíveis e autorizados ao seu centro atual:
 
 | Centro | Departamentos do recorte |
 |---|---|
-| CCS — Centro de Ciências Sociais | ADM, ECO |
+| CCS — Centro de Ciências Sociais | ADM, DIR, ECO |
 | CTCH — Centro de Teologia e Ciências Humanas | EDU, FIL |
 | CTC — Centro Técnico Científico | ELE, IND, INF |
 
@@ -98,9 +98,8 @@ e nas colunas de centro da fonte de alunos. Não descreve alterações históric
 de vinculação. Novos departamentos sem cadastro permanecem em “Centro não informado”.
 O cadastro nunca adiciona departamentos ao acesso do usuário.
 
-Direito (DIR/JUR) fica fora dos filtros e dos recortes institucionais de docentes,
-inclusive “Todos os departamentos”, totais, séries e relatório completo. As cargas
-originais e permissões permanecem preservadas. Alunos continuam sem Direito.
+Desde a versão 0.1.5, Direito integra docentes e alunos no CCS: DIR no RH e JUR no
+sistema acadêmico, exportado como DIR. JUR nunca aparece como opção.
 Centro restringe os departamentos nas análises e acompanha os filtros exportados;
 a troca de centro invalida resultados e arquivos do recorte anterior.
 
@@ -116,3 +115,19 @@ O PDF de alunos não é oferecido nesta versão, porque o modelo atual não repr
 todos os filtros aplicados. Docentes recebeu ajustes de consistência nos cartões e
 nos filtros usados. Sem mudança de cálculo, consulta, permissão ou schema; não exige
 recarga do Supabase. Padrão descrito em [Interface e gráficos](INTERFACE_E_GRAFICOS.md).
+
+## Fidelidade aos painéis e Direito — versão 0.1.5
+
+As análises seguem os painéis de referência (D-040/D-041):
+- **Docentes:** Análise Geral com Situação inicial ATIVO e filtro de página do painel;
+  Comparação entre grupos de quadro (Grupo A × Grupo B; padrão QP = PROF PRINCIPAL ×
+  Geral); Histórico do departamento pela folha desde 2022; Carga horária com Horas Reais
+  em ordem decrescente, Indicador de CH e turmas oferecidas com disciplina legível;
+  Gratificações e funções por função, departamento e mês.
+- **Alunos:** filtros iniciais do painel (Nível sem Mestrado/Doutorado; Curso/Programa
+  sem vazio/DOMÍNIO ADICIONAL) e séries com os nomes do painel; Direito incluído.
+
+Exige a migração `20261111190000_vrac_docentes_layout_v2` (colunas opcionais) e os
+lotes v2 liberados; a versão 0.1.4 não lê docentes institucionais após essa migração.
+Pessoa e vínculo seguem pseudonimizados. Validar com Matheus e Talita os números
+contra capturas do painel de um departamento autorizado.

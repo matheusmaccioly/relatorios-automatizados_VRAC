@@ -9,6 +9,10 @@ import pandas as pd
 import streamlit as st
 
 from vrac.analyses.academic import (
+    DEFAULT_GROUP_A,
+    DEFAULT_GROUP_B,
+    DEFAULT_STATUS,
+    QP_CADRE,
     TITLES,
     AnalysisFilters,
     AnalysisKind,
@@ -23,10 +27,12 @@ from vrac.analyses.academic_export import report_zip, result_context, summary_ta
 from vrac.analyses.academic_quality import inspect_source
 from vrac.analyses.export import _write, detail_csv, summary_csv
 from vrac.analyses.faculty_overview import (
+    NOT_INFORMED,
     FacultyOverview,
     OverviewFilters,
     compute_overview,
     filter_options,
+    is_faculty_cadre,
 )
 from vrac.analyses.pdf_export import report_pdf
 from vrac.analyses.verification import (
@@ -73,33 +79,33 @@ from vrac.web_charts import interactive_chart
 ANALYSIS_GUIDE = {
     "R01": (
         "Como está composto o corpo docente?",
-        "Cadastro atual por departamento, quadro e categoria, com detalhe das Horas Reais. "
-        "O intervalo de semestres não altera o cadastro atual.",
+        "Cadastro atual por departamento, quadro e categoria funcional, com as Horas Reais "
+        "de cada professor. O intervalo de semestres não altera o cadastro atual.",
     ),
     "R02": (
-        "Como o grupo QP se compara ao corpo docente geral?",
-        "Cadastro atual e grupo de comparação configurável. A composição de QP é uma "
-        "simulação identificada; não representa uma definição institucional.",
+        "Como um grupo de quadros se compara a outro?",
+        "Escolha os quadros e categorias de cada grupo, como no filtro Quadro/Categoria "
+        "Funcional do painel. Padrão: QP (PROF PRINCIPAL) e Geral (todos os quadros).",
     ),
     "R03": (
-        "Como o corpo docente evoluiu no período?",
-        "Evolução por semestre e mês. Selecione o intervalo; pessoas distintas por semestre "
-        "não correspondem à soma das contagens mensais.",
+        "Como o quadro de professores evoluiu no período?",
+        "Professores ativos por quadro, semestre e mês. O total do semestre conta pessoas "
+        "distintas e não é a soma dos meses.",
     ),
     "R04": (
-        "Como se distribuem a carga horária e as alocações?",
-        "Use o semestre da carga horária. Horas Reais e horas alocadas são medidas distintas "
-        "e aparecem com suas próprias unidades e fontes.",
+        "Qual a carga horária de cada professor no semestre?",
+        "Horas Reais (Semestre Atual), CH Contratada e Indicador de CH, em ordem decrescente "
+        "de Horas Reais, com o detalhamento das turmas oferecidas.",
     ),
     "R05": (
-        "Quais funções possuem evidência no período?",
-        "Consulte as vigências no intervalo selecionado. Mudança de função ou cargo "
-        "não comprova contratação.",
+        "Quais professores recebem gratificação por função?",
+        "Gratificações por função, departamento e mês no intervalo, com a dupla função do "
+        "cadastro. Gratificação não comprova contratação.",
     ),
     "R06": (
-        "Como evoluíram as matrículas e os alunos?",
-        "Compare o intervalo por curso, habilitação, turno, nível e forma de ingresso. "
-        "Registros de matrícula e alunos únicos permanecem separados.",
+        "Como evoluíram os alunos matriculados, bolsistas, formados e ingressantes?",
+        "As quatro séries da Análise Geral do painel, por curso, habilitação, turno, nível "
+        "e forma de ingresso. Matrículas distintas não são alunos únicos.",
     ),
 }
 
@@ -108,8 +114,9 @@ ANALYSIS_GUIDE = {
 INTERVAL_ANALYSES = {"R03", "R05", "R06"}
 WORKLOAD_ANALYSES = {"R04"}
 CADRE_ANALYSES = {"R01", "R03", "R04", "R05"}
-CATEGORY_ANALYSES = {"R01", "R02", "R03", "R04", "R05"}
-QP_ANALYSES = {"R02"}
+CATEGORY_ANALYSES = {"R01", "R03", "R04", "R05"}
+STATUS_ANALYSES = {"R01", "R02", "R04", "R05"}
+GROUP_ANALYSES = {"R02"}
 ACADEMIC_ANALYSES = {"R06"}
 
 # Sufixos das chaves; cada aba usa o seu prefixo para não misturar estados.
@@ -119,7 +126,13 @@ FILTER_WIDGET_KEYS = (
     "workload_period",
     "cadres",
     "categories",
-    "qp",
+    "statuses",
+    "group_a_name",
+    "group_a_cadres",
+    "group_a_categories",
+    "group_b_name",
+    "group_b_cadres",
+    "group_b_categories",
     "courses",
     "qualifications",
     "shifts",
@@ -135,8 +148,8 @@ CHANGE_COLUMN = "Variação %"
 def analysis_names() -> dict[str, str]:
     """Nomes do seletor associados aos códigos, na ordem apresentada."""
     return {
-        "R01 · Situação geral do departamento": "R01",
-        **{f"{key} · {value}": key for key, value in TITLES.items()},
+        "Análise Geral dos professores": "R01",
+        **{value: key for key, value in TITLES.items()},
     }
 
 
@@ -249,10 +262,8 @@ def _filters(source: AcademicSource, kinds: frozenset[str], prefix: str) -> Anal
                 index=len(periods) - 1,
                 key=f"{prefix}_workload_period",
                 persist_state="page",
-                help="Referência específica da R04; não é a soma do intervalo de semestres.",
+                help="Semestre da carga horária; não é a soma do intervalo de semestres.",
             )
-    from vrac.analyses.faculty_overview import NOT_INFORMED
-
     cadres = {
         r.cadre or NOT_INFORMED
         for r in (*source.faculty.register, *source.history, *source.workloads)
@@ -260,45 +271,33 @@ def _filters(source: AcademicSource, kinds: frozenset[str], prefix: str) -> Anal
     categories = {r.category or NOT_INFORMED for r in (*source.faculty.register, *source.history)}
     staff_cadres: tuple[str, ...] = ()
     staff_categories: tuple[str, ...] = ()
-    qp: tuple[str, ...] = ()
-    if kinds & CATEGORY_ANALYSES:
-        show_cadres = bool(kinds & CADRE_ANALYSES)
-        with st.expander("Filtros docentes e grupo de comparação", expanded=single):
-            first, second = st.columns(2)
-            if show_cadres:
+    statuses: tuple[str, ...] = ()
+    groups: dict[str, object] = {}
+    if kinds & (CATEGORY_ANALYSES | STATUS_ANALYSES | GROUP_ANALYSES):
+        with st.expander("Filtros docentes", expanded=single):
+            first, second, third = st.columns(3)
+            if kinds & CADRE_ANALYSES:
                 with first:
-                    staff_cadres = _pick("Quadros docentes", cadres, f"{prefix}_cadres")
-            with second if show_cadres else first:
-                staff_categories = _pick(
-                    "Categorias funcionais", categories, f"{prefix}_categories"
-                )
-            if kinds & QP_ANALYSES:
-                qp_key = f"{prefix}_qp"
-                qp_options = sorted({r.cadre for r in source.faculty.register if r.cadre})
-                if qp_key in st.session_state:
-                    st.session_state[qp_key] = [
-                        x for x in st.session_state[qp_key] if x in qp_options
-                    ]
-                else:
-                    st.session_state[qp_key] = _qp_defaults(source)
-                qp = tuple(
-                    st.multiselect(
-                        "Quadros do grupo QP — simulação configurável",
-                        qp_options,
-                        key=qp_key,
-                        persist_state="page",
+                    staff_cadres = _pick("Quadro", cadres, f"{prefix}_cadres")
+            if kinds & CATEGORY_ANALYSES:
+                with second:
+                    staff_categories = _pick(
+                        "Categoria Funcional", categories, f"{prefix}_categories"
                     )
-                )
+            if kinds & STATUS_ANALYSES:
+                with third:
+                    statuses = _statuses(source, f"{prefix}_statuses")
+            if kinds & GROUP_ANALYSES:
+                groups = _group_filters(source, prefix)
             with st.container(horizontal=True, horizontal_alignment="right"):
                 info_button(
                     (
-                        "O grupo QP inicial é apenas um exemplo de simulação, sem definição "
-                        "institucional. Seus quadros ficam registrados nos filtros e nas "
-                        "exportações.",
-                        "Na R03, o filtro de quadros controla as séries exibidas e preserva o "
-                        "total; na R04 e na R05 filtra a população.",
-                        "Na R02, Quadros docentes não recorta o geral: use o grupo QP para a "
-                        "comparação.",
+                        "Situação começa em ATIVO, como no painel; vale para a Análise Geral, "
+                        "a comparação, a carga horária e as gratificações.",
+                        "No histórico, o filtro de quadro escolhe as séries exibidas e "
+                        "preserva o total; na carga e nas gratificações recorta a população.",
+                        "Na comparação, cada grupo tem os próprios quadros e categorias; "
+                        "seleção vazia inclui todos.",
                     ),
                     key=f"{prefix}-filtros-docentes",
                     title="Como estes filtros funcionam",
@@ -346,15 +345,63 @@ def _filters(source: AcademicSource, kinds: frozenset[str], prefix: str) -> Anal
         first_period,
         last_period,
         workload_period,
-        qp,
-        courses,
-        staff_cadres,
-        staff_categories,
-        qualifications,
-        shifts,
-        levels,
-        entries,
+        courses=courses,
+        cadres=staff_cadres,
+        categories=staff_categories,
+        qualifications=qualifications,
+        shifts=shifts,
+        levels=levels,
+        entry_kinds=entries,
+        statuses=statuses,
+        **groups,
     )
+
+
+def _statuses(source: AcademicSource, key: str) -> tuple[str, ...]:
+    """Situação do cadastro; começa em ATIVO, como o segmentador do painel."""
+    options = sorted({r.status or NOT_INFORMED for r in source.faculty.register})
+    if key not in st.session_state:
+        st.session_state[key] = [x for x in options if x == DEFAULT_STATUS]
+    return _pick("Situação", set(options), key)
+
+
+def _group_filters(source: AcademicSource, prefix: str) -> dict[str, object]:
+    """Grupo A × Grupo B: cada um com nome, quadros e categorias (hierarquia do painel)."""
+    rows = [r for r in source.faculty.register if is_faculty_cadre(r.cadre)]
+    cadres = sorted({r.cadre for r in rows if r.cadre})
+    st.caption(
+        "Compare dois grupos de professores. Cada grupo é uma seleção de Quadro e "
+        "Categoria Funcional; seleção vazia inclui todos."
+    )
+    chosen: dict[str, object] = {}
+    for column, letter, name, default in zip(
+        st.columns(2, gap="medium"),
+        ("a", "b"),
+        (DEFAULT_GROUP_A, DEFAULT_GROUP_B),
+        ([QP_CADRE] if QP_CADRE in cadres else [], []),
+        strict=True,
+    ):
+        with column, st.container(border=True):
+            base = f"{prefix}_group_{letter}"
+            if f"{base}_name" not in st.session_state:
+                st.session_state[f"{base}_name"] = name
+            if f"{base}_cadres" not in st.session_state:
+                st.session_state[f"{base}_cadres"] = default
+            label = st.text_input(
+                f"Nome do grupo {letter.upper()}", key=f"{base}_name", max_chars=40
+            )
+            selected = _pick("Quadro", set(cadres), f"{base}_cadres")
+            categories = {
+                r.category or NOT_INFORMED for r in rows if not selected or r.cadre in selected
+            }
+            chosen |= {
+                f"group_{letter}_name": label.strip(),
+                f"group_{letter}_cadres": selected,
+                f"group_{letter}_categories": _pick(
+                    "Categoria Funcional", categories, f"{base}_categories"
+                ),
+            }
+    return chosen
 
 
 def filter_descriptions(
@@ -369,9 +416,15 @@ def filter_descriptions(
         "Referência inicial": filters.first_period,
         "Referência final": filters.last_period,
         "Semestre da carga": filters.workload_period,
-        "Grupo QP selecionado": ", ".join(filters.qp_cadres) or "Não selecionado",
-        "Quadros": ", ".join(filters.cadres) or "Todos",
-        "Categorias": ", ".join(filters.categories) or "Todas",
+        "Situação": ", ".join(filters.statuses) or "Todas",
+        "Quadro": ", ".join(filters.cadres) or "Todos",
+        "Categoria Funcional": ", ".join(filters.categories) or "Todas",
+        f"Grupo A ({filters.group_a_name})": _group_text(
+            filters.group_a_cadres, filters.group_a_categories
+        ),
+        f"Grupo B ({filters.group_b_name})": _group_text(
+            filters.group_b_cadres, filters.group_b_categories
+        ),
         "Cursos": ", ".join(filters.courses) or "Todos",
         "Habilitações": ", ".join(filters.qualifications) or "Todas",
         "Turnos": ", ".join(filters.shifts) or "Todos",
@@ -380,16 +433,24 @@ def filter_descriptions(
     }
 
 
-def _qp_defaults(source: AcademicSource) -> list[str]:
-    """Exemplo inicial do grupo QP simulado; não é definição institucional."""
-    options = sorted({r.cadre for r in source.faculty.register if r.cadre})
-    return [x for x in options if x in {"PROF PRINCIPAL", "PRINCIPAL"}]
+def _group_text(cadres: tuple[str, ...], categories: tuple[str, ...]) -> str:
+    return (", ".join(cadres) or "Todos os quadros") + (
+        f" › {', '.join(categories)}" if categories else ""
+    )
 
 
 def default_filters(source: AcademicSource) -> AnalysisFilters:
-    """Recorte inicial do formulário: intervalo completo e seleções vazias."""
+    """Recorte inicial do formulário: o mesmo padrão do painel (ATIVO; QP × Geral)."""
     periods = source.periods
-    return AnalysisFilters(periods[0], periods[-1], periods[-1], tuple(_qp_defaults(source)))
+    cadres = {r.cadre for r in source.faculty.register if r.cadre}
+    statuses = {r.status for r in source.faculty.register if r.status}
+    return AnalysisFilters(
+        periods[0],
+        periods[-1],
+        periods[-1],
+        group_a_cadres=(QP_CADRE,) if QP_CADRE in cadres else (),
+        statuses=(DEFAULT_STATUS,) if DEFAULT_STATUS in statuses else (),
+    )
 
 
 def _table_download(
@@ -511,7 +572,7 @@ def _render_result(
         st.subheader(result.title)
         info_button(result.notes, key=f"{prefix}-{result.kind}")
     st.caption(
-        f"{result.kind} · Situação: {result.status}"
+        f"Situação: {result.status}"
         + (" — os motivos estão no ícone ⓘ" if urgent and result.notes else "")
     )
     with st.container(key=f"vrac-narrative-{prefix}-{result.kind}"):
@@ -523,7 +584,11 @@ def _render_result(
                 with columns[index % len(columns)]:
                     st.metric(
                         metric.label,
-                        "—" if metric.value is None else _format(metric.value),
+                        "—"
+                        if metric.value is None
+                        else _percent(metric.value)
+                        if metric.unit == "%"
+                        else _format(metric.value),
                         help=f"{metric.unit}. {metric.status}. {metric.note}",
                     )
     images = {}
@@ -594,8 +659,7 @@ R01_UNAVAILABLE = (
 R01_REFERENCE = (
     "Referência: cadastro atual; categoria e departamento contam linhas com matrícula; "
     "total e quadro contam matrículas funcionais distintas.",
-    "Horas Reais: maior semestre por vínculo. Atualização da fonte: não disponível.",
-    "A R02 trata separadamente o grupo QP simulado.",
+    "Horas Reais: maior semestre por professor. Atualização da fonte: não disponível.",
 )
 
 
@@ -604,6 +668,7 @@ def _overview_of(source: AcademicSource, filters: AnalysisFilters) -> tuple[Facu
     requested = OverviewFilters(
         frozenset(filters.cadres) if filters.cadres else None,
         frozenset(filters.categories) if filters.categories else None,
+        frozenset(filters.statuses) if filters.statuses else None,
     )
     # O formulário compartilhado inclui domínios históricos: valores sem cadastro
     # atual correspondem a nenhuma linha da R01, sem bloquear outros roteiros.
@@ -613,6 +678,7 @@ def _overview_of(source: AcademicSource, filters: AnalysisFilters) -> tuple[Facu
         requested.categories & set(options.categories)
         if requested.categories is not None
         else None,
+        requested.statuses & set(options.statuses) if requested.statuses is not None else None,
     )
     result = replace(compute_overview(source.faculty, effective), filters=requested)
     return result, requested != effective
@@ -648,7 +714,10 @@ def _render_overview(
     prefix: str,
 ) -> tuple[dict[str, bytes | Callable[[], bytes]], dict[str, str]]:
     if "register" not in source.available:
-        st.error("R01 indisponível: o cadastro docente não pôde ser consultado neste snapshot.")
+        st.error(
+            "Análise Geral dos professores indisponível: o cadastro docente não pôde "
+            "ser consultado neste snapshot."
+        )
         return R01_UNAVAILABLE
     result, unmatched = _overview_of(source, filters)
     export_context, files, manifest = _overview_files(result, generated_at, export_context)
@@ -660,7 +729,7 @@ def _render_overview(
             "O histórico mantém seu domínio e sua referência próprios.",
         )
     with st.container(horizontal=True, vertical_alignment="center"):
-        st.subheader("R01 · Situação geral do departamento")
+        st.subheader("Análise Geral dos professores")
         info_button(notes, key=f"{prefix}-R01")
     if result.status == "partial":
         st.caption("Situação: Parcial — composição calculada; fonte de Horas Reais indisponível.")
@@ -737,7 +806,7 @@ def complete_report_pdf(settings: Settings, branding: Branding, scope: Organisat
 
 
 def _analysis_title(code: str) -> str:
-    return f"{code} · {TITLES.get(code, 'Situação geral do departamento')}"
+    return TITLES.get(code, "Análise Geral dos professores")
 
 
 EXPORT_NOTES = (
@@ -745,7 +814,7 @@ EXPORT_NOTES = (
     "origem dos dados na capa.",
     "ZIP: todas as tabelas (CSV), gráficos (PNG) e conferências, para quem precisa "
     "refazer ou conferir os números.",
-    "Relatório completo: calcula as seis análises (R01–R06) do mesmo departamento com o "
+    "Relatório completo: calcula todas as análises do mesmo departamento com o "
     "intervalo completo e os filtros iniciais.",
     "Análises sem fonte disponível aparecem como bloqueadas, com o motivo.",
 )
@@ -833,7 +902,7 @@ def export_box(
             )
             if complete is not None and set(available) != set(COMPLETE_CODES):
                 download_button(
-                    "Relatório completo R01–R06 (PDF)",
+                    "Relatório completo (PDF)",
                     complete,
                     file_name=f"vrac-relatorio-completo-{stamp}.pdf",
                     mime="application/pdf",
@@ -997,8 +1066,8 @@ def workbench(
     }
     export_slot = panel.container()
     show_overview = "R01" in kinds
-    labels = (["R01 · Situação geral"] if show_overview else []) + [
-        f"{r.kind} · {r.title}" for r in results
+    labels = (["Análise Geral dos professores"] if show_overview else []) + [
+        r.title for r in results
     ]
     # Uma análise só dispensa abas internas; várias ficam lado a lado.
     tabs = panel.tabs(labels) if len(labels) > 1 else [panel.container()]

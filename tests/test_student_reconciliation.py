@@ -188,13 +188,22 @@ def test_entry_minimum_uses_loaded_register_before_all_academic_dimensions():
     )
     assert tables(source, filters)["students"].rows[0] == ("2024.1", 1, 1, 0, 1)
     compare(source, filters)
+    # Sem cadastro não conta, como no DAX do painel; o ponto continua observado.
     unknown = replace(source, students=tuple(row for row in current if row.registration != 1))
-    assert tables(unknown, filters)["students"].rows[0][1:3] == (None, None)
-    assert any(
-        "Ingresso desconhecido" in note
-        for note in calculate(AnalysisKind.STUDENTS, unknown, filters).notes
-    )
+    assert tables(unknown, filters)["students"].rows[0][1:3] == (0, 0)
     compare(unknown, filters)
+    blank = replace(
+        source,
+        students=tuple(
+            replace(row, entry_period=None) if row.registration == 1 else row for row in current
+        ),
+    )
+    assert tables(blank, filters)["students"].rows[0][1:3] == (1, 1)
+    assert any(
+        "ingresso em branco" in note
+        for note in calculate(AnalysisKind.STUDENTS, blank, filters).notes
+    )
+    compare(blank, filters)
 
 
 def test_literal_double_diploma_and_course_names_do_not_join_populations():
@@ -220,7 +229,7 @@ def test_zero_missing_period_missing_entry_and_missing_current_have_distinct_eff
     assert result["students"].rows[0] == ("2024.1", 0, 0, 0, 1)
     assert result["students"].rows[1] == ("2024.2", None, None, None, None)
     assert result["enrollment_change"].rows[0][4:] == (None, None, "Ausência de dado")
-    assert result["students"].rows[3][1:3] == (None, None)
+    assert result["students"].rows[3][1:3] == (1, 0)  # ingresso em branco conta (DAX)
     compare(source)
     without_current = replace(source, students=(), available=source.available - {"students"})
     assert tables(without_current)["students"].rows[0][1:] == (None, None, None, 1)

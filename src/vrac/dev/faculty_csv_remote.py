@@ -49,6 +49,69 @@ def render_load(bundle: dict[str, list[tuple]], batch: UUID) -> str:
     return "\n".join(statements)
 
 
+CHUNK = 5000
+
+
+def render_chunk(table: str, rows: list[dict], batch: UUID, offset: int) -> str:
+    """Bloco fechado de até CHUNK linhas; conferência integral do intervalo de ordinais."""
+    if table not in LAYOUTS or not rows or offset < 0 or len(rows) > CHUNK:
+        raise ValueError("Bloco inválido.")
+    template = (ROOT / "sql/faculty_remote_chunk.sql").read_text(encoding="utf-8")
+    payload = json.dumps(rows, ensure_ascii=False, default=str, separators=(",", ":"))
+    values = {
+        "table": table,
+        "batch": sql.Literal(str(batch)).as_string(),
+        "offset": str(offset),
+        "end": str(offset + len(rows)),
+        "payload": sql.Literal(payload).as_string(),
+    }
+    # Payload por último: textos do CSV nunca são templates.
+    for key, value in values.items():
+        template = template.replace("{{" + key + "}}", value)
+    return template
+
+
+def load_in_chunks(bundle: dict[str, list[tuple]], batch: UUID, run) -> dict[str, int]:
+    """Cria o lote bloqueado, carrega cada conjunto em blocos e grava o manifesto no fim."""
+    if set(bundle) != set(LAYOUTS):
+        raise ValueError("Pacote incompleto.")
+    batch_sql = sql.Literal(str(batch)).as_string()
+    run(f"BEGIN; INSERT INTO vrac_docentes.cargas(id) VALUES ({batch_sql}); COMMIT;")
+    for table, layout in LAYOUTS.items():
+        rows = [
+            dict(zip(layout.columns, row, strict=True), carga_id=str(batch), linha=i)
+            for i, row in enumerate(bundle[table], 1)
+        ]
+        for offset in range(0, len(rows), CHUNK):
+            run(render_chunk(table, rows[offset : offset + CHUNK], batch, offset))
+            print(
+                json.dumps(
+                    {"conjunto": table, "conferidas": min(offset + CHUNK, len(rows))},
+                    ensure_ascii=False,
+                ),
+                flush=True,
+            )
+    checks = " OR ".join(
+        f"(SELECT count(*) FROM vrac_docentes.{table} WHERE carga_id={batch_sql})"
+        f" <> {len(bundle[table])}"
+        for table in LAYOUTS
+    )
+    manifest = ",".join(
+        f"({batch_sql},{sql.Literal(table).as_string()},{len(bundle[table])},"
+        f"{sql.Literal(digest(bundle[table])).as_string()})"
+        for table in LAYOUTS
+    )
+    run(
+        "BEGIN; DO $$ BEGIN IF "
+        + checks
+        + " THEN RAISE EXCEPTION 'Contagem divergente'; END IF; END $$; "
+        "INSERT INTO vrac_docentes.arquivos(carga_id,conjunto,linhas,hash_conteudo) VALUES "
+        + manifest
+        + "; COMMIT;"
+    )
+    return {table: len(rows) for table, rows in bundle.items()}
+
+
 def synthetic_fingerprints() -> dict:
     tables = remote_query(
         sql="SELECT n.nspname AS schema, c.relname AS name "
@@ -79,9 +142,13 @@ def main() -> int:
             Path(tempfile.gettempdir()) / "vrac-csv-load", str(uuid4()), workspace=ROOT
         )
         path = directory / "load.sql"
-        try:
-            path.write_text(render_load(bundle, args.batch), encoding="utf-8")
+
+        def run(statement: str) -> None:
+            path.write_text(statement, encoding="utf-8")
             remote_query(path=path, read_only=False)
+
+        try:
+            load_in_chunks(bundle, args.batch, run)
         finally:
             path.unlink(missing_ok=True)
             directory.rmdir()

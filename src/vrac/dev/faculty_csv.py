@@ -1,4 +1,9 @@
-"""Carga explícita dos sete CSVs docentes; nunca executada pelo startup do app."""
+"""Carga explícita dos sete CSVs docentes; nunca executada pelo startup do app.
+
+Layout v2 (11/11/2026): seis quadros docentes e todas as situações no cadastro; histórico
+mensal pela folha (departamento de cada competência, inclusive desligados) desde 2022;
+disciplinas e gratificações legíveis. Pessoa e vínculo continuam pseudonimizados.
+"""
 
 import argparse
 import csv
@@ -20,14 +25,15 @@ class Layout:
     columns: tuple[str, ...]
 
 
-# Ordem conferida nos SELECTs de base/oito_departamentos, confirmada por Matheus.
+# Ordem dos SELECTs do pacote docentes v2 (docs/operations/departamentos.local/docentes_v2).
 LAYOUTS = {
     "cadastro": Layout(
         "01_cadastro.csv",
         tuple(
             (
                 "pessoa_id nome_ficticio vinculo_id departamento_alocacao quadro categoria "
-                "situacao dupla_funcao carga_semanal"
+                "situacao dupla_funcao carga_semanal titulacao tempo_casa_anos "
+                "vinculo_extraordinario"
             ).split()
         ),
     ),
@@ -60,18 +66,32 @@ LAYOUTS = {
             (
                 "departamento_alocacao vinculo_id semestre unidade_oferta disciplina_id turma_id "
                 "nivel tipo obrigatoria horas_alocadas compartilhada vagas_ofertadas "
-                "vagas_preenchidas professor_principal"
+                "vagas_preenchidas professor_principal disciplina_codigo disciplina_nome "
+                "turma creditos horas_distancia horas_extensao"
             ).split()
         ),
     ),
     "eventos_funcoes": Layout(
         "07_eventos_funcoes_2026.csv",
-        tuple("departamento_alocacao vinculo_id evento_id ano mes descricao_id papel_id".split()),
+        tuple(
+            (
+                "departamento_alocacao vinculo_id evento_id ano mes descricao_id papel_id "
+                "gratificacao papel departamento_distribuicao"
+            ).split()
+        ),
     ),
 }
 NUMERICS = frozenset(
-    "carga_semanal horas_contratuais horas_reais carga_horaria horas_alocadas".split()
+    (
+        "carga_semanal horas_contratuais horas_reais carga_horaria horas_alocadas "
+        "tempo_casa_anos creditos horas_distancia horas_extensao"
+    ).split()
 )
+# Histórico e gratificações cobrem a janela do painel Histórico do Departamento.
+FIRST_YEAR, LAST_YEAR = 2022, 2026
+# Histórico segue o departamento da folha: inclui desligados e quem mudou de unidade,
+# por isso não exige o vínculo no cadastro atual do mesmo departamento.
+HISTORY_TABLES = frozenset({"historico_mensal", "historico_cargos"})
 INTEGERS = frozenset(
     (
         "semestre ano mes ativo excluido_a4 vagas_ofertadas vagas_preenchidas professor_principal"
@@ -162,15 +182,23 @@ def read_bundle(directory: Path, *, encoding: str, null_token: str) -> dict[str,
         columns = LAYOUTS[table].columns
         for row in rows:
             if (
-                row[columns.index("departamento_alocacao")],
-                row[columns.index("vinculo_id")],
-            ) not in keys:
+                table not in HISTORY_TABLES
+                and (
+                    row[columns.index("departamento_alocacao")],
+                    row[columns.index("vinculo_id")],
+                )
+                not in keys
+            ):
                 raise ImportErrorSafe(f"{table}: vínculo sem cadastro no mesmo departamento.")
-            if (
-                table in {"historico_mensal", "eventos_funcoes"}
-                and row[columns.index("ano")] != 2026
+            if table in {"historico_mensal", "eventos_funcoes"} and not (
+                FIRST_YEAR <= row[columns.index("ano")] <= LAST_YEAR
             ):
                 raise ImportErrorSafe(f"{table}: ano fora do recorte.")
+    history_keys = {
+        (r[0], r[1]) for r in result["historico_mensal"]
+    }  # departamento_alocacao, vinculo_id
+    if any((r[0], r[1]) not in history_keys | keys for r in result["historico_cargos"]):
+        raise ImportErrorSafe("historico_cargos: vínculo fora do histórico e do cadastro.")
     return result
 
 

@@ -82,7 +82,7 @@ def test_pdf_preserves_consolidated_values_and_omits_detail(department, missing)
 
 
 def test_partial_package_is_rejected():
-    with pytest.raises(ValueError, match="R01"):
+    with pytest.raises(ValueError, match="análises disponíveis"):
         report_pdf(report_zip((), datetime(2026, 11, 9, tzinfo=UTC)), load_branding())
 
 

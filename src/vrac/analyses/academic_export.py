@@ -16,14 +16,20 @@ FILTER_LABELS = {
     "first_period": "Semestre inicial",
     "last_period": "Semestre final",
     "workload_period": "Semestre da carga",
-    "qp_cadres": "Grupo QP selecionado",
+    "group_a_cadres": "Grupo A — quadros",
     "courses": "Cursos",
-    "cadres": "Quadros",
-    "categories": "Categorias",
+    "cadres": "Quadro",
+    "categories": "Categoria Funcional",
     "qualifications": "Habilitações",
     "shifts": "Turnos",
     "levels": "Níveis",
     "entry_kinds": "Formas de ingresso",
+    "group_a_categories": "Grupo A — categorias",
+    "group_a_name": "Grupo A — nome",
+    "group_b_cadres": "Grupo B — quadros",
+    "group_b_categories": "Grupo B — categorias",
+    "group_b_name": "Grupo B — nome",
+    "statuses": "Situação",
 }
 
 

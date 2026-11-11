@@ -76,7 +76,7 @@ def test_source_failure_does_not_block_independent_analyses(monkeypatch, failed_
     source = reader.load_academic_source(
         Settings(demo_source=DemoSource.POSTGRES), department="SINT-A"
     )
-    filters = AnalysisFilters("2024.1", "2026.2", "2026.1", qp_cadres=("PROF PRINCIPAL",))
+    filters = AnalysisFilters("2024.1", "2026.2", "2026.1", group_a_cadres=("PROF PRINCIPAL",))
     assert source.errors and all("segredo-ficticio" not in e for e in source.errors)
     assert calculate(AnalysisKind.HISTORY, source, filters).status != "Bloqueado"
     assert calculate(AnalysisKind.WORKLOAD, source, filters).status != "Bloqueado"
@@ -94,8 +94,9 @@ def test_source_failure_does_not_block_independent_analyses(monkeypatch, failed_
 
         assert "real_hours" not in source.available and not source.faculty.real_hours_available
         overview = compute_overview(source.faculty, OverviewFilters())
-        assert overview.total == 5 and overview.status == OverviewStatus.PARTIAL
-        assert calculate(AnalysisKind.QP, source, filters).metrics[0].value == 5
+        # Quadro vazio da fixture fica fora pelo filtro de página do painel.
+        assert overview.total == 4 and overview.status == OverviewStatus.PARTIAL
+        assert calculate(AnalysisKind.COMPARISON, source, filters).metrics[1].value == 4
     bound_calls = [p for q, p in connection.calls if q == reader.Query.HISTORY]
     assert bound_calls == [{"department": "SINT-A"}]
 
@@ -115,7 +116,7 @@ def test_r01_hours_failure_keeps_register_and_all_department_queries_bound(monke
         Settings(demo_source=DemoSource.POSTGRES), department=ALL_DEPARTMENTS
     )
     result = compute_overview(source, OverviewFilters())
-    assert result.total == 5 and result.status == OverviewStatus.PARTIAL
+    assert result.total == 4 and result.status == OverviewStatus.PARTIAL
     assert not source.real_hours and not source.real_hours_available
     assert [p for q, p in connection.calls if q == reader.Query.FACULTY_REGISTER] == [
         {"department": "SINT-A"}
@@ -150,5 +151,5 @@ def test_workload_source_failures_are_isolated(monkeypatch, failed_query):
         assert any("indisponível" in note for note in result.notes)
     else:
         assert result.status != "Bloqueado"
-        rows = next(t for t in result.tables if t.key == "workload").rows
-        assert all(row[6:8] == (None, None) for row in rows)
+        # Sem política declarada, a unidade fica genérica; as horas não mudam.
+        assert next(t for t in result.tables if t.key == "workload").unit == "horas"

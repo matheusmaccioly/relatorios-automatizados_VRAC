@@ -31,7 +31,9 @@ from vrac.web_charts import chart_records, interactive_chart
 
 ROOT = Path(__file__).resolve().parents[1]
 NOW = datetime(2026, 11, 5, 12, tzinfo=UTC)
-FILTERS = AnalysisFilters("2024.1", "2026.2", "2026.2", qp_cadres=("PROF PRINCIPAL", "PRINCIPAL"))
+FILTERS = AnalysisFilters(
+    "2024.1", "2026.2", "2026.2", group_a_cadres=("PROF PRINCIPAL", "PRINCIPAL")
+)
 SYMBOLS = {symbol for symbol, _ in INDICATORS.values()} - {"?", "–"}
 
 
@@ -114,7 +116,7 @@ def test_workload_indicator_chart_reads_the_calculated_table_in_reading_order() 
     serialized = interactive_chart(result, spec, load_branding()).to_dict()
     expression = serialized["layer"][0]["encoding"]["y"]["axis"]["labelExpr"]
     assert "▼ Abaixo do necessário" in expression and "datum.label" in expression
-    assert chart_unit(result, spec) == "vínculos"
+    assert chart_unit(result, spec) == "professores"
     assert render_png(lambda: academic_chart(result, spec, load_branding())).startswith(b"\x89PNG")
 
 
@@ -123,14 +125,18 @@ def test_participation_chart_uses_percent_and_needs_more_than_one_department() -
     spec = next(chart for chart in several.charts if "Participação (%)" in chart.series)
     assert chart_unit(several, spec) == "%"
     grouped = next(chart for chart in several.charts if chart.kind == "grouped_bar")
-    assert chart_unit(several, grouped) == "matrículas funcionais distintas"
+    assert chart_unit(several, grouped) == "professores (matrículas funcionais distintas)"
     one = calculated(AnalysisKind.QP)
     assert len(table(one, "departments").rows) == 1
     assert not any("Participação (%)" in chart.series for chart in one.charts)
 
 
 def test_bar_with_missing_value_stays_on_the_axis_labelled_as_missing() -> None:
-    result = calculated(AnalysisKind.QP, ALL_DEPARTMENTS)
+    # Departamento sem professores do grupo B: participação ausente, não zero.
+    nested = replace(
+        FILTERS, group_b_cadres=("PROF PRINCIPAL", "PRINCIPAL", "PROF HORISTA"), group_b_name="B"
+    )
+    result = calculated(AnalysisKind.QP, ALL_DEPARTMENTS, nested)
     spec = next(chart for chart in result.charts if "Participação (%)" in chart.series)
     records = chart_records(result, spec)
     missing = [record for record in records if record["Valor"] is None]
@@ -207,7 +213,7 @@ def test_charted_tables_stay_collapsed_inside_their_chart_cards() -> None:
     charted = {chart.table for chart in result.charts}
     for item in result.tables:
         assert (item.title in labels) == (item.key not in charted)
-    assert "Carga por vínculo no semestre" in labels
+    assert "CH Real dos Professores em Disciplinas" in labels
 
 
 def test_every_table_keeps_a_csv_with_its_previous_key_and_shows_the_symbols() -> None:
@@ -215,14 +221,18 @@ def test_every_table_keeps_a_csv_with_its_previous_key_and_shows_the_symbols() -
     result = app.session_state["suite_results"][0]
     keys = {button.key for button in app.get("download_button")}
     assert {f"suite_R04_{item.key}_csv" for item in result.tables} <= keys
-    element = next(item for item in app.dataframe if "Resultado do painel" in item.value)
-    shown = set(element.value["Resultado do painel"])
+    element = next(
+        item
+        for item in app.dataframe
+        if "Indicador de CH" in item.value and "Nome fictício" in item.value
+    )
+    shown = set(element.value["Indicador de CH"])
     assert shown <= {indicator_label(name) for name in INDICATORS}
     # A leitura começa pelo que interessa; a ordem do cálculo e do CSV não muda.
     assert list(element.proto.column_order)[:3] == [
         "Nome fictício",
-        "Resultado do painel",
-        "Horas Reais",
+        "Indicador de CH",
+        "Horas Reais (Semestre Atual)",
     ]
     assert list(element.value.columns)[:2] == ["Matrícula fictícia", "Nome fictício"]
 

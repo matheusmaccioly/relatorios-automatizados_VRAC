@@ -55,13 +55,6 @@ def reconcile(connection, source, departments, filters, scenario):
     actual = {r[0]: r for r in next(t for t in result.tables if t.key == "workload").rows}
     records = []
     policy = source.policy
-    compatible = bool(
-        "policy" in source.available
-        and policy.synthetic_units
-        and policy.real_hours_unit
-        and policy.real_hours_unit.strip()
-        and policy.real_hours_unit == policy.contracted_hours_unit
-    )
     context = {
         "cenario": scenario,
         "departamento": source.department,
@@ -93,16 +86,6 @@ def reconcile(connection, source, departments, filters, scenario):
         if isinstance(hours, Decimal):
             hours = float(hours)
         contracted = ref["contracted"] if ref["contracts"] == 1 else None
-        delta = (
-            hours - contracted
-            if compatible and hours is not None and contracted is not None
-            else None
-        )
-        ratio = (
-            hours / contracted * 100
-            if compatible and hours is not None and contracted not in (None, 0)
-            else None
-        )
         coverage = (
             "Nulo na fonte"
             if ref["known"] == 0
@@ -111,11 +94,9 @@ def reconcile(connection, source, departments, filters, scenario):
             else "Informado"
         )
         for measure, exp, got in (
-            ("Horas Reais", hours, row[4]),
-            ("Contratada", contracted, row[5]),
-            ("Diferença", delta, row[6]),
-            ("Razão %", ratio, row[7]),
-            ("Cobertura", coverage, row[9]),
+            ("Horas Reais", hours, row[6]),
+            ("Contratada", contracted, row[7]),
+            ("Cobertura", coverage, row[8]),
         ):
             comparison = (
                 compare_values(exp, got)
@@ -157,21 +138,33 @@ def reconcile(connection, source, departments, filters, scenario):
         )
     if "allocations" in source.available:
         selected_regs = set(expected)
+        semester = period_code(filters.workload_period)
+        teachers: dict[tuple, set] = {}
+        for r in source.allocations:
+            if r.semester == semester and r.registration:
+                teachers.setdefault((r.discipline, r.class_id), set()).add(r.registration)
         allocation_expected = Counter(
             (
                 r.registration,
                 r.department,
                 r.teaching_department,
+                r.level,
                 r.discipline,
+                r.discipline_name,
                 r.class_id,
+                r.credits,
                 r.allocated_hours,
-                r.vacancies_filled,
                 r.shared,
+                r.mandatory,
+                r.distance_hours,
+                r.extension_hours,
                 r.classification,
+                r.vacancies_offered,
+                r.vacancies_filled,
+                len(teachers[(r.discipline, r.class_id)]) if r.discipline else None,
             )
             for r in source.allocations
-            if r.semester == period_code(filters.workload_period)
-            and r.registration in selected_regs
+            if r.semester == semester and r.registration in selected_regs
         )
         allocation_actual = Counter(
             next(t for t in result.tables if t.key == "allocation_detail").rows

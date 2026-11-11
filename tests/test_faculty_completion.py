@@ -20,7 +20,7 @@ from vrac.branding import load_branding
 from vrac.charts import academic_chart
 from vrac.web_charts import chart_records, interactive_bars, interactive_chart
 
-FILTERS = AnalysisFilters("2026.1", "2026.1", "2026.1", qp_cadres=("PROF PRINCIPAL",))
+FILTERS = AnalysisFilters("2026.1", "2026.1", "2026.1", group_a_cadres=("PROF PRINCIPAL",))
 NOW = datetime(2026, 11, 3, 12, tzinfo=UTC)
 
 
@@ -41,44 +41,46 @@ def comparison_source():
 def test_current_units_and_department_comparison_agree_with_exports():
     source = comparison_source()
     overview = compute_overview(source.faculty, OverviewFilters())
-    assert overview.total == 4
-    assert dict(overview.by_department) == {"SINT-A": 3, "SINT-B": 2}  # linhas do visual
-    assert sum(n for _, n in overview.by_category) == 5
+    # V4 tem quadro vazio e sai pelo filtro de página do painel.
+    assert overview.total == 3
+    assert dict(overview.by_department) == {"SINT-A": 3, "SINT-B": 1}  # linhas do visual
+    assert sum(n for _, n in overview.by_category) == 4
     exported = list(
         csv.reader(io.StringIO(summary_csv(overview, NOW).decode("utf-8-sig")), delimiter=";")
     )
-    assert ["Resultado", "Total", "4"] in exported
+    assert ["Resultado", "Total", "3"] in exported
     assert ["Por departamento", "SINT-A", "3"] in exported
     assert overview.fingerprint in str(exported)
-    result = calculate(AnalysisKind.QP, source, FILTERS)
-    expected = (("SINT-A", 2, 1, 0, 1, 50), ("SINT-B", 2, 1, 1, None, None))
+    result = calculate(AnalysisKind.COMPARISON, source, FILTERS)
+    expected = (("SINT-A", 1, 2, 1, 50), ("SINT-B", 1, 1, 1, 100))
     assert table(result, "departments").rows == expected
-    assert result.metrics[0].value == 4 and result.metrics[1].value == 2
+    assert result.metrics[0].value == 2 and result.metrics[1].value == 3
     changed = calculate(
-        AnalysisKind.QP,
+        AnalysisKind.COMPARISON,
         source,
-        replace(FILTERS, qp_cadres=("PROF HORISTA",), cadres=("PROF HORISTA",)),
+        replace(FILTERS, group_a_cadres=("PROF HORISTA",), cadres=("PROF HORISTA",)),
     )
-    assert changed.metrics[0].value == 4
-    assert [r[1] for r in table(changed, "departments").rows] == [2, 2]
+    assert changed.metrics[0].value == 1 and changed.metrics[1].value == 3
+    assert [r[1] for r in table(changed, "departments").rows] == [1, 0]
     text = table_csv(result, table(result, "departments"), NOW).decode("utf-8-sig")
-    assert "SINT-A;2;1;0;1;50" in text and "SINT-B;2;1;1;ausente;ausente" in text
+    assert "SINT-A;1;2;1;50" in text and "SINT-B;1;1;1;100" in text
     with ZipFile(io.BytesIO(report_zip((result,), NOW))) as archive:
         assert archive.read("R02/departments.csv").decode("utf-8-sig") == text
 
 
-def test_qp_unselected_is_unavailable_and_department_overlap_is_not_a_total():
+def test_same_selection_is_full_share_and_department_overlap_is_not_a_total():
     source = comparison_source()
     repeated = replace(source.faculty.register[0], department="SINT-B")
     source = replace(
         source, faculty=replace(source.faculty, register=(*source.faculty.register, repeated))
     )
-    result = calculate(AnalysisKind.QP, source, replace(FILTERS, qp_cadres=()))
-    assert result.metrics[0].value == 4
-    assert sum(r[1] for r in table(result, "departments").rows) == 5
-    assert all(r[2] is None for r in table(result, "departments").rows)
-    assert table(result, "groups").rows[0][1] is None
-    assert result.charts[0].series == ("Geral",)
+    result = calculate(AnalysisKind.COMPARISON, source, replace(FILTERS, group_a_cadres=()))
+    metrics = {m.label: m.value for m in result.metrics}
+    assert metrics["QP"] == metrics["Geral"] == 3 and metrics["QP em % de Geral"] == 100
+    # V1 está nos dois departamentos: as linhas não somam o total do recorte.
+    assert sum(r[2] for r in table(result, "departments").rows) == 4
+    assert table(result, "groups").rows[0][1] == "todos os quadros"
+    assert result.charts[0].series == ("QP", "Geral")
 
 
 def test_history_complete_and_partial_coverage_with_overlapping_cadres():
@@ -105,6 +107,10 @@ def test_history_complete_and_partial_coverage_with_overlapping_cadres():
 
 def test_hours_unavailable_does_not_remove_composition_or_become_null_source_value():
     source = load_fixture("SINT-A").faculty
+    # Quadro vazio sai pelo filtro de página; com quadro, o vínculo sem horas permanece.
+    source = replace(
+        source, register=tuple(replace(r, cadre=r.cadre or "PROF QCI") for r in source.register)
+    )
     normal = compute_overview(source, OverviewFilters())
     states = {d.hours_state for d in normal.detail}
     assert states == {"Valor informado", "Nulo na fonte", "Sem registro"}
@@ -170,15 +176,14 @@ def test_single_series_chart_preserves_zero_and_uses_click_highlighting():
     assert "transform" not in spec
 
 
-def test_qp_department_chart_uses_count_unit_in_png_and_web():
-    result = calculate(AnalysisKind.QP, comparison_source(), FILTERS)
+def test_comparison_department_chart_uses_count_unit_in_png_and_web():
+    result = calculate(AnalysisKind.COMPARISON, comparison_source(), FILTERS)
     spec = next(chart for chart in result.charts if chart.table == "departments")
     assert "%" in table(result, "departments").unit
-    assert {row["Unidade"] for row in chart_records(result, spec)} == {
-        "matrículas funcionais distintas"
-    }
+    unit = "professores (matrículas funcionais distintas)"
+    assert {row["Unidade"] for row in chart_records(result, spec)} == {unit}
     figure = academic_chart(result, spec, load_branding())
     try:
-        assert figure.axes[0].get_ylabel() == "matrículas funcionais distintas"
+        assert figure.axes[0].get_ylabel() == unit
     finally:
         plt.close(figure)

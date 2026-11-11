@@ -8,11 +8,19 @@ from vrac.branding import Branding
 
 # Mesmos domínios aplicáveis do formulário; os demais não são filtros desta análise.
 APPLICABLE = {
-    "R01": {"Quadros", "Categorias"},
-    "R02": {"Categorias", "Grupo QP selecionado"},
-    "R03": {"Quadros", "Categorias", "Semestre inicial", "Semestre final"},
-    "R04": {"Quadros", "Categorias", "Semestre da carga"},
-    "R05": {"Quadros", "Categorias", "Semestre inicial", "Semestre final"},
+    "R01": {"Quadro", "Categoria Funcional", "Situação"},
+    "R02": {
+        "Situação",
+        "Grupo A — nome",
+        "Grupo A — quadros",
+        "Grupo A — categorias",
+        "Grupo B — nome",
+        "Grupo B — quadros",
+        "Grupo B — categorias",
+    },
+    "R03": {"Quadro", "Categoria Funcional", "Semestre inicial", "Semestre final"},
+    "R04": {"Quadro", "Categoria Funcional", "Situação", "Semestre da carga"},
+    "R05": {"Quadro", "Categoria Funcional", "Situação", "Semestre inicial", "Semestre final"},
     "R06": {
         "Semestre inicial",
         "Semestre final",
@@ -47,7 +55,7 @@ def report_pdf(
             )
         )
     ):
-        raise ValueError("Selecione análises disponíveis de R01–R06, com identificação de origem.")
+        raise ValueError("Selecione análises disponíveis, com identificação de origem.")
     included = tuple(kind for kind in APPLICABLE if kind in requested)
     from vrac.analyses.pdf_slides import render_slides
 

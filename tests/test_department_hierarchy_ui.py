@@ -41,7 +41,7 @@ def test_overview_all_departments_is_limited_to_center_in_screen_and_csv() -> No
     assert not app.exception and not app.error
     overview = app.session_state["overview_result"]
     assert overview.department == "Centro sintético 1 · Todos os departamentos"
-    assert overview.total == 5
+    assert overview.total == 4  # quadro vazio fora, como no painel
     assert {row.department for row in overview.detail} == {"SINT-A"}
     assert {name for name, _ in overview.by_department} == {"SINT-A"}
     assert len(app.get("vega_lite_chart")) == 5
@@ -72,7 +72,7 @@ def test_workbench_center_change_replaces_snapshot_and_removes_results() -> None
     assert {row.department for row in source.faculty.register} == {"SINT-A"}
     app.button(key="suite_run").click().run()
     assert not app.exception and not app.error
-    assert app.metric[0].value == "5" and app.get("download_button")
+    assert app.metric[0].value == "4" and app.get("download_button")
     filters = next(t.value for t in app.table if "Filtro" in t.value.columns)
     assert filters.set_index("Filtro").loc["Centro", "Valor"] == "Centro sintético 1"
     assert (

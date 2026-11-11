@@ -19,7 +19,7 @@ def open_analysis(code: str) -> AppTest:
 
 
 def r01_tab(app: AppTest):
-    return next(tab for tab in app.tabs if tab.label == "R01 · Situação geral")
+    return next(tab for tab in app.tabs if tab.label == "Análise Geral dos professores")
 
 
 def test_all_six_routes_generate_tables_charts_downloads_and_clear_on_filter_change() -> None:
@@ -36,10 +36,10 @@ def test_all_six_routes_generate_tables_charts_downloads_and_clear_on_filter_cha
         "R05",
         "R06",
     ]
-    assert any(t.label == "R01 · Situação geral" for t in app.tabs)
+    assert any(t.label == "Análise Geral dos professores" for t in app.tabs)
     assert len(app.metric) > 10
     assert len(app.get("download_button")) > 20
-    assert any("Simulação" in c.value or "Parcial" in c.value for c in app.caption)
+    assert any("Situação: " in c.value for c in app.caption)
     app.selectbox(key="suite_last").select("2026.1").run()
     assert "suite_results" not in app.session_state
     assert not app.metric
@@ -94,9 +94,10 @@ def test_r01_can_be_selected_and_shows_all_breakdowns_and_details():
     assert app.session_state["suite_verification"].outcomes[RULE_ID].status != Status.FAILED
     r01 = r01_tab(app)
     assert len(r01.get("vega_lite_chart")) == 3
-    assert len(r01.metric) == 1 and r01.metric[0].value == "5"
+    # Quadro vazio fica fora pelo filtro de página do painel.
+    assert len(r01.metric) == 1 and r01.metric[0].value == "4"
     assert any("Estado das Horas Reais" in frame.value.columns for frame in r01.dataframe)
-    app.multiselect(key="suite_categories").select("Não informado").run()
+    app.multiselect(key="suite_categories").select("PROF QCP").run()
     assert "suite_results" not in app.session_state and not result_downloads(app)
     app.button(key="suite_run").click().run()
     assert not app.exception and r01_tab(app).metric[0].value == "1"
@@ -148,7 +149,7 @@ def test_history_only_category_is_empty_in_r01_without_blocking_the_flow(monkeyp
 
 def test_analysis_guidance_and_filter_summary_are_available_before_calculation():
     app = open_analysis("R06")
-    assert any("Como evoluíram as matrículas e os alunos?" in text.value for text in app.markdown)
+    assert any("Como evoluíram os alunos matriculados" in text.value for text in app.markdown)
     assert "alunos_source" in app.session_state
     course_selector = app.multiselect(key="alunos_courses")
     course_selector.select(course_selector.options[0]).run()
@@ -173,3 +174,36 @@ def test_reset_filters_keeps_loaded_snapshot_and_removes_results_and_downloads()
     assert app.selectbox(key="suite_first").value == app.selectbox(key="suite_first").options[0]
     assert not app.multiselect(key="suite_categories").value
     assert "suite_results" not in app.session_state and not result_downloads(app)
+
+
+def test_default_filters_follow_dashboard_status_and_qp_group():
+    from dataclasses import replace
+
+    from vrac.academic_ui import default_filters
+    from vrac.analyses.academic_fixture import load_fixture
+
+    source = load_fixture("SINT-A")
+    register = tuple(replace(r, status="ATIVO") for r in source.faculty.register)
+    source = replace(source, faculty=replace(source.faculty, register=register))
+    filters = default_filters(source)
+    assert filters.statuses == ("ATIVO",)
+    assert (filters.group_a_name, filters.group_a_cadres) == ("QP", ("PROF PRINCIPAL",))
+    assert (filters.group_b_name, filters.group_b_cadres) == ("Geral", ())
+
+
+def test_comparison_screen_offers_two_groups_with_qp_and_general_by_default():
+    app = open_analysis("R02")
+    assert app.text_input(key="suite_group_a_name").value == "QP"
+    assert app.text_input(key="suite_group_b_name").value == "Geral"
+    assert app.multiselect(key="suite_group_a_cadres").value == ["PROF PRINCIPAL"]
+    assert app.multiselect(key="suite_group_b_cadres").value == []
+    app.button(key="suite_run").click().run()
+    assert not app.exception and not app.error
+    (result,) = app.session_state["suite_results"]
+    assert [m.label for m in result.metrics] == ["QP", "Geral", "QP em % de Geral"]
+    app.text_input(key="suite_group_b_name").input("Horistas").run()
+    app.multiselect(key="suite_group_b_cadres").select("PROF HORISTA").run()
+    assert "suite_results" not in app.session_state
+    app.button(key="suite_run").click().run()
+    (result,) = app.session_state["suite_results"]
+    assert [m.label for m in result.metrics] == ["QP", "Horistas", "Em ambos os grupos"]

@@ -17,8 +17,11 @@ INSTITUTIONAL_CENTERS = {
     "ELE": "CTC",
     "IND": "CTC",
     "INF": "CTC",
+    # Direito: DIR no RH; JUR no acadêmico, exportado como DIR (confirmado em 11/11/2026).
+    "DIR": "CCS",
 }
-PENDING_DEPARTMENTS = frozenset({"DIR", "JUR"})
+# JUR é só a sigla acadêmica de Direito; a origem já entrega DIR. Nunca listar as duas.
+PENDING_DEPARTMENTS = frozenset({"JUR"})
 
 
 def available_institutional_departments(departments: tuple[str, ...]) -> tuple[str, ...]:
@@ -32,8 +35,7 @@ def institutional_hierarchy(departments: tuple[str, ...]) -> "DepartmentHierarch
             for d in available_institutional_departments(departments)
         ),
         "Cadastro institucional de centros · 11/11/2026",
-        "Centro > Departamento: cadastro atual, conferido com a fonte e o diretório PUC-Rio. "
-        "Direito permanece pendente e não integra os resultados, inclusive os totais.",
+        "Centro > Departamento: cadastro atual, conferido com a fonte e o diretório PUC-Rio.",
     )
 
 

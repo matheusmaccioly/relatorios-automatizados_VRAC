@@ -22,30 +22,29 @@ def test_faculty_lists_sort_names_without_losing_duplicate_rows_or_source_states
         "Departamento",
         "Matrícula fictícia",
         "Nome fictício",
-        "Quadro",
-        "Categoria funcional",
+        "Quadro de Professores",
+        "Categoria Funcional",
     ]
     assert general["Nome fictício"].tolist()[:2] == ["Ana fictícia", "Ana fictícia"]
     assert general.iloc[-1]["Nome fictício"] == "Zélia fictícia"
-    assert workload.iloc[0]["Horas Reais (semestre atual)"] == "0"
-    assert workload.iloc[0]["CH contratada"] == "20"
-    assert workload.iloc[0]["Resultado de carga (regra do painel)"] == "Sem alocação (CH = 0)"
+    assert workload.iloc[0]["Horas Reais (Semestre Atual)"] == "0"
+    assert workload.iloc[0]["CH Contratada"] == "20"
+    assert workload.iloc[0]["Indicador de CH"] == "Sem alocação (CH = 0)"
     assert list(workload.columns)[:9] == [
-        "Semestre das Horas Reais",
+        "Semestre",
         "Departamento",
         "Matrícula fictícia",
         "Nome fictício",
-        "Quadro",
-        "Categoria funcional",
-        "Resultado de carga (regra do painel)",
-        "Horas Reais (semestre atual)",
-        "CH contratada",
+        "Quadro de Professores",
+        "Categoria Funcional",
+        "Indicador de CH",
+        "Horas Reais (Semestre Atual)",
+        "CH Contratada",
     ]
     states = workload.set_index("Matrícula fictícia")
-    assert states.loc["880000004", "Horas Reais (semestre atual)"] == "ausente"
+    assert states.loc["880000004", "Horas Reais (Semestre Atual)"] == "ausente"
     assert states.loc["880000004", "Estado das Horas Reais"] == "Nulo na fonte"
-    assert states.loc["880000005", "Horas Reais (semestre atual)"] == "ausente"
-    assert states.loc["880000005", "Estado das Horas Reais"] == "Sem registro"
+    assert "880000005" not in states.index  # quadro vazio: fora do filtro de página
 
 
 def test_empty_faculty_lists_retain_the_column_contract() -> None:

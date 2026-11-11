@@ -108,8 +108,11 @@ render(load_branding(), active=True)
 def test_ui_filters_exports_and_failure_clear_old_results(monkeypatch, session):
     app = screen(monkeypatch, session)
     assert not app.exception
+    # Seleção salva no painel: Curso/Programa sem vazio, nulo e DOMÍNIO ADICIONAL.
+    assert app.multiselect(key="institutional_students_curso").value == [2]
     app.button(key="institutional_students_run").click().run()
     assert not app.exception
+    assert session.client.calls[-1][1]["p_filtros"]["curso"] == ["Valor fictício  "]
     assert len(app.get("vega_lite_chart")) == 1
     # Mesmo padrão das análises docentes: PNG no cartão, CSV na tabela e ZIP no topo.
     assert {d.key for d in app.get("download_button")} == {
@@ -119,11 +122,11 @@ def test_ui_filters_exports_and_failure_clear_old_results(monkeypatch, session):
     }
     assert not any("_download_pdf" in d.key for d in app.get("download_button"))
     assert any(e.label == "Filtros usados neste resultado" for e in app.expander)
-    app.multiselect(key="institutional_students_curso").select(2).run()
+    app.multiselect(key="institutional_students_curso").select(0).run()
     assert not app.exception
     assert not app.get("download_button")
     app.button(key="institutional_students_run").click().run()
-    assert session.client.calls[-1][1]["p_filtros"]["curso"] == ["Valor fictício  "]
+    assert session.client.calls[-1][1]["p_filtros"]["curso"] == ["Valor fictício  ", None]
     assert any(list(t.value.columns) == ["Filtro", "Valor"] for t in app.table)
     session.client.fail = True
     app.run()
@@ -218,3 +221,15 @@ def test_center_limits_students_and_discards_previous_exports(monkeypatch, sessi
     app.selectbox(key="institutional_students_center").select("CCS").run()
     assert not app.get("download_button")
     assert app.multiselect(key="institutional_students_departments").value == ["ECO"]
+
+
+def test_default_selection_reproduces_dashboard_saved_slicers():
+    from vrac.db.institutional_students import default_selection
+
+    levels = ("Doutorado", "Graduação", None, "Mestrado", "Aluno Extraordinário")
+    assert default_selection("nivel", levels) == [1, 2, 4]
+    courses = (None, "", "DOMÍNIO ADICIONAL", "ENGENHARIA")
+    assert default_selection("curso", courses) == [3]
+    # Sem valor excluído, o filtro continua em Todos (nenhum parâmetro enviado).
+    assert default_selection("curso", ("ENGENHARIA",)) is None
+    assert default_selection("turno", ("Diurno", None)) is None

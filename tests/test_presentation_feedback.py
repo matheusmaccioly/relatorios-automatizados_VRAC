@@ -18,10 +18,11 @@ from vrac.web_charts import interactive_chart
 
 def test_presentation_counts_and_complete_classifications():
     source = load_presentation()
-    filters = AnalysisFilters("2024.1", "2026.2", "2026.1", qp_cadres=("PROF PRINCIPAL",))
+    filters = AnalysisFilters("2024.1", "2026.2", "2026.1", group_a_cadres=("PROF PRINCIPAL",))
     result = calculate(AnalysisKind.QP, source, filters)
     values = {m.label: m.value for m in result.metrics}
-    assert (values["Geral"], values["Grupo QP selecionado"], values["Demais"]) == (14, 12, 2)
+    assert (values["Geral"], values["QP"]) == (14, 12)
+    assert round(values["QP em % de Geral"], 2) == 85.71
     assert all(r.cadre and r.category for r in source.faculty.register)
     assert not (
         {r.cadre for r in source.faculty.register} & {r.category for r in source.faculty.register}
@@ -39,7 +40,7 @@ def test_funnel_counts_and_pdf_readability():
     from matplotlib import pyplot as plt
 
     source = load_presentation()
-    filters = AnalysisFilters("2024.1", "2026.2", "2026.1", qp_cadres=("PROF PRINCIPAL",))
+    filters = AnalysisFilters("2024.1", "2026.2", "2026.1", group_a_cadres=("PROF PRINCIPAL",))
     result = calculate(AnalysisKind.WORKLOAD, source, filters)
     for spec in result.charts[1:]:
         table = next(t for t in result.tables if t.key == spec.table)
@@ -72,4 +73,4 @@ def test_presentation_is_selectable_in_application():
     app.selectbox(key="suite_center").select("Exemplo de apresentação").run()
     app.button(key="suite_run").click().run()
     assert not app.exception and not app.error
-    assert [m.value for m in app.metric][:3] == ["14", "12", "2"]
+    assert [m.value for m in app.metric][:3] == ["12", "14", "85,7"]

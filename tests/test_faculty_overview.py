@@ -10,14 +10,15 @@ import pytest
 from vrac.analyses import faculty_overview_fixture as fixture
 from vrac.analyses.export import detail_csv, safe_cell, summary_csv
 from vrac.analyses.faculty_overview import (
-    CADRE_FILTER_GAP,
     NOT_INFORMED,
+    PAGE_FILTER_NOTE,
     FacultySource,
     OverviewFilters,
     OverviewStatus,
     RealHoursRow,
     compute_overview,
     current_real_hours,
+    filter_options,
     semaphore_status,
 )
 
@@ -71,18 +72,36 @@ def test_real_hours_use_latest_semester_per_registration_without_summing_semeste
     assert result[4] == (8, 20261, None)
 
 
-def test_overview_counts_registrations_and_preserves_missing_classification() -> None:
+def test_overview_counts_registrations_and_applies_dashboard_page_filter() -> None:
     overview = compute_overview(fixture.load_fixture("SINT-A"), ALL)
     assert overview.status == OverviewStatus.VALID
-    assert overview.total == 5  # matrículas, embora haja 4 pessoas
-    assert overview.by_cadre[-1] == (NOT_INFORMED, 1)
+    # 880000005 tem quadro vazio e sai pelo filtro de página do painel.
+    assert overview.total == 4  # matrículas, embora haja 3 pessoas
+    assert NOT_INFORMED not in dict(overview.by_cadre)
     assert dict(overview.by_category)["PROF PRINCIPAL"] == 2
-    assert CADRE_FILTER_GAP in overview.warnings
+    assert PAGE_FILTER_NOTE in overview.warnings
     assert any("1 pessoa(s)" in text and "não pessoas" in text for text in overview.warnings)
-    assert any("sem quadro ou categoria" in text for text in overview.warnings)
     assert any("Sem regra definida" in text for text in overview.warnings)
-    assert any("sem registro na fonte de Horas Reais" in text for text in overview.warnings)
-    assert "5 matrículas funcionais distintas" in overview.narrative
+    assert "4 matrículas funcionais distintas" in overview.narrative
+
+
+def test_page_filter_excludes_non_faculty_cadres_and_keeps_missing_category() -> None:
+    source = fixture.load_fixture("SINT-A")
+    first = source.register[0]
+    extra = (
+        replace(first, registration="X1", cadre="ADMINISTRATIVO"),
+        replace(first, registration="X2", cadre="estagiário "),
+        replace(first, registration="X3", cadre="MONITOR"),
+        replace(first, registration="X4", cadre="  "),
+        replace(first, registration="X5", category=None),
+    )
+    overview = compute_overview(replace(source, register=(*source.register, *extra)), ALL)
+    registrations = {row.registration for row in overview.detail}
+    assert {"X1", "X2", "X3", "X4", "880000005"}.isdisjoint(registrations)
+    assert "X5" in registrations and overview.total == 5
+    assert dict(overview.by_category)[NOT_INFORMED] == 1
+    assert any("sem quadro ou categoria" in text for text in overview.warnings)
+    assert "ADMINISTRATIVO" not in filter_options(replace(source, register=extra)).cadres
 
 
 def test_detail_keeps_zero_null_and_absent_hours_distinct() -> None:
@@ -99,7 +118,7 @@ def test_detail_keeps_zero_null_and_absent_hours_distinct() -> None:
     assert detail["880000003"].indicator == "Acima do necessário"
     assert detail["880000004"].real_hours is None
     assert detail["880000004"].indicator == "Sem CH (em branco)"
-    assert detail["880000005"].real_hours is None and detail["880000005"].indicator is None
+    assert "880000005" not in detail  # quadro vazio: fora do filtro de página
 
 
 def test_duplicate_register_rows_follow_each_visual_aggregation() -> None:
@@ -115,8 +134,6 @@ def test_filters_change_population_and_empty_results_are_not_zero() -> None:
     source = fixture.load_fixture("SINT-A")
     principal = compute_overview(source, OverviewFilters(cadres=frozenset({"PROF PRINCIPAL"})))
     assert principal.total == 1
-    missing = compute_overview(source, OverviewFilters(categories=frozenset({NOT_INFORMED})))
-    assert missing.total == 1
     nobody = compute_overview(source, OverviewFilters(statuses=frozenset()))
     assert nobody.status == OverviewStatus.EMPTY_FILTERS and nobody.total is None
     empty = compute_overview(fixture.load_fixture("SINT-VAZIO"), ALL)
@@ -148,22 +165,19 @@ def _csv(data: bytes) -> list[list[str]]:
     return list(csv.reader(io.StringIO(data.decode("utf-8-sig")), delimiter=";"))
 
 
-def test_exports_identify_demo_filters_warnings_and_blocked_qp() -> None:
+def test_exports_identify_demo_filters_and_warnings() -> None:
     overview = compute_overview(fixture.load_fixture("SINT-A"), ALL)
     summary = _csv(summary_csv(overview, NOW))
     flat = [";".join(row) for row in summary]
     assert any("DEMONSTRAÇÃO" in line for line in flat)
-    assert ["Resultado", "Total", "5"] in summary
+    assert ["Resultado", "Total", "4"] in summary
     assert ["Filtro", "Quadro", "todos"] in summary
     assert any(row[0] == "Aviso" for row in summary)
-    assert any(
-        row[:2] == ["Geral e QP", "QP, demais e participação"] and "bloqueado" in row[2]
-        for row in summary
-    )
+    assert not any(row[0] == "Geral e QP" for row in summary)
     detail = _csv(detail_csv(overview, NOW))
     header = detail.index(next(row for row in detail if row and row[0] == "Departamento"))
     rows = detail[header + 1 :]
-    assert len(rows) == 5
+    assert len(rows) == 4
     assert "ausente" in {cell for row in rows for cell in row}
 
 

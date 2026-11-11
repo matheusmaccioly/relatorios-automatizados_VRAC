@@ -17,7 +17,7 @@ from vrac.academic_ui import (
     export_box,
     workbench,
 )
-from vrac.analyses.academic import AnalysisFilters, AnalysisKind, calculate
+from vrac.analyses.academic import DEFAULT_STATUS, AnalysisFilters, AnalysisKind, calculate
 from vrac.analyses.academic_data import ALL_DEPARTMENTS
 from vrac.analyses.academic_export import report_zip
 from vrac.analyses.export import detail_csv, summary_csv
@@ -133,7 +133,7 @@ def _header(branding: Branding) -> None:
     marks = branding.tokens["marks"]
     with st.container(key="vrac-header"):
         st.html(
-            '<div class="vrac-marca" data-vrac-release="0.1.4">'
+            '<div class="vrac-marca" data-vrac-release="0.1.5">'
             f'<img src="{branding.logo_url}" alt="{marks["logo_alt"]}" '
             f'width="{marks["display_width"]}"><span class="sep" aria-hidden="true"></span>'
             '<span class="nome">Análises acadêmicas'
@@ -641,24 +641,30 @@ def _faculty_overview(settings: Settings, branding: Branding, demo_options: Demo
         step(2, "Refine, se precisar, e calcule")
         with st.expander("Mais filtros · opcional", expanded=False):
             st.caption(
-                "Seleção vazia inclui todas as opções disponíveis. Situação e dupla função "
-                "recortam somente o cadastro atual."
+                "Seleção vazia inclui todas as opções disponíveis. Situação começa em ATIVO, "
+                "como no painel. Situação e dupla função recortam somente o cadastro atual."
             )
+            if "overview_statuses" not in st.session_state:
+                st.session_state["overview_statuses"] = [
+                    x for x in options.statuses if x == DEFAULT_STATUS
+                ]
             columns = st.columns(2)
             with columns[0]:
                 cadres = _selection("Quadro", options.cadres, "overview_cadres")
                 statuses = _selection("Situação", options.statuses, "overview_statuses")
             with columns[1]:
                 categories = _selection(
-                    "Categoria funcional", options.categories, "overview_categories"
+                    "Categoria Funcional", options.categories, "overview_categories"
                 )
-                dual_roles = _selection("Dupla função", options.dual_roles, "overview_dual_roles")
+                dual_roles = _selection(
+                    "Dupla Função (Dupla Matrícula)", options.dual_roles, "overview_dual_roles"
+                )
         filters = OverviewFilters(cadres, categories, statuses, dual_roles)
         active_filters = [
             f"{label}: {', '.join(sorted(values))}"
             for label, values in (
                 ("Quadro", cadres),
-                ("Categoria", categories),
+                ("Categoria Funcional", categories),
                 ("Situação", statuses),
                 ("Dupla função", dual_roles),
             )

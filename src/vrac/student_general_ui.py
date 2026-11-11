@@ -15,6 +15,7 @@ from vrac.branding import Branding
 from vrac.db.institutional_students import (
     FILTERS,
     calculate,
+    default_selection,
     load_filters,
     load_options,
     period_label,
@@ -30,19 +31,20 @@ PREFIX = "institutional_students_"
 SHARED = PREFIX.rstrip("_")
 QUESTION = "Como evoluíram as matrículas no período?"
 DESCRIPTION = (
-    "Análise temporal › Análise Geral: matriculados, bolsistas matriculados, formados e "
-    "ingressantes por semestre, contados em matrículas distintas."
+    "Alunos e bolsistas matriculados, formados e ingressantes por ano e semestre, como na "
+    "Análise Geral do painel, contados em matrículas distintas."
 )
 SOURCE_NOTES = (
-    "Direito (DIR/JUR) permanece pendente e não integra estes resultados.",
     "Matrículas distintas não equivalem a pessoas únicas.",
     "Os departamentos disponíveis seguem o seu acesso.",
 )
 FILTER_NOTES = (
+    "Como no painel, Nível começa sem Mestrado e Doutorado, e Curso/Programa começa sem "
+    "valor vazio e sem DOMÍNIO ADICIONAL. Para incluí-los, selecione-os.",
     "Seleção vazia inclui todos os valores; “Não informado (nulo)” e “Em branco” são "
     "valores distintos e podem ser escolhidos.",
     "Código e nome do curso são filtros separados; cursos não são unidos pelo nome.",
-    "Situação atual é cadastral e não descreve o semestre de cada evento.",
+    "Situação no Período Corrente é cadastral e não descreve o semestre de cada evento.",
     "Forma de ingresso não substitui o processo seletivo, indisponível nesta fonte.",
 )
 
@@ -174,6 +176,11 @@ def _render(branding: Branding) -> None:
             shown = [item for item in FILTERS.items() if item[0] != "sigla_centro"]
             for i, (field, title) in enumerate(shown):
                 with columns[i % 3]:
+                    key = PREFIX + field
+                    if key not in st.session_state:
+                        default = default_selection(field, facets[field])
+                        if default is not None:
+                            st.session_state[key] = default
                     # Índices evitam ambiguidades do widget entre None e nenhuma seleção.
                     chosen = st.multiselect(
                         title,
@@ -200,7 +207,6 @@ def _render(branding: Branding) -> None:
                 for key, title in FILTERS.items()
                 if key != "sigla_centro"
             },
-            "Direito": "Pendente; não incluído",
         }
         signature = (options, center, departments, start, end, filters)
         if st.session_state.get(PREFIX + "signature") != signature:
@@ -217,8 +223,8 @@ def _render(branding: Branding) -> None:
                 key=PREFIX + "reset",
                 type="tertiary",
                 on_click=_reset_filters,
-                help="Restaura o intervalo completo e os filtros vazios, mantendo os "
-                "departamentos escolhidos.",
+                help="Restaura o intervalo completo e os filtros iniciais do painel, "
+                "mantendo os departamentos escolhidos.",
             )
         with st.expander("Conferir filtros selecionados", expanded=False):
             filter_review(context)

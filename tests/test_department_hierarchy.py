@@ -165,7 +165,9 @@ def test_institutional_mapping_intersects_access_and_keeps_unknown_explicit():
     hierarchy = institutional_hierarchy(
         ("ADM", "ECO", "EDU", "FIL", "ELE", "IND", "INF", "DIR", "JUR", "NOVO")
     )
-    assert hierarchy.departments_for("CCS") == ("ADM", "ECO")
+    # Direito (DIR) no CCS; JUR é só a sigla acadêmica e nunca aparece como opção.
+    assert hierarchy.departments_for("CCS") == ("ADM", "DIR", "ECO")
+    assert "JUR" not in hierarchy.departments_for(ALL_CENTERS)
     assert hierarchy.departments_for("CTCH") == ("EDU", "FIL")
     assert hierarchy.departments_for("CTC") == ("ELE", "IND", "INF")
     assert hierarchy.departments_for(UNKNOWN_CENTER) == ("NOVO",)

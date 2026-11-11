@@ -5,7 +5,6 @@ import io
 from datetime import datetime
 
 from vrac.analyses.faculty_overview import (
-    QP_BLOCK_REASON,
     UNIT_LABEL,
     FacultyOverview,
     OverviewStatus,
@@ -51,7 +50,7 @@ def _header(
             "Natureza",
             nature(overview.source),
         ],
-        ["Identificação", "Análise", "R01 Situação geral do departamento"],
+        ["Identificação", "Análise", "Análise Geral dos professores"],
         ["Identificação", "Departamento", overview.department],
         ["Identificação", "Referência", "Cadastro atual"],
         ["Identificação", "Unidade", UNIT_LABEL],
@@ -79,8 +78,6 @@ def summary_csv(
     rows += [["Por categoria funcional", label, count] for label, count in overview.by_category]
     rows += [["Por departamento", label, count] for label, count in overview.by_department]
     rows += [
-        ["Geral e QP", "Geral", overview.total],
-        ["Geral e QP", "QP, demais e participação", "bloqueado — " + QP_BLOCK_REASON],
         ["Texto", "Resumo", overview.narrative],
     ]
     return _write(rows)
@@ -90,16 +87,16 @@ DETAIL_COLUMNS = (
     ("department", "Departamento"),
     ("registration", "Matrícula fictícia"),
     ("name", "Nome fictício"),
-    ("cadre", "Quadro"),
-    ("category", "Categoria funcional"),
-    ("weekly_hours", "Carga horária semanal"),
-    ("real_hours", "Horas Reais (semestre atual)"),
-    ("real_hours_semester", "Semestre das Horas Reais"),
-    ("indicator", "Resultado de carga (regra do painel)"),
+    ("cadre", "Quadro de Professores"),
+    ("category", "Categoria Funcional"),
+    ("weekly_hours", "CH Contratada"),
+    ("real_hours", "Horas Reais (Semestre Atual)"),
+    ("real_hours_semester", "Semestre"),
+    ("indicator", "Indicador de CH"),
     ("degree", "Titulação"),
-    ("tenure_years", "Tempo de casa (anos)"),
-    ("dual_role", "Dupla função"),
-    ("extraordinary", "Vínculo extraordinário"),
+    ("tenure_years", "Tempo de Casa (Anos)"),
+    ("dual_role", "Dupla Função (Dupla Matrícula)"),
+    ("extraordinary", "Vínculo Extraordinário"),
     ("hours_state", "Estado das Horas Reais"),
 )
 

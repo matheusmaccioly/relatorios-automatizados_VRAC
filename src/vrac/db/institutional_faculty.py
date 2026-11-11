@@ -74,23 +74,41 @@ def adapt(
             r["categoria"],
             r["situacao"],
             r["dupla_funcao"],
-            None,
+            r.get("vinculo_extraordinario"),
             _number(r["carga_semanal"]),
-            None,
-            None,
+            _number(r.get("tempo_casa_anos")),
+            r.get("titulacao"),
             link_key=r["vinculo_id"],
         )
         for r in parts["cadastro"]
     )
-    notes = (
-        "Direito (DIR/JUR) pendente; excluído deste recorte e dos totais.",
+    years = sorted({r["ano"] for r in parts["historico_mensal"] if r["ano"] is not None})
+    current_keys = {(r["departamento_alocacao"], r["vinculo_id"]) for r in parts["cadastro"]}
+    # Pacote v2: folha desde 2022 pelo departamento da competência, com desligados.
+    # Sem anos anteriores nem vínculos fora do cadastro, é a coorte atual do pacote v1.
+    by_payroll = any(
+        r["ano"] < 2026 or (r["departamento_alocacao"], r["vinculo_id"]) not in current_keys
+        for r in parts["historico_mensal"]
+        if r["ano"] is not None
+    )
+    notes = [
         "Origem institucional pseudonimizada; IDs não são matrículas reais. Acesso restrito.",
-        "Cadastro atual e histórico da população atualmente alocada; "
-        "não representa lotação histórica.",
         "Horas Reais disponíveis somente em 2026. Sem antecedentes, "
         "último semestre conhecido é limitado ao lote.",
-        "Titulação, tempo de casa e vínculos extraordinários não foram fornecidos.",
-    )
+    ]
+    if by_payroll:
+        notes.append(
+            f"Histórico mensal de {years[0]} a {years[-1]}, pelo departamento de cada "
+            "competência na folha, como o painel Histórico do Departamento."
+        )
+    else:
+        notes.append(
+            "Cadastro atual e histórico da população atualmente alocada; "
+            "não representa lotação histórica."
+        )
+    if not any(r.get("titulacao") or r.get("tempo_casa_anos") for r in parts["cadastro"]):
+        notes.append("Titulação, tempo de casa e vínculos extraordinários não foram fornecidos.")
+    notes = tuple(notes)
     real = tuple(
         RealHoursRow(
             None, r["semestre"], _number(r["horas_reais"]), r["quadro"], link_key=r["vinculo_id"]
@@ -119,30 +137,45 @@ def adapt(
         )
         for r in parts["horas_reais"]
     )
+    # Layout v2 traz código/nome de disciplina e gratificação legíveis; cargas antigas
+    # mantêm os identificadores opacos, sem inventar nomes.
     allocations = tuple(
         AllocationRow(
             r["departamento_alocacao"],
             r["unidade_oferta"],
             r["vinculo_id"],
             r["semestre"],
-            r["disciplina_id"],
-            r["turma_id"],
+            r.get("disciplina_codigo") or r["disciplina_id"],
+            r.get("turma") or r["turma_id"],
             _number(r["horas_alocadas"]),
             r["vagas_preenchidas"],
             {"Sim": "S", "Não": "N"}.get(r["compartilhada"], r["compartilhada"]),
-            None,
+            r["tipo"],
+            level=r["nivel"],
+            discipline_name=r.get("disciplina_nome"),
+            credits=_number(r.get("creditos")),
+            mandatory=r["obrigatoria"],
+            distance_hours=_number(r.get("horas_distancia")),
+            extension_hours=_number(r.get("horas_extensao")),
+            vacancies_offered=r["vagas_ofertadas"],
         )
         for r in parts["alocacoes"]
     )
     functions = tuple(
         FunctionRow(
             r["departamento_alocacao"],
-            None,
+            r.get("departamento_distribuicao"),
             r["vinculo_id"],
             r["ano"],
             r["mes"],
-            None if r["descricao_id"] is None else "Descrição pseudonimizada " + r["descricao_id"],
-            None if r["papel_id"] is None else "Papel pseudonimizado " + r["papel_id"],
+            r.get("gratificacao")
+            or (
+                None
+                if r["descricao_id"] is None
+                else "Descrição pseudonimizada " + r["descricao_id"]
+            ),
+            r.get("papel")
+            or (None if r["papel_id"] is None else "Papel pseudonimizado " + r["papel_id"]),
         )
         for r in parts["eventos_funcoes"]
     )
@@ -175,8 +208,10 @@ def adapt(
                 cadre, category = current.pop()
             else:
                 history_ok = False  # Não inventar collation para MAX de textos conflitantes.
-        else:
+        elif not by_payroll:
             history_ok = False  # Quadro ausente não pode virar zero de elegíveis.
+        # Folha (v2): sem cargo até a competência, Quadro_Vigente fica vazio e o painel
+        # exclui a linha dos seis quadros docentes; aqui o quadro ausente faz o mesmo.
         history.append(
             HistoryRow(
                 r["departamento_alocacao"],
@@ -191,6 +226,8 @@ def adapt(
             )
         )
     available = {"register", "real_hours", "workloads", "allocations", "functions"}
+    if by_payroll:
+        available.add("history_by_department")
     errors = list(notes)
     if history_ok:
         available.add("history")
@@ -199,10 +236,7 @@ def adapt(
             "Histórico bloqueado neste recorte: cargo/quadro mensal ausente, "
             "conflitante ou competência não numérica."
         )
-    errors.append(
-        "Comparação entre cargas bloqueada até confirmação das unidades; "
-        "funções sem vigências e alunos sem fontes neste lote."
-    )
+    errors.append("Gratificações sem vigências de função e alunos sem fontes neste lote.")
     return AcademicSource(
         department,
         faculty,

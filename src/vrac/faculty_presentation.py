@@ -188,7 +188,7 @@ def _composition_charts(overview: FacultyOverview) -> tuple:
         (
             "quadro",
             "Quantidade de professores por Quadro",
-            "Quadro",
+            "Quadro de Professores",
             overview.by_cadre,
             UNIT_LABEL,
             "horizontal",
@@ -196,15 +196,15 @@ def _composition_charts(overview: FacultyOverview) -> tuple:
         (
             "categoria",
             "Quantidade de professores por Categoria Funcional (Cargo)",
-            "Categoria funcional",
+            "Categoria Funcional",
             overview.by_category,
             "linhas com matrícula",
             "horizontal",
         ),
         (
             "resultado",
-            "Resultado de carga dos professores",
-            "Resultado de carga",
+            "Quantidade de professores por Indicador de CH",
+            "Indicador de CH",
             indicator_distribution(row.indicator for row in overview.detail),
             "linhas do cadastro",
             "horizontal",
@@ -289,7 +289,7 @@ def render_composition(
         "vezes para limpar. O destaque não altera filtros, resultados ou arquivos. "
         "Por quadro conta matrículas funcionais distintas; por categoria e departamento "
         "conta linhas do cadastro com matrícula. Não some as barras para reconstruir o total. "
-        "O resultado de carga reproduz a regra do painel e não avalia produtividade."
+        "O Indicador de CH reproduz a regra do painel e não avalia produtividade."
     )
     return files
 
@@ -300,7 +300,7 @@ def _detail_frames(overview: FacultyOverview) -> tuple[pd.DataFrame, pd.DataFram
         overview.detail,
         key=lambda row: ((row.name or "").casefold(), row.registration or ""),
     )
-    labels = dict(DETAIL_COLUMNS) | {"weekly_hours": "CH contratada"}
+    labels = dict(DETAIL_COLUMNS)
     if is_institutional(overview.source):
         labels["registration"] = "Vínculo pseudonimizado"
     general = tuple(key for key, _ in DETAIL_COLUMNS[:5])

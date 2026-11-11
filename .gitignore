@@ -138,3 +138,10 @@ sql/Report1.txt
 /docs/guides/ALUNOS_INSTITUCIONAIS.md
 /docs/operations/SUPABASE_ALUNOS_CSV.md
 /sql/release_students_poc.sql
+docs/references/DEM_Situação Acadêmica_Junho 2026.pptx (1)_8932.pdf
+
+# Diagnóstico painéis × aplicação; cita fontes internas, uso local.
+/docs/DIAGNOSTICO_PAINEIS_APLICACAO.local.md
+
+# Liberação com IDs de lote; uso operacional local.
+/sql/release_v2_poc.sql

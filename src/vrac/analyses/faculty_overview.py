@@ -11,8 +11,8 @@ Regras reproduzidas (D-022), com referência à documentação semântica local:
   diferenciar maiúsculas, como no motor do painel; Resultado CH Texto (A-M-012)
   usa o status único do semestre atual.
 
-Lacunas registradas, sem regra inventada: valores do filtro salvo de quadro da página
-não constam do inventário; não há regra documentada que defina o QP (V03).
+- Filtro de página da Análise Geral: quadro diferente de vazio, ADMINISTRATIVO,
+  ESTAGIÁRIO e MONITOR (inventário do PBIP em base/, 11/11/2026).
 Nenhuma conclusão sobre suficiência de pessoal, produtividade ou contratação.
 """
 
@@ -25,16 +25,16 @@ from enum import StrEnum
 
 NOT_INFORMED = "Não informado"
 UNIT_LABEL = "matrículas funcionais distintas"
-QP_BLOCK_REASON = (
-    "A documentação dos painéis não define quais quadros compõem o QP "
-    "(decisão V03 pendente). O total geral permanece válido; QP, demais e "
-    "participação não são calculados."
+# Filtro de página bloqueado da Análise Geral do painel: NOT QUADRO IN {null, ...}.
+NON_FACULTY_CADRES = frozenset({"ADMINISTRATIVO", "ESTAGIÁRIO", "MONITOR"})
+PAGE_FILTER_NOTE = (
+    "Como no painel, a população exclui quadro vazio, ADMINISTRATIVO, ESTAGIÁRIO e MONITOR."
 )
-CADRE_FILTER_GAP = (
-    "O painel aplica um filtro salvo de quadro na página Análise Geral, cujos valores "
-    "não constam do inventário. Aqui todos os quadros do cadastro aparecem até que "
-    "esse filtro seja registrado; o total pode diferir do painel."
-)
+
+
+def is_faculty_cadre(cadre: str | None) -> bool:
+    """Reproduz o filtro de página do painel; quadro vazio também fica fora."""
+    return bool(cadre and cadre.strip()) and cadre.strip().upper() not in NON_FACULTY_CADRES
 
 
 class OverviewStatus(StrEnum):
@@ -138,10 +138,6 @@ class FacultyOverview:
     by_department: tuple[tuple[str, int], ...] = ()
     fingerprint: str = ""
 
-    @property
-    def qp_blocked_reason(self) -> str:
-        return QP_BLOCK_REASON
-
 
 def semester_label(semester: int | None) -> str | None:
     if semester is None:
@@ -215,8 +211,10 @@ def _label(value: str | None) -> str:
 
 
 def filter_options(source: FacultySource) -> FilterOptions:
+    rows = [row for row in source.register if is_faculty_cadre(row.cadre)]
+
     def values(attribute: str) -> tuple[str, ...]:
-        return tuple(sorted({_label(getattr(row, attribute)) for row in source.register}))
+        return tuple(sorted({_label(getattr(row, attribute)) for row in rows}))
 
     return FilterOptions(values("cadre"), values("category"), values("status"), values("dual_role"))
 
@@ -277,7 +275,8 @@ def compute_overview(source: FacultySource, filters: OverviewFilters) -> Faculty
     eligible = [
         row
         for row in source.register
-        if _accepts(filters.cadres, row.cadre)
+        if is_faculty_cadre(row.cadre)
+        and _accepts(filters.cadres, row.cadre)
         and _accepts(filters.categories, row.category)
         and _accepts(filters.statuses, row.status)
         and _accepts(filters.dual_roles, row.dual_role)
@@ -289,7 +288,7 @@ def compute_overview(source: FacultySource, filters: OverviewFilters) -> Faculty
             "Ausência de registros não significa zero.",
         )
 
-    warnings: list[str] = [CADRE_FILTER_GAP, *source.notes]
+    warnings: list[str] = [PAGE_FILTER_NOTE, *source.notes]
     with_registration = [row for row in eligible if row.registration not in (None, "")]
     missing_registration = len(eligible) - len(with_registration)
     if missing_registration:
@@ -359,7 +358,7 @@ def compute_overview(source: FacultySource, filters: OverviewFilters) -> Faculty
     )
     if any(item.indicator == "Sem regra definida" for item in detail):
         warnings.append(
-            "Resultado de carga “Sem regra definida”: a regra do painel reconhece os quadros "
+            "Indicador de CH “Sem regra definida”: a regra do painel reconhece os quadros "
             "PRINCIPAL, COMPLEMENTAR TEMPO INTEGRAL e COMPLEMENTAR TEMPO PARCIAL; outros "
             "nomes de quadro não recebem faixa. Nenhuma equivalência foi presumida. O "
             "resultado não avalia produtividade."

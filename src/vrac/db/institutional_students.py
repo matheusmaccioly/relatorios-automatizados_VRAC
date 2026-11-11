@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from uuid import UUID
 
 from vrac.analyses.academic import (
+    STUDENT_CHART_TITLE,
+    STUDENT_SERIES,
     AnalysisFilters,
     AnalysisKind,
     CalculatedAnalysis,
@@ -17,24 +19,42 @@ from vrac.provenance import INSTITUTIONAL_SOURCE
 from vrac.settings import DataMode
 from vrac.supabase_auth import current_session
 
+# Ordem e nomes dos filtros da página Análise Geral do painel; códigos ao final.
 FILTERS = {
     "sigla_centro": "Centro",
-    "nivel": "Nível",
-    "subnivel": "Subnível",
-    "curso_codigo": "Código do curso",
-    "curso": "Curso",
-    "habilitacao_codigo": "Código da habilitação",
+    "curso": "Curso/Programa",
     "habilitacao": "Habilitação",
     "turno": "Turno",
-    "forma_ingresso": "Forma de ingresso",
-    "situacao_atual": "Situação atual",
+    "forma_ingresso": "Forma de Ingresso",
+    "nivel": "Nível",
+    "subnivel": "Subnível",
+    "situacao_atual": "Situação no Período Corrente",
+    "curso_codigo": "Código do curso",
+    "habilitacao_codigo": "Código da habilitação",
 }
-SERIES = {
-    "MATRICULADOS": "Matriculados",
-    "BOLSISTAS_MATRICULADOS": "Bolsistas matriculados",
-    "FORMADOS": "Formados",
-    "INGRESSANTES": "Ingressantes",
+# Seleções salvas no painel: Nível NOT IN {Doutorado, Mestrado};
+# Curso/Programa NOT IN {vazio, DOMÍNIO ADICIONAL}.
+DEFAULT_EXCLUDED: dict[str, frozenset[str | None]] = {
+    "nivel": frozenset({"Doutorado", "Mestrado"}),
+    "curso": frozenset({None, "", "DOMÍNIO ADICIONAL"}),
 }
+
+
+def default_selection(field: str, values: tuple[str | None, ...]) -> list[int] | None:
+    """Índices pré-selecionados como no painel; None mantém Todos."""
+    excluded = DEFAULT_EXCLUDED.get(field, frozenset())
+    if not any(value in excluded for value in values):
+        return None
+    return [index for index, value in enumerate(values) if value not in excluded]
+
+
+SERIES = dict(
+    zip(
+        ("MATRICULADOS", "BOLSISTAS_MATRICULADOS", "FORMADOS", "INGRESSANTES"),
+        STUDENT_SERIES,
+        strict=True,
+    )
+)
 
 
 def period_label(value: int) -> str:
@@ -167,7 +187,7 @@ def calculate(
     columns = ("Semestre", *SERIES.values())
     table = ResultTable(
         "student_general",
-        "Análise Geral",
+        STUDENT_CHART_TITLE,
         columns,
         tuple((period_label(p), *(lookup.get((p, s)) for s in SERIES)) for p in axis),
         "matrículas acadêmicas distintas",
@@ -175,7 +195,7 @@ def calculate(
     )
     notes = (
         "Origem institucional pseudonimizada; matrículas distintas não equivalem a pessoas únicas.",
-        "Direito (DIR/JUR) pendente; não incluído nos resultados.",
+        "Direito usa o código acadêmico JUR, exportado como DIR (mesma sigla dos docentes).",
         "Eventos classificados na extração conforme as quatro medidas da Análise Geral do PBIP.",
         "Processo seletivo e matrícula individual indisponíveis; forma de ingresso é outro filtro.",
         "Situação atual é cadastral. Ajustes individuais e conciliação com o painel "
@@ -184,7 +204,7 @@ def calculate(
     )
     return CalculatedAnalysis(
         AnalysisKind.STUDENTS,
-        "Análise temporal › Análise Geral",
+        "Análise Geral dos alunos",
         "Calculado" if lookup else "Sem eventos no recorte",
         ", ".join(departments),
         AnalysisFilters(
@@ -215,7 +235,7 @@ def calculate(
         hashlib.sha256(json.dumps(params, sort_keys=True, ensure_ascii=False).encode()).hexdigest(),
         (),
         (table,),
-        (ChartSpec(table.key, "Análise Geral", "Semestre", tuple(SERIES.values())),),
+        (ChartSpec(table.key, STUDENT_CHART_TITLE, "Semestre", tuple(SERIES.values())),),
         notes,
         "Contagem de matrículas distintas por série e semestre, após os filtros selecionados.",
         "alunos-pbip-eventos-v1",

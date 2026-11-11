@@ -205,23 +205,29 @@ def test_scope_change_reload_failure_removes_the_previous_snapshot(monkeypatch) 
     [
         (
             "R02",
-            {"suite_categories", "suite_qp"},
-            {"suite_first", "suite_workload_period", "suite_cadres", "suite_courses"},
+            {"suite_statuses", "suite_group_a_cadres", "suite_group_b_categories"},
+            {
+                "suite_first",
+                "suite_workload_period",
+                "suite_cadres",
+                "suite_categories",
+                "suite_courses",
+            },
         ),
         (
             "R03",
             {"suite_first", "suite_last", "suite_cadres", "suite_categories"},
-            {"suite_workload_period", "suite_qp", "suite_courses"},
+            {"suite_workload_period", "suite_group_a_cadres", "suite_courses"},
         ),
         (
             "R04",
-            {"suite_workload_period", "suite_cadres", "suite_categories"},
-            {"suite_first", "suite_last", "suite_qp", "suite_courses"},
+            {"suite_workload_period", "suite_cadres", "suite_categories", "suite_statuses"},
+            {"suite_first", "suite_last", "suite_group_a_cadres", "suite_courses"},
         ),
         (
             "R06",
             {"alunos_first", "alunos_last", "alunos_courses", "alunos_shifts"},
-            {"alunos_workload_period", "alunos_cadres", "alunos_qp", "suite_first"},
+            {"alunos_workload_period", "alunos_cadres", "alunos_group_a_cadres", "suite_first"},
         ),
     ],
 )
@@ -252,7 +258,7 @@ def test_analysis_names_keep_the_selector_options() -> None:
 def test_single_category_shows_the_number_instead_of_a_one_bar_chart() -> None:
     app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60).run()
     app.button(key="overview_run").click().run()
-    assert app.session_state["overview_result"].by_department == (("SINT-A", 5),)
+    assert app.session_state["overview_result"].by_department == (("SINT-A", 4),)
     assert not app.exception and len(app.get("vega_lite_chart")) == 5
     assert any(button.key == "overview_png_departamento" for button in app.get("download_button"))
 

@@ -80,13 +80,11 @@ def download_button(label: str, data: Any, *, file_name: str, mime: str, **kwarg
 ROW_HEIGHT = 38
 # Nas listas por docente, o que se quer ler vem logo depois do nome.
 FIRST_COLUMNS = (
+    "Nome",
     "Nome fictício",
-    "Resultado de carga (regra do painel)",
-    "Resultado do painel",
-    "Horas Reais (semestre atual)",
-    "Horas Reais",
-    "CH contratada",
-    "Carga contratada",
+    "Indicador de CH",
+    "Horas Reais (Semestre Atual)",
+    "CH Contratada",
 )
 TONE_TOKENS = {"attention": "yellow_soft", "strong": "yellow", "neutral": "surface_hover"}
 
@@ -180,7 +178,11 @@ def data_table(frame: pd.DataFrame, *, numeric: Collection[str] = ()) -> None:
 
     Só muda o que se vê. Os valores calculados e os arquivos exportados não passam por aqui.
     """
-    indicators = [name for name in frame.columns if str(name).startswith("Resultado")]
+    indicators = [
+        name
+        for name in frame.columns
+        if str(name).startswith("Resultado") or name == "Indicador de CH"
+    ]
     shown = frame.assign(**{name: frame[name].map(indicator_label) for name in indicators})
     first = [name for name in FIRST_COLUMNS if name in shown.columns]
     st.dataframe(

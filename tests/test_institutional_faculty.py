@@ -43,6 +43,9 @@ def parts():
                 situacao="ATIVO",
                 dupla_funcao="N",
                 carga_semanal=40,
+                titulacao=None,
+                tempo_casa_anos=None,
+                vinculo_extraordinario=None,
             )
         ],
         "horas_reais": [
@@ -315,7 +318,7 @@ require_login(DataMode(mode))
     assert app.session_state["vrac_auth_session"].data_mode == DataMode.SYNTHETIC
 
 
-def test_pending_rights_excluded_from_all_queries_and_explicit_selection(parts, monkeypatch):
+def test_law_is_available_and_academic_code_jur_never_queried(parts, monkeypatch):
     from vrac.db import institutional_faculty as reader
     from vrac.demo_data import DemoDataError, load_department_hierarchy
     from vrac.department_hierarchy import ALL_DEPARTMENTS
@@ -331,13 +334,86 @@ def test_pending_rights_excluded_from_all_queries_and_explicit_selection(parts, 
 
     monkeypatch.setattr(reader, "load_scope", records)
     with session_scope(session):
-        assert reader.load_options(SETTINGS).departments == ("IND",)
-        assert load_department_hierarchy(SETTINGS).centers == ("CTC",)
+        assert reader.load_options(SETTINGS).departments == ("IND", "DIR")
+        assert load_department_hierarchy(SETTINGS).centers == ("CCS", "CTC")
         reader.load_faculty_source(SETTINGS, department=ALL_DEPARTMENTS)
         reader.load_academic_source(SETTINGS, department=ALL_DEPARTMENTS)
-        assert scopes and all(scope == ("IND",) for scope in scopes)
+        assert scopes and all(scope == ("IND", "DIR") for scope in scopes)
+        reader.load_faculty_source(SETTINGS, department="DIR")
+        assert scopes[-1] == ("DIR",)
         for load in (reader.load_faculty_source, reader.load_academic_source):
-            for pending in ("DIR", "JUR"):
-                with pytest.raises(DemoDataError):
-                    load(SETTINGS, department=pending)
+            with pytest.raises(DemoDataError):
+                load(SETTINGS, department="JUR")
         assert session.departments == ("IND", "DIR", "JUR")
+
+
+def test_layout_v2_history_by_department_and_readable_names(parts):
+    parts["cadastro"][0].update(
+        titulacao="DOUTORADO", tempo_casa_anos=12, vinculo_extraordinario="N"
+    )
+    departed = "B" * 64
+    parts["historico_mensal"].append(
+        dict(parts["historico_mensal"][0], vinculo_id=departed, pessoa_id="C" * 64, ano=2022)
+    )
+    parts["historico_cargos"].append(dict(parts["historico_cargos"][0], vinculo_id=departed))
+    parts["alocacoes"] = [
+        dict(
+            departamento_alocacao="IND",
+            vinculo_id=LINK,
+            semestre=20261,
+            unidade_oferta="CPE",
+            disciplina_id="D" * 64,
+            turma_id="E" * 64,
+            nivel="GRA",
+            tipo="PROJETO",
+            obrigatoria="Sim",
+            horas_alocadas=3,
+            compartilhada="Não",
+            vagas_ofertadas=30,
+            vagas_preenchidas=17,
+            professor_principal=1,
+            disciplina_codigo="ENG1149",
+            disciplina_nome="PROJETO DE GRADUACAO",
+            turma="3VA",
+            creditos=3,
+            horas_distancia=0,
+            horas_extensao=0,
+        )
+    ]
+    parts["eventos_funcoes"] = [
+        dict(
+            departamento_alocacao="IND",
+            vinculo_id=LINK,
+            evento_id="F" * 64,
+            ano=2026,
+            mes=3,
+            descricao_id="A" * 64,
+            papel_id="B" * 64,
+            gratificacao="DIRETOR DE DEPARTAMENTO",
+            papel="DIRECAO",
+            departamento_distribuicao="IND",
+        )
+    ]
+    # Funcionário sem cargo docente na folha: excluído como no painel, sem bloquear.
+    parts["historico_mensal"].append(
+        dict(parts["historico_mensal"][0], vinculo_id="E" * 64, pessoa_id="F" * 64)
+    )
+    data = source(parts)
+    assert "history" in data.available
+    register = data.faculty.register[0]
+    assert (register.degree, register.tenure_years, register.extraordinary) == (
+        "DOUTORADO",
+        12,
+        "N",
+    )
+    assert "history_by_department" in data.available
+    assert any("departamento de cada competência" in note for note in data.faculty.notes)
+    history = calculate(AnalysisKind.HISTORY, data, FILTERS)
+    assert not any("coorte" in note.lower() for note in history.notes)
+    assert next(t for t in history.tables if t.key == "history").rows[0][1] == 1
+    workload = calculate(AnalysisKind.WORKLOAD, data, FILTERS)
+    detail = next(t for t in workload.tables if t.key == "allocation_detail").rows[0]
+    assert detail[4:8] == ("ENG1149", "PROJETO DE GRADUACAO", "3VA", 3)
+    functions = calculate(AnalysisKind.FUNCTIONS, data, FILTERS)
+    by_function = next(t for t in functions.tables if t.key == "by_function").rows
+    assert by_function == (("DIRETOR DE DEPARTAMENTO", 1),)

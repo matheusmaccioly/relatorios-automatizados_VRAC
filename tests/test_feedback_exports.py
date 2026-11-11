@@ -188,7 +188,7 @@ def test_package_manifest_and_files_follow_the_displayed_execution(monkeypatch):
         assert manifest["synthetic"] is True
         assert manifest["context"]["Execução"] == app.session_state["suite_execution_id"]
         assert manifest["context"]["Referência final"] == "2026.1"
-        assert manifest["context"]["Quadros"] == "PROF PRINCIPAL"
+        assert manifest["context"]["Quadro"] == "PROF PRINCIPAL"
         assert manifest["additional_analyses"][0]["kind"] == "R01"
         assert manifest["additional_analyses"][0]["fingerprint"] in archive.read(
             "R01/resumo.csv"
@@ -211,7 +211,7 @@ def test_package_manifest_and_files_follow_the_displayed_execution(monkeypatch):
             context = json.loads(image.info["Contexto"])
             assert context["Execução"] == manifest["context"]["Execução"]
             assert context["Unidade"] and context["Avisos"]
-        with Image.open(io.BytesIO(archive.read("R02/grafico-2.png"))) as image:
+        with Image.open(io.BytesIO(archive.read("R02/grafico-1.png"))) as image:
             assert json.loads(image.info["Contexto"])["Unidade"] == (
-                "matrículas funcionais distintas"
+                "professores (matrículas funcionais distintas)"
             )
