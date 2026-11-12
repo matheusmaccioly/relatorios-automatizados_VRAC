@@ -43,6 +43,30 @@ def test_every_route_is_available_and_reproducible_in_memory() -> None:
         assert result.fingerprint == source.fingerprint
 
 
+def test_fingerprint_is_computed_once_and_follows_the_content(monkeypatch) -> None:
+    """A tela consulta o snapshot várias vezes por execução; só a primeira percorre as linhas."""
+    import hashlib
+
+    from vrac.analyses import academic_data
+
+    source = replace(load_fixture("SINT-A"))
+    payload = academic_data.asdict(source)
+    del payload["_fingerprint"]
+    payload["available"] = sorted(source.available)
+    expected = hashlib.sha256(
+        json.dumps(payload, sort_keys=True, default=str, ensure_ascii=False).encode("utf-8")
+    ).hexdigest()
+    calls = []
+    original = academic_data.asdict
+    monkeypatch.setattr(academic_data, "asdict", lambda value: calls.append(1) or original(value))
+    assert source.fingerprint == source.fingerprint == expected
+    assert len(calls) == 1
+    # Conteúdo diferente é outra fonte: nunca herda o snapshot da anterior.
+    changed = replace(source, workloads=source.workloads[:1])
+    assert changed.fingerprint != expected and len(calls) == 2
+    assert replace(source) == source and replace(source).fingerprint == expected
+
+
 def test_group_comparison_reproduces_qp_and_general_and_other_group_pairs() -> None:
     source = load_fixture("SINT-A")
     result = calculate(AnalysisKind.COMPARISON, source, FILTERS)

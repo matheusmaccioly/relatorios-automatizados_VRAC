@@ -60,7 +60,7 @@ analítica ou visual.
 A configuração compartilhada usa `server.fileWatcherType=auto`, para observar
 mudanças nos módulos importados. Os atalhos locais podem continuar desativando
 essa observação por argumento de linha de comando. A versão do pacote nesta
-entrega é `0.1.8`, consistente em `pyproject.toml` e `uv.lock`.
+entrega é `0.1.9`, consistente em `pyproject.toml` e `uv.lock`.
 
 A [documentação de configuração do Streamlit](https://docs.streamlit.io/develop/api-reference/configuration/config.toml)
 explica que `none` desativa a observação de arquivos. A mudança no arquivo de
@@ -79,7 +79,7 @@ a identificação JUR ainda requer conferência e não foi convertida em outra s
 
 A publicação não amplia permissões nem recarrega o lote. Validar com Matheus e
 Talita a consulta autenticada, os filtros e as exportações no ambiente web.
-O cabeçalho contém o atributo técnico `data-vrac-release="0.1.8"` para conferir
+O cabeçalho contém o atributo técnico `data-vrac-release="0.1.9"` para conferir
 a versão efetivamente renderizada, sem exibir informações internas.
 
 ## Centros e departamentos nas análises institucionais
@@ -162,3 +162,10 @@ muitas categorias deitadas, com o nome inteiro. Séries com mais de 48 meses e l
 mais de 12 categorias saem em partes, uma por página do PDF, na mesma escala. Análise sem
 cartões (alunos institucionais) traz o primeiro gráfico na página de resultados; listas
 longas de filtros não abrem páginas em branco. Sem mudança de schema, dados ou permissões.
+
+## Telas de Docentes mais rápidas com muitos registros — versão 0.1.9
+
+A aba Carga horária dos professores parecia não calcular: a identificação do snapshot era
+recalculada sobre todas as linhas várias vezes a cada clique. Agora é calculada uma vez
+por leitura da base, com o mesmo valor. Vale para as demais análises de Docentes. Sem
+mudança de cálculo, schema, dados ou permissões.

@@ -2,7 +2,7 @@
 
 import hashlib
 import json
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import date, datetime
 
 from vrac.analyses.faculty_overview import FacultySource
@@ -126,10 +126,22 @@ class AcademicSource:
     policy: SimulationPolicy = SimulationPolicy()
     available: frozenset[str] = frozenset()
     errors: tuple[str, ...] = ()
+    # Guarda o snapshot já calculado; fora da comparação, do construtor e do próprio hash.
+    _fingerprint: str | None = field(default=None, init=False, repr=False, compare=False)
 
     @property
     def fingerprint(self) -> str:
-        payload = asdict(self)
-        payload["available"] = sorted(self.available)
-        encoded = json.dumps(payload, sort_keys=True, default=str, ensure_ascii=False)
-        return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+        """Identidade do conteúdo, calculada uma vez: a fonte é imutável.
+
+        A tela consulta este valor várias vezes por execução; percorrer de novo todas as
+        linhas a cada consulta deixava as telas com muitos registros sem resposta.
+        """
+        if self._fingerprint is None:
+            payload = asdict(self)
+            del payload["_fingerprint"]
+            payload["available"] = sorted(self.available)
+            encoded = json.dumps(payload, sort_keys=True, default=str, ensure_ascii=False)
+            object.__setattr__(
+                self, "_fingerprint", hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+            )
+        return self._fingerprint
